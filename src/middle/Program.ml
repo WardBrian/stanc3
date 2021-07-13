@@ -22,12 +22,11 @@ type io_block = Parameters | TransformedParameters | GeneratedQuantities
 (** Transformations (constraints) for global variable declarations *)
 type 'e transformation =
   | Identity
-  | Lower of 'e
-  | Upper of 'e
-  | LowerUpper of 'e * 'e
-  | Offset of 'e
-  | Multiplier of 'e
-  | OffsetMultiplier of 'e * 'e
+  | LUOM of
+      { lower: 'e option
+      ; upper: 'e option
+      ; offset: 'e option
+      ; multiplier: 'e option }
   | Ordered
   | PositiveOrdered
   | Simplex
@@ -161,21 +160,21 @@ module Labelled = struct
   let t_of_sexp = t_of_sexp Expr.Labelled.t_of_sexp Stmt.Labelled.t_of_sexp
 
   (* let label ?(init = 0) (prog : Typed.t) : t =
-    let incr_label =
+     let incr_label =
       State.(get >>= fun label -> put (label + 1) >>= fun _ -> return label)
-    in
-    let f {Expr.Typed.Meta.adlevel; type_; loc} =
+     in
+     let f {Expr.Typed.Meta.adlevel; type_; loc} =
       incr_label
       |> State.map ~f:(fun label ->
              Expr.Labelled.Meta.create ~type_ ~loc ~adlevel ~label () )
-    and g loc =
+     and g loc =
       incr_label
       |> State.map ~f:(fun label -> Stmt.Labelled.Meta.create ~loc ~label ())
-    in
-    Traversable_state.traverse prog
+     in
+     Traversable_state.traverse prog
       ~f:(Traversable_expr_state.traverse ~f)
       ~g:(Traversable_stmt_state.traverse ~f ~g)
-    |> State.run_state ~init |> fst *)
+     |> State.run_state ~init |> fst *)
 
   let empty =
     { Stmt.Labelled.exprs= Label.Int_label.Map.empty

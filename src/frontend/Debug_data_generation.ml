@@ -42,9 +42,10 @@ let gen_num_int m t =
   let def_low, diff = (2, 4) in
   let low, up =
     match t with
-    | Program.Lower e -> (unwrap_int_exn m e, unwrap_int_exn m e + diff)
-    | Upper e -> (unwrap_int_exn m e - diff, unwrap_int_exn m e)
-    | LowerUpper (e1, e2) -> (unwrap_int_exn m e1, unwrap_int_exn m e2)
+    | Program.LUOM {lower= Some e1; upper= Some e2; _} ->
+        (unwrap_int_exn m e1, unwrap_int_exn m e2)
+    | LUOM {lower= Some e; _} -> (unwrap_int_exn m e, unwrap_int_exn m e + diff)
+    | LUOM {upper= Some e; _} -> (unwrap_int_exn m e - diff, unwrap_int_exn m e)
     | _ -> (def_low, def_low + diff)
   in
   let low = if low = 0 && up <> 1 then low + 1 else low in
@@ -54,9 +55,12 @@ let gen_num_real m t =
   let def_low, diff = (2., 5.) in
   let low, up =
     match t with
-    | Program.Lower e -> (unwrap_num_exn m e, unwrap_num_exn m e +. diff)
-    | Upper e -> (unwrap_num_exn m e -. diff, unwrap_num_exn m e)
-    | LowerUpper (e1, e2) -> (unwrap_num_exn m e1, unwrap_num_exn m e2)
+    | Program.LUOM {lower= Some e1; upper= Some e2; _} ->
+        (unwrap_num_exn m e1, unwrap_num_exn m e2)
+    | LUOM {lower= Some e; _} ->
+        (unwrap_num_exn m e, unwrap_num_exn m e +. diff)
+    | LUOM {upper= Some e; _} ->
+        (unwrap_num_exn m e -. diff, unwrap_num_exn m e)
     | _ -> (def_low, def_low +. diff)
   in
   Random.float_range low up
@@ -108,7 +112,11 @@ let gen_row_vector m n t =
     let create_bounds l u =
       wrap_row_vector
         (List.map2_exn
-           ~f:(fun x y -> gen_real m (Program.LowerUpper (x, y)))
+           ~f:(fun x y ->
+             gen_real m
+               (Program.LUOM
+                  {lower= Some x; upper= Some y; offset= None; multiplier= None})
+             )
            l u)
     in
     match (e1, e2) with
@@ -143,17 +151,29 @@ let gen_row_vector m n t =
               (e2 : (typed_expr_meta, fun_kind) expr_with)]
   in
   match t with
-  | Program.Lower ({emeta= {type_= UVector | URowVector; _}; _} as e) ->
-      gen_bounded (fun x -> Program.Lower x) (extract_var e)
-  | Program.Upper ({emeta= {type_= UVector | URowVector; _}; _} as e) ->
-      gen_bounded (fun x -> Program.Upper x) (extract_var e)
-  | Program.LowerUpper
-      ( ({emeta= {type_= UVector | URowVector | UReal | UInt; _}; _} as e1)
-      , ({emeta= {type_= UVector | URowVector; _}; _} as e2) )
-   |Program.LowerUpper
-      ( ({emeta= {type_= UVector | URowVector; _}; _} as e1)
-      , ({emeta= {type_= UReal | UInt; _}; _} as e2) ) ->
+  | Program.LUOM
+      { lower=
+          Some
+            ({emeta= {type_= UVector | URowVector | UReal | UInt; _}; _} as e1)
+      ; upper= Some ({emeta= {type_= UVector | URowVector; _}; _} as e2); _ }
+   |LUOM
+      { lower= Some ({emeta= {type_= UVector | URowVector; _}; _} as e1)
+      ; upper= Some ({emeta= {type_= UReal | UInt; _}; _} as e2); _ } ->
       gen_ul_bounded (extract_var e1) (extract_var e2)
+  | LUOM {lower= Some ({emeta= {type_= UVector | URowVector; _}; _} as e); _}
+    ->
+      gen_bounded
+        (fun x ->
+          Program.LUOM
+            {lower= Some x; upper= None; offset= None; multiplier= None} )
+        (extract_var e)
+  | LUOM {upper= Some ({emeta= {type_= UVector | URowVector; _}; _} as e); _}
+    ->
+      gen_bounded
+        (fun x ->
+          Program.LUOM
+            {lower= None; upper= Some x; offset= None; multiplier= None} )
+        (extract_var e)
   | _ ->
       { expr= RowVectorExpr (repeat_th n (fun _ -> gen_real m t))
       ; emeta= {loc= Location_span.empty; ad_level= DataOnly; type_= UMatrix}

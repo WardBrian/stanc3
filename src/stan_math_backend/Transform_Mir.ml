@@ -169,32 +169,40 @@ let constraint_to_string t (c : constrainaction) =
   | CholeskyCov -> Some "cholesky_factor_cov"
   | Correlation -> Some "corr_matrix"
   | Covariance -> Some "cov_matrix"
-  | Lower _ -> (
-    match c with
-    | Check -> Some "greater_or_equal"
-    | Constrain | Unconstrain -> Some "lb" )
-  | Upper _ -> (
-    match c with
-    | Check -> Some "less_or_equal"
-    | Constrain | Unconstrain -> Some "ub" )
-  | LowerUpper _ -> (
-    match c with
-    | Check ->
-        raise_s
-          [%message "LowerUpper is really two other checks tied together"]
-    | Constrain | Unconstrain -> Some "lub" )
-  | Offset _ | Multiplier _ | OffsetMultiplier _ -> (
-    match c with
-    | Check -> None
-    | Constrain | Unconstrain -> Some "offset_multiplier" )
+  | LUOM {lower; upper; offset; multiplier} -> (
+    match (lower, upper, offset, multiplier) with
+    | Some _, Some _, None, None -> (
+      match c with
+      | Check ->
+          raise_s
+            [%message "LowerUpper is really two other checks tied together"]
+      | Constrain | Unconstrain -> Some "lub" )
+    | Some _, None, None, None -> (
+      match c with
+      | Check -> Some "greater_or_equal"
+      | Constrain | Unconstrain -> Some "lb" )
+    | None, Some _, None, None -> (
+      match c with
+      | Check -> Some "less_or_equal"
+      | Constrain | Unconstrain -> Some "ub" )
+    | None, None, Some _, Some _
+     |None, None, Some _, None
+     |None, None, None, Some _ -> (
+      match c with
+      | Check -> None
+      | Constrain | Unconstrain -> Some "offset_multiplier" )
+    | _ -> failwith "TODO Currently impossible" )
   | Identity -> None
 
 let default_multiplier = 1
 let default_offset = 0
 
 let transform_args = function
-  | Program.Offset offset -> [offset; Expr.Helpers.int default_multiplier]
-  | Multiplier multiplier -> [Expr.Helpers.int default_offset; multiplier]
+  (* TODO *)
+  | Program.LUOM {offset= Some offset; multiplier= None; _} ->
+      [offset; Expr.Helpers.int default_multiplier]
+  | Program.LUOM {multiplier= Some multiplier; offset= None; _} ->
+      [Expr.Helpers.int default_offset; multiplier]
   | transform ->
       Program.fold_transformation (fun args arg -> args @ [arg]) [] transform
 

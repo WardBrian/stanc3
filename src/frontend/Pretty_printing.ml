@@ -173,14 +173,21 @@ and pp_sizedtype ppf = function
 
 and pp_transformation ppf = function
   | Middle.Program.Identity -> Fmt.pf ppf ""
-  | Lower e -> Fmt.pf ppf "<lower=%a>" pp_expression e
-  | Upper e -> Fmt.pf ppf "<upper=%a>" pp_expression e
-  | LowerUpper (e1, e2) ->
-      Fmt.pf ppf "<lower=%a, upper=%a>" pp_expression e1 pp_expression e2
-  | Offset e -> Fmt.pf ppf "<offset=%a>" pp_expression e
-  | Multiplier e -> Fmt.pf ppf "<multiplier=%a>" pp_expression e
-  | OffsetMultiplier (e1, e2) ->
+  | Middle.Program.LUOM
+      {lower= Some e1; upper= Some e2; offset= Some e3; multiplier= Some e4} ->
+      Fmt.pf ppf "<offset=%a, multiplier=%a, lower=%a, upper=%a>" pp_expression
+        e1 pp_expression e2 pp_expression e3 pp_expression e4
+  (* TODO MANY MORE CASES*)
+  | LUOM {offset= Some e1; multiplier= Some e2; _} ->
       Fmt.pf ppf "<offset=%a, multiplier=%a>" pp_expression e1 pp_expression e2
+  | LUOM {lower= Some e1; upper= Some e2; _} ->
+      Fmt.pf ppf "<lower=%a, upper=%a>" pp_expression e1 pp_expression e2
+  | LUOM {lower= Some e; _} -> Fmt.pf ppf "<lower=%a>" pp_expression e
+  | LUOM {upper= Some e; _} -> Fmt.pf ppf "<upper=%a>" pp_expression e
+  | LUOM {offset= Some e; _} -> Fmt.pf ppf "<offset=%a>" pp_expression e
+  | LUOM {multiplier= Some e; _} ->
+      Fmt.pf ppf "<multiplier=%a>" pp_expression e
+  | LUOM _ -> Fmt.pf ppf ""
   | Ordered -> Fmt.pf ppf ""
   | PositiveOrdered -> Fmt.pf ppf ""
   | Simplex -> Fmt.pf ppf ""
@@ -231,8 +238,7 @@ and pp_transformed_type ppf (pst, trans) =
   match trans with
   | Middle.Program.Identity ->
       Fmt.pf ppf "%a%a" unsizedtype_fmt () sizes_fmt ()
-  | Lower _ | Upper _ | LowerUpper _ | Offset _ | Multiplier _
-   |OffsetMultiplier _ ->
+  | LUOM _ ->
       Fmt.pf ppf "%a%a%a" unsizedtype_fmt () pp_transformation trans sizes_fmt
         ()
   | Ordered -> Fmt.pf ppf "ordered%a" sizes_fmt ()
@@ -261,7 +267,7 @@ and pp_indent_unless_block ppf s =
 (* This function helps write chained if-then-else-if-... blocks
  * correctly. Without it, each IfThenElse would trigger a new
  * vbox in front of the if, adding spaces for each level of IfThenElse.
- *)
+*)
 and pp_recursive_ifthenelse ppf s =
   match s.stmt with
   | IfThenElse (e, s, None) ->

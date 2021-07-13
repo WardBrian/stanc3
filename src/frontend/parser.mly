@@ -443,20 +443,20 @@ range_constraint:
 range:
   | LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression
   | UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression
-    { grammar_logger "lower_upper_range" ; Program.LowerUpper (e1, e2) }
+    { grammar_logger "lower_upper_range" ; Program.LUOM {lower=Some e1; upper=Some e2; offset=None; multiplier=None } }
   | LOWER ASSIGN e=constr_expression
-    {  grammar_logger "lower_range" ; Lower e }
+    {  grammar_logger "lower_range" ; LUOM {lower=Some e; upper=None; offset=None; multiplier=None } }
   | UPPER ASSIGN e=constr_expression
-    { grammar_logger "upper_range" ; Upper e }
+    { grammar_logger "upper_range" ; LUOM {lower=None; upper=Some e; offset=None; multiplier=None  } }
 
 offset_mult:
   | OFFSET ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e2=constr_expression
   | MULTIPLIER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e1=constr_expression
-    { grammar_logger "offset_mult" ; Program.OffsetMultiplier (e1, e2) }
+    { grammar_logger "offset_mult" ; Program.LUOM {lower=None; upper=None; offset=Some e1; multiplier=Some e2} }
   | OFFSET ASSIGN e=constr_expression
-    { grammar_logger "offset" ; Offset e }
+    { grammar_logger "offset" ; LUOM {lower=None; upper=None; offset=Some e; multiplier=None} }
   | MULTIPLIER ASSIGN e=constr_expression
-    { grammar_logger "multiplier" ; Multiplier e }
+    { grammar_logger "multiplier" ; LUOM {lower=None; upper=None; offset=None; multiplier=Some e} }
 
 (* arr_dims:
  *   | ARRAY LBRACK l=separated_nonempty_list(COMMA, expression) RBRACK

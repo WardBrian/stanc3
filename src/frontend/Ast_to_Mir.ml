@@ -208,24 +208,29 @@ let check_constraint_to_string t (c : constrainaction) =
   | CholeskyCov -> Some "cholesky_factor"
   | Correlation -> Some "corr_matrix"
   | Covariance -> Some "cov_matrix"
-  | Lower _ -> (
-    match c with
-    | Check -> Some "greater_or_equal"
-    | Constrain | Unconstrain -> Some "lb" )
-  | Upper _ -> (
-    match c with
-    | Check -> Some "less_or_equal"
-    | Constrain | Unconstrain -> Some "ub" )
-  | LowerUpper _ -> (
-    match c with
-    | Check ->
-        raise_s
-          [%message "LowerUpper is really two other checks tied together"]
-    | Constrain | Unconstrain -> Some "lub" )
-  | Offset _ | Multiplier _ | OffsetMultiplier _ -> (
-    match c with
-    | Check -> None
-    | Constrain | Unconstrain -> Some "offset_multiplier" )
+  | LUOM {lower; upper; offset; multiplier} -> (
+    match (lower, upper, offset, multiplier) with
+    | Some _, Some _, None, None -> (
+      match c with
+      | Check ->
+          raise_s
+            [%message "LowerUpper is really two other checks tied together"]
+      | Constrain | Unconstrain -> Some "lub" )
+    | Some _, None, None, None -> (
+      match c with
+      | Check -> Some "greater_or_equal"
+      | Constrain | Unconstrain -> Some "lb" )
+    | None, Some _, None, None -> (
+      match c with
+      | Check -> Some "less_or_equal"
+      | Constrain | Unconstrain -> Some "ub" )
+    | None, None, Some _, Some _
+     |None, None, Some _, None
+     |None, None, None, Some _ -> (
+      match c with
+      | Check -> None
+      | Constrain | Unconstrain -> Some "offset_multiplier" )
+    | _ -> failwith "TODO Currently impossible" )
   | Identity -> None
 
 let constrain_constraint_to_string t (c : constrainaction) =
@@ -234,9 +239,7 @@ let constrain_constraint_to_string t (c : constrainaction) =
   | _ -> check_constraint_to_string t c
 
 let constraint_forl = function
-  | Program.Identity | Offset _ | Multiplier _ | OffsetMultiplier _ | Lower _
-   |Upper _ | LowerUpper _ ->
-      Stmt.Helpers.for_scalar
+  | Program.Identity | LUOM _ -> Stmt.Helpers.for_scalar
   | Ordered | PositiveOrdered | Simplex | UnitVector | CholeskyCorr
    |CholeskyCov | Correlation | Covariance ->
       Stmt.Helpers.for_eigen
@@ -253,18 +256,19 @@ let same_shape decl_id decl_var id var meta =
         ; meta } ]
 
 let check_transform_shape decl_id decl_var meta = function
-  | Program.Offset e -> same_shape decl_id decl_var "offset" e meta
-  | Multiplier e -> same_shape decl_id decl_var "multiplier" e meta
-  | Lower e -> same_shape decl_id decl_var "lower" e meta
-  | Upper e -> same_shape decl_id decl_var "upper" e meta
-  | OffsetMultiplier (e1, e2) ->
-      same_shape decl_id decl_var "offset" e1 meta
-      @ same_shape decl_id decl_var "multiplier" e2 meta
-  | LowerUpper (e1, e2) ->
+  | Program.LUOM {lower= Some e1; upper= Some e2; _} ->
       same_shape decl_id decl_var "lower" e1 meta
       @ same_shape decl_id decl_var "upper" e2 meta
-  | Covariance | Correlation | CholeskyCov | CholeskyCorr | Ordered
-   |PositiveOrdered | Simplex | UnitVector | Identity ->
+  | LUOM {offset= Some e1; multiplier= Some e2; _} ->
+      same_shape decl_id decl_var "offset" e1 meta
+      @ same_shape decl_id decl_var "multiplier" e2 meta
+  | LUOM {offset= Some e; _} -> same_shape decl_id decl_var "offset" e meta
+  | LUOM {multiplier= Some e; _} ->
+      same_shape decl_id decl_var "multiplier" e meta
+  | LUOM {lower= Some e; _} -> same_shape decl_id decl_var "lower" e meta
+  | LUOM {upper= Some e; _} -> same_shape decl_id decl_var "upper" e meta
+  | LUOM _ (* TODO *) | Covariance | Correlation | CholeskyCov | CholeskyCorr
+   |Ordered | PositiveOrdered | Simplex | UnitVector | Identity ->
       []
 
 let copy_indices indexed (var : Expr.Typed.t) =
@@ -282,19 +286,23 @@ let copy_indices indexed (var : Expr.Typed.t) =
           }
 
 let extract_transform_args var = function
-  | Program.Lower a | Upper a -> [copy_indices var a]
-  | Offset a ->
-      [copy_indices var a; {a with Expr.Fixed.pattern= Lit (Int, "1")}]
-  | Multiplier a -> [{a with pattern= Lit (Int, "0")}; copy_indices var a]
-  | LowerUpper (a1, a2) | OffsetMultiplier (a1, a2) ->
-      [copy_indices var a1; copy_indices var a2]
+  | Program.LUOM {lower; upper; offset; multiplier} -> (
+    match (lower, upper, offset, multiplier) with
+    | Some a1, Some a2, None, None | None, None, Some a1, Some a2 ->
+        [copy_indices var a1; copy_indices var a2]
+    | Some a, None, None, None | None, Some a, None, None ->
+        [copy_indices var a]
+    | None, None, Some a, None ->
+        [copy_indices var a; {a with Expr.Fixed.pattern= Lit (Int, "1")}]
+    | None, None, None, Some a ->
+        [{a with pattern= Lit (Int, "0")}; copy_indices var a]
+    | _ -> failwith "TODO currently impossible" )
   | Covariance | Correlation | CholeskyCov | CholeskyCorr | Ordered
    |PositiveOrdered | Simplex | UnitVector | Identity ->
       []
 
 let extra_constraint_args st = function
-  | Program.Lower _ | Upper _ | Offset _ | Multiplier _ | LowerUpper _
-   |OffsetMultiplier _ | Ordered | PositiveOrdered | Simplex | UnitVector
+  | Program.LUOM _ | Ordered | PositiveOrdered | Simplex | UnitVector
    |Identity ->
       []
   | Covariance | Correlation | CholeskyCorr ->
@@ -323,11 +331,7 @@ let param_size transform sizedtype =
     Expr.Helpers.(binop (binop k Times (binop k Minus (int 1))) Divide (int 2))
   in
   match transform with
-  | Program.Identity | Lower _ | Upper _
-   |LowerUpper (_, _)
-   |Offset _ | Multiplier _
-   |OffsetMultiplier (_, _)
-   |Ordered | PositiveOrdered | UnitVector ->
+  | Program.Identity | LUOM _ | Ordered | PositiveOrdered | UnitVector ->
       sizedtype
   | Simplex ->
       shrink_eigen (fun d -> Expr.Helpers.(binop d Minus (int 1))) sizedtype
@@ -400,10 +404,15 @@ let constrain_decl st dconstrain t decl_id decl_var smeta =
 let rec check_decl var decl_type' decl_id decl_trans smeta adlevel =
   let decl_type = remove_possibly_exn decl_type' "check" smeta in
   match decl_trans with
-  | Program.Identity | Offset _ | Multiplier _ | OffsetMultiplier (_, _) -> []
-  | LowerUpper (lb, ub) ->
-      check_decl var decl_type' decl_id (Lower lb) smeta adlevel
-      @ check_decl var decl_type' decl_id (Upper ub) smeta adlevel
+  | Program.Identity -> []
+  | LUOM {lower= Some lb; upper= Some ub; offset; multiplier} ->
+      check_decl var decl_type' decl_id
+        (LUOM {lower= Some lb; upper= None; offset; multiplier})
+        smeta adlevel
+      @ check_decl var decl_type' decl_id
+          (LUOM {lower= None; upper= Some ub; offset; multiplier})
+          smeta adlevel
+  | LUOM {lower= None; upper= None; _} -> []
   | _ -> (
     match check_constraint_to_string decl_trans Check with
     | Some fn ->

@@ -866,33 +866,50 @@ let rec semantic_check_sizedtype cf = function
 (* -- Transformations ------------------------------------------------------- *)
 let semantic_check_transformation cf ut = function
   | Program.Identity -> Validate.ok Program.Identity
-  | Lower e ->
-      semantic_check_expression_of_scalar_or_type cf ut e "Lower bound"
-      |> Validate.map ~f:(fun ue -> Program.Lower ue)
-  | Upper e ->
-      semantic_check_expression_of_scalar_or_type cf ut e "Upper bound"
-      |> Validate.map ~f:(fun ue -> Program.Upper ue)
-  | LowerUpper (e1, e2) ->
+  | LUOM {lower= Some e1; upper= Some e2; _} ->
       let ue1 =
         semantic_check_expression_of_scalar_or_type cf ut e1 "Lower bound"
       and ue2 =
         semantic_check_expression_of_scalar_or_type cf ut e2 "Upper bound"
       in
-      Validate.liftA2 (fun ue1 ue2 -> Program.LowerUpper (ue1, ue2)) ue1 ue2
-  | Offset e ->
-      semantic_check_expression_of_scalar_or_type cf ut e "Offset"
-      |> Validate.map ~f:(fun ue -> Program.Offset ue)
-  | Multiplier e ->
-      semantic_check_expression_of_scalar_or_type cf ut e "Multiplier"
-      |> Validate.map ~f:(fun ue -> Program.Multiplier ue)
-  | OffsetMultiplier (e1, e2) ->
+      Validate.liftA2
+        (fun ue1 ue2 ->
+          Program.LUOM
+            {lower= Some ue1; upper= Some ue2; offset= None; multiplier= None}
+          )
+        ue1 ue2
+  | LUOM {offset= Some e1; multiplier= Some e2; _} ->
       let ue1 = semantic_check_expression_of_scalar_or_type cf ut e1 "Offset"
       and ue2 =
         semantic_check_expression_of_scalar_or_type cf ut e2 "Multiplier"
       in
       Validate.liftA2
-        (fun ue1 ue2 -> Program.OffsetMultiplier (ue1, ue2))
+        (fun ue1 ue2 ->
+          Program.LUOM
+            {lower= None; upper= None; offset= Some ue1; multiplier= Some ue2}
+          )
         ue1 ue2
+  | LUOM {lower= Some e; _} ->
+      semantic_check_expression_of_scalar_or_type cf ut e "Lower bound"
+      |> Validate.map ~f:(fun ue ->
+             Program.LUOM
+               {lower= Some ue; upper= None; offset= None; multiplier= None} )
+  | LUOM {upper= Some e; _} ->
+      semantic_check_expression_of_scalar_or_type cf ut e "Upper bound"
+      |> Validate.map ~f:(fun ue ->
+             Program.LUOM
+               {lower= None; upper= Some ue; offset= None; multiplier= None} )
+  | LUOM {offset= Some e; _} ->
+      semantic_check_expression_of_scalar_or_type cf ut e "Offset"
+      |> Validate.map ~f:(fun ue ->
+             Program.LUOM
+               {lower= None; upper= None; offset= Some ue; multiplier= None} )
+  | LUOM {multiplier= Some e; _} ->
+      semantic_check_expression_of_scalar_or_type cf ut e "Multiplier"
+      |> Validate.map ~f:(fun ue ->
+             Program.LUOM
+               {lower= None; upper= None; offset= None; multiplier= Some ue} )
+  | LUOM _ -> failwith "TODO: Impossible for now"
   | Ordered -> Validate.ok Program.Ordered
   | PositiveOrdered -> Validate.ok Program.PositiveOrdered
   | Simplex -> Validate.ok Program.Simplex
@@ -1522,9 +1539,12 @@ and semantic_check_var_decl_bounds ~loc is_global sized_ty trans =
   let is_real {emeta; _} = emeta.type_ = UReal in
   let is_valid_transformation =
     match trans with
-    | Program.Lower e -> is_real e
-    | Upper e -> is_real e
-    | LowerUpper (e1, e2) -> is_real e1 || is_real e2
+    | Program.LUOM {lower; upper; offset; multiplier} -> (
+      match (lower, upper, offset, multiplier) with
+      | Some e1, Some e2, None, None -> is_real e1 || is_real e2
+      | Some e, None, None, None -> is_real e
+      | None, Some e, None, None -> is_real e
+      | _ -> false (* TODO!! *) )
     | _ -> false
   in
   Validate.(

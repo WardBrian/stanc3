@@ -14082,16 +14082,20 @@
     ((out_unconstrained_st SReal) (out_constrained_st SReal)
      (out_block Parameters)
      (out_trans
-      (Lower
-       ((pattern (Var p_real))
-        (meta ((type_ UReal) (loc <opaque>) (adlevel AutoDiffable))))))))
+      (LUOM
+       (lower
+        (((pattern (Var p_real))
+          (meta ((type_ UReal) (loc <opaque>) (adlevel AutoDiffable))))))
+       (upper ()) (offset ()) (multiplier ())))))
    (p_lower
     ((out_unconstrained_st SReal) (out_constrained_st SReal)
      (out_block Parameters)
      (out_trans
-      (Upper
-       ((pattern (Var p_upper))
-        (meta ((type_ UReal) (loc <opaque>) (adlevel AutoDiffable))))))))
+      (LUOM (lower ())
+       (upper
+        (((pattern (Var p_upper))
+          (meta ((type_ UReal) (loc <opaque>) (adlevel AutoDiffable))))))
+       (offset ()) (multiplier ())))))
    (offset_multiplier
     ((out_unconstrained_st
       (SArray SReal
@@ -14103,11 +14107,13 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters)
      (out_trans
-      (OffsetMultiplier
-       ((pattern (Lit Int 1))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-       ((pattern (Lit Int 2))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM (lower ()) (upper ())
+       (offset
+        (((pattern (Lit Int 1))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (multiplier
+        (((pattern (Lit Int 2))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))))
    (no_offset_multiplier
     ((out_unconstrained_st
       (SArray SReal
@@ -14119,9 +14125,10 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters)
      (out_trans
-      (Multiplier
-       ((pattern (Lit Int 2))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM (lower ()) (upper ()) (offset ())
+       (multiplier
+        (((pattern (Lit Int 2))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))))
    (offset_no_multiplier
     ((out_unconstrained_st
       (SArray SReal
@@ -14133,9 +14140,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters)
      (out_trans
-      (Offset
-       ((pattern (Lit Int 3))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM (lower ()) (upper ())
+       (offset
+        (((pattern (Lit Int 3))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (multiplier ())))))
    (p_real_1d_ar
     ((out_unconstrained_st
       (SArray SReal
@@ -14147,9 +14156,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters)
      (out_trans
-      (Lower
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper ()) (offset ()) (multiplier ())))))
    (p_real_3d_ar
     ((out_unconstrained_st
       (SArray
@@ -14173,9 +14184,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters)
      (out_trans
-      (Lower
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper ()) (offset ()) (multiplier ())))))
    (p_vec
     ((out_unconstrained_st
       (SVector
@@ -14187,9 +14200,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters)
      (out_trans
-      (Lower
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper ()) (offset ()) (multiplier ())))))
    (p_1d_vec
     ((out_unconstrained_st
       (SArray
@@ -14329,11 +14344,14 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters)
      (out_trans
-      (LowerUpper
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-       ((pattern (Lit Int 1))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper
+        (((pattern (Lit Int 1))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (offset ()) (multiplier ())))))
    (p_simplex
     ((out_unconstrained_st
       (SVector
@@ -14595,9 +14613,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters)
      (out_trans
-      (Lower
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper ()) (offset ()) (multiplier ())))))
    (tp_real_3d_ar
     ((out_unconstrained_st
       (SArray
@@ -14621,9 +14641,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters)
      (out_trans
-      (Lower
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper ()) (offset ()) (multiplier ())))))
    (tp_vec
     ((out_unconstrained_st
       (SVector
@@ -14635,9 +14657,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters)
      (out_trans
-      (Upper
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM (lower ())
+       (upper
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (offset ()) (multiplier ())))))
    (tp_1d_vec
     ((out_unconstrained_st
       (SArray
@@ -14777,11 +14801,14 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters)
      (out_trans
-      (LowerUpper
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-       ((pattern (Lit Int 1))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper
+        (((pattern (Lit Int 1))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (offset ()) (multiplier ())))))
    (tp_simplex
     ((out_unconstrained_st
       (SVector
@@ -15042,9 +15069,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block GeneratedQuantities)
      (out_trans
-      (Lower
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper ()) (offset ()) (multiplier ())))))
    (gq_real_3d_ar
     ((out_unconstrained_st
       (SArray
@@ -15068,9 +15097,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block GeneratedQuantities)
      (out_trans
-      (Lower
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper ()) (offset ()) (multiplier ())))))
    (gq_vec
     ((out_unconstrained_st
       (SVector
@@ -15082,9 +15113,11 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block GeneratedQuantities)
      (out_trans
-      (Upper
-       ((pattern (Lit Int 1))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM (lower ())
+       (upper
+        (((pattern (Lit Int 1))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (offset ()) (multiplier ())))))
    (gq_1d_vec
     ((out_unconstrained_st
       (SArray
@@ -15210,11 +15243,14 @@
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block GeneratedQuantities)
      (out_trans
-      (LowerUpper
-       ((pattern (Lit Int 0))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-       ((pattern (Lit Int 1))
-        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+      (LUOM
+       (lower
+        (((pattern (Lit Int 0))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (upper
+        (((pattern (Lit Int 1))
+          (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
+       (offset ()) (multiplier ())))))
    (gq_simplex
     ((out_unconstrained_st
       (SVector

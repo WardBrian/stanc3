@@ -214,13 +214,16 @@ let pp_bijector ppf trans =
   let components =
     match trans with
     | Program.Identity -> []
-    | Lower lb -> [("Exp", []); ("Shift", [lb])]
-    | Upper ub ->
-        [("Exp", []); ("Scale", [Expr.Helpers.float (-1.)]); ("Shift", [ub])]
-    | LowerUpper (lb, ub) -> [("Sigmoid", [lb; ub])]
-    | Offset o -> [("Shift", [o])]
-    | Multiplier m -> [("Scale", [m])]
-    | OffsetMultiplier (o, m) -> [("Scale", [m]); ("Shift", [o])]
+    | LUOM {lower; upper; offset; multiplier} -> (
+      match (lower, upper, offset, multiplier) with
+      | Some lb, Some ub, None, None -> [("Sigmoid", [lb; ub])]
+      | Some lb, None, None, None -> [("Exp", []); ("Shift", [lb])]
+      | None, Some ub, None, None ->
+          [("Exp", []); ("Scale", [Expr.Helpers.float (-1.)]); ("Shift", [ub])]
+      | None, None, Some o, Some m -> [("Scale", [m]); ("Shift", [o])]
+      | None, None, Some o, None -> [("Shift", [o])]
+      | None, None, None, Some m -> [("Scale", [m])]
+      | _ -> failwith "TODO Currently impossible" )
     | CholeskyCorr -> [("CorrelationCholesky", [])]
     | Correlation -> [("CorrelationCholesky", []); ("CholeskyOuterProduct", [])]
     | _ ->

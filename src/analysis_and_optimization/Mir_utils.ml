@@ -45,15 +45,15 @@ let trans_bounds_values (trans : Expr.Typed.t transformation) : bound_values =
     match num_expr_value e with None -> `Nonlit | Some (f, _) -> `Lit f
   in
   match trans with
-  | Lower lower -> {lower= bound_value lower; upper= `None}
-  | Upper upper -> {lower= `None; upper= bound_value upper}
-  | LowerUpper (lower, upper) ->
-      {lower= bound_value lower; upper= bound_value upper}
+  | LUOM {lower= Some l; upper= Some u; _} ->
+      {lower= bound_value l; upper= bound_value u}
+  | LUOM {lower= Some l; _} -> {lower= bound_value l; upper= `None}
+  | LUOM {upper= Some u; _} -> {lower= `None; upper= bound_value u}
   | Simplex -> {lower= `Lit 0.; upper= `Lit 1.}
   | PositiveOrdered -> {lower= `Lit 0.; upper= `None}
   | UnitVector -> {lower= `Lit (-1.); upper= `Lit 1.}
-  | CholeskyCorr | CholeskyCov | Correlation | Covariance | Ordered
-   |Offset _ | Multiplier _ | OffsetMultiplier _ | Identity ->
+  | CholeskyCorr | CholeskyCov | Correlation | Covariance | Ordered | LUOM _
+   |Identity ->
       {lower= `None; upper= `None}
 
 let chop_dist_name (fname : string) : string Option.t =
