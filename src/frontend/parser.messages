@@ -1977,37 +1977,6 @@ program: DATABLOCK LBRACE VECTOR LABRACK OFFSET ASSIGN REALNUMERAL WHILE
 
 Expected "offset = " expression (not containing binary logical operators).
 
-program: DATABLOCK LBRACE VECTOR LABRACK OFFSET ASSIGN TRUNCATE COMMA MULTIPLIER ASSIGN TRUNCATE COMMA
-##
-## Ends in an error in state: 558.
-##
-## constr_expression -> constr_expression . PLUS constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . MINUS constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . TIMES constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . DIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . IDIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . MODULO constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . LDIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . ELTTIMES constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . ELTDIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . HAT constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . ELTPOW constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . TRANSPOSE [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . LBRACK indexes RBRACK [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## offset_mult -> OFFSET ASSIGN constr_expression COMMA MULTIPLIER ASSIGN constr_expression . [ RABRACK ]
-##
-## The known suffix of the stack is as follows:
-## OFFSET ASSIGN constr_expression COMMA MULTIPLIER ASSIGN constr_expression
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 516, spurious reduction of production constr_expression -> identifier
-##
-
-Expected ">" after "multiplier = " expression.
-
 program: DATABLOCK LBRACE VECTOR LABRACK OFFSET ASSIGN TRUNCATE COMMA MULTIPLIER ASSIGN WHILE
 ##
 ## Ends in an error in state: 557.
@@ -2095,37 +2064,6 @@ program: DATABLOCK LBRACE VECTOR LABRACK LOWER ASSIGN REALNUMERAL WHILE
 ##
 
 ">" or ", upper = expression>" (with expression not containing binary logical operators) expected after specifying lower bound for type.
-
-program: DATABLOCK LBRACE VECTOR LABRACK LOWER ASSIGN TRUNCATE COMMA UPPER ASSIGN TRUNCATE COMMA
-##
-## Ends in an error in state: 572.
-##
-## constr_expression -> constr_expression . PLUS constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . MINUS constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . TIMES constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . DIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . IDIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . MODULO constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . LDIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . ELTTIMES constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . ELTDIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . HAT constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . ELTPOW constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . TRANSPOSE [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . LBRACK indexes RBRACK [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## range -> LOWER ASSIGN constr_expression COMMA UPPER ASSIGN constr_expression . [ RABRACK ]
-##
-## The known suffix of the stack is as follows:
-## LOWER ASSIGN constr_expression COMMA UPPER ASSIGN constr_expression
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 516, spurious reduction of production constr_expression -> identifier
-##
-
-Expected ">" after "upper = " expression.
 
 program: DATABLOCK LBRACE VECTOR LABRACK LOWER ASSIGN TRUNCATE COMMA UPPER ASSIGN WHILE
 ##
@@ -9111,37 +9049,6 @@ program: DATABLOCK LBRACE VECTOR LABRACK UPPER ASSIGN TRUNCATE COMMA LOWER ASSIG
 ##
 
 Numerical expression expected after '=' in a lower expression.
-
-program: DATABLOCK LBRACE VECTOR LABRACK UPPER ASSIGN TRUNCATE COMMA LOWER ASSIGN TRUNCATE COMMA
-##
-## Ends in an error in state: 551.
-##
-## constr_expression -> constr_expression . PLUS constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . MINUS constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . TIMES constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . DIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . IDIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . MODULO constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . LDIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . ELTTIMES constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . ELTDIVIDE constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . HAT constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . ELTPOW constr_expression [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . TRANSPOSE [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## constr_expression -> constr_expression . LBRACK indexes RBRACK [ TRANSPOSE TIMES RABRACK PLUS MODULO MINUS LDIVIDE LBRACK IDIVIDE HAT ELTTIMES ELTPOW ELTDIVIDE DIVIDE ]
-## range -> UPPER ASSIGN constr_expression COMMA LOWER ASSIGN constr_expression . [ RABRACK ]
-##
-## The known suffix of the stack is as follows:
-## UPPER ASSIGN constr_expression COMMA LOWER ASSIGN constr_expression
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 516, spurious reduction of production constr_expression -> identifier
-##
-
-Expected '>' after lower expression.
 
 program: DATABLOCK LBRACE VECTOR LABRACK MULTIPLIER ASSIGN REALNUMERAL WHILE
 ##
