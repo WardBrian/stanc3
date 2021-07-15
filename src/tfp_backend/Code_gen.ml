@@ -223,7 +223,7 @@ let pp_bijector ppf trans =
       | None, None, Some o, Some m -> [("Scale", [m]); ("Shift", [o])]
       | None, None, Some o, None -> [("Shift", [o])]
       | None, None, None, Some m -> [("Scale", [m])]
-      | _ -> failwith "TODO Currently impossible" )
+      | _ -> failwith "TODO Currently impossible 4" )
     | CholeskyCorr -> [("CorrelationCholesky", [])]
     | Correlation -> [("CorrelationCholesky", []); ("CholeskyOuterProduct", [])]
     | _ ->

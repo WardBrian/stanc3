@@ -171,6 +171,24 @@ let constraint_to_string t (c : constrainaction) =
   | Covariance -> Some "cov_matrix"
   | LUOM {lower; upper; offset; multiplier} -> (
     match (lower, upper, offset, multiplier) with
+    | Some _, Some _, Some _, Some _
+     |Some _, Some _, None, Some _
+     |Some _, Some _, Some _, None -> (
+      match c with
+      | Check -> raise_s [%message "LowerUpperOffsetMult is really two checks"]
+      | Constrain | Unconstrain -> Some "lub_offset_multiplier" )
+    | Some _, None, Some _, Some _
+     |Some _, None, None, Some _
+     |Some _, None, Some _, None -> (
+      match c with
+      | Check -> Some "greater_or_equal"
+      | Constrain | Unconstrain -> Some "lb_offset_multiplier" )
+    | None, Some _, Some _, Some _
+     |None, Some _, None, Some _
+     |None, Some _, Some _, None -> (
+      match c with
+      | Check -> Some "less_or_equal"
+      | Constrain | Unconstrain -> Some "ub_offset_multiplier" )
     | Some _, Some _, None, None -> (
       match c with
       | Check ->
@@ -191,7 +209,7 @@ let constraint_to_string t (c : constrainaction) =
       match c with
       | Check -> None
       | Constrain | Unconstrain -> Some "offset_multiplier" )
-    | _ -> failwith "TODO Currently impossible" )
+    | None, None, None, None -> None (* should be impossible! *) )
   | Identity -> None
 
 let default_multiplier = 1

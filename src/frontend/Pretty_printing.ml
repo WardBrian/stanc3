@@ -173,21 +173,56 @@ and pp_sizedtype ppf = function
 
 and pp_transformation ppf = function
   | Middle.Program.Identity -> Fmt.pf ppf ""
-  | Middle.Program.LUOM
-      {lower= Some e1; upper= Some e2; offset= Some e3; multiplier= Some e4} ->
-      Fmt.pf ppf "<offset=%a, multiplier=%a, lower=%a, upper=%a>" pp_expression
-        e1 pp_expression e2 pp_expression e3 pp_expression e4
-  (* TODO MANY MORE CASES*)
-  | LUOM {offset= Some e1; multiplier= Some e2; _} ->
-      Fmt.pf ppf "<offset=%a, multiplier=%a>" pp_expression e1 pp_expression e2
-  | LUOM {lower= Some e1; upper= Some e2; _} ->
-      Fmt.pf ppf "<lower=%a, upper=%a>" pp_expression e1 pp_expression e2
-  | LUOM {lower= Some e; _} -> Fmt.pf ppf "<lower=%a>" pp_expression e
-  | LUOM {upper= Some e; _} -> Fmt.pf ppf "<upper=%a>" pp_expression e
-  | LUOM {offset= Some e; _} -> Fmt.pf ppf "<offset=%a>" pp_expression e
-  | LUOM {multiplier= Some e; _} ->
-      Fmt.pf ppf "<multiplier=%a>" pp_expression e
-  | LUOM _ -> Fmt.pf ppf ""
+  | LUOM {lower; upper; offset; multiplier} -> (
+    (* let pp_LUOM_spec ppf (name, spec) =
+        match spec with
+        | Some e -> Fmt.pf ppf "%s=%a" name pp_expression e
+        | None -> ()
+      in
+      let print_specs ppf specs =
+        Fmt.(list ~sep:comma pp_LUOM_spec) ppf specs
+      in
+      Fmt.pf ppf "<%a>" print_specs
+        [ ("offset", offset); ("multiplier", multiplier); ("lower", lower)
+        ; ("upper", upper) ] *)
+    (* 
+    TODO: This could probably be cleaner by building up the string slowly?*)
+    match (lower, upper, offset, multiplier) with
+    | Some e1, Some e2, Some e3, Some e4 ->
+        Fmt.pf ppf "<offset=%a, multiplier=%a, lower=%a, upper=%a>"
+          pp_expression e3 pp_expression e4 pp_expression e1 pp_expression e2
+    | None, Some e1, Some e2, Some e3 ->
+        Fmt.pf ppf "<offset=%a, multiplier=%a, upper=%a>" pp_expression e2
+          pp_expression e3 pp_expression e1
+    | Some e1, None, Some e2, Some e3 ->
+        Fmt.pf ppf "<offset=%a, multiplier=%a, lower=%a>" pp_expression e2
+          pp_expression e3 pp_expression e1
+    | Some e1, Some e2, None, Some e3 ->
+        Fmt.pf ppf "<multiplier=%a, lower=%a, upper=%a>" pp_expression e3
+          pp_expression e1 pp_expression e2
+    | Some e1, Some e2, Some e3, None ->
+        Fmt.pf ppf "<offset=%a, lower=%a, upper=%a>" pp_expression e3
+          pp_expression e1 pp_expression e2
+    | Some e1, Some e2, None, None ->
+        Fmt.pf ppf "<lower=%a, upper=%a>" pp_expression e1 pp_expression e2
+    | None, Some e1, Some e2, None ->
+        Fmt.pf ppf "<offset=%a, upper=%a>" pp_expression e2 pp_expression e1
+    | None, Some e1, None, Some e2 ->
+        Fmt.pf ppf "<multiplier=%a, upper=%a>" pp_expression e2 pp_expression
+          e1
+    | Some e1, None, Some e2, None ->
+        Fmt.pf ppf "<offset=%a, lower=%a>" pp_expression e2 pp_expression e1
+    | Some e1, None, None, Some e2 ->
+        Fmt.pf ppf "<multiplier=%a, lower=%a>" pp_expression e2 pp_expression
+          e1
+    | None, None, Some e1, Some e2 ->
+        Fmt.pf ppf "<offset=%a, multiplier=%a>" pp_expression e1 pp_expression
+          e2
+    | Some e, None, None, None -> Fmt.pf ppf "<lower=%a>" pp_expression e
+    | None, Some e, None, None -> Fmt.pf ppf "<upper=%a>" pp_expression e
+    | None, None, Some e, None -> Fmt.pf ppf "<offset=%a>" pp_expression e
+    | None, None, None, Some e -> Fmt.pf ppf "<multiplier=%a>" pp_expression e
+    | None, None, None, None -> Fmt.pf ppf "" )
   | Ordered -> Fmt.pf ppf ""
   | PositiveOrdered -> Fmt.pf ppf ""
   | Simplex -> Fmt.pf ppf ""

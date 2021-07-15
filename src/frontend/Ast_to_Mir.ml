@@ -210,6 +210,24 @@ let check_constraint_to_string t (c : constrainaction) =
   | Covariance -> Some "cov_matrix"
   | LUOM {lower; upper; offset; multiplier} -> (
     match (lower, upper, offset, multiplier) with
+    | Some _, Some _, Some _, Some _
+     |Some _, Some _, None, Some _
+     |Some _, Some _, Some _, None -> (
+      match c with
+      | Check -> raise_s [%message "LowerUpperOffsetMult is really two checks"]
+      | Constrain | Unconstrain -> Some "lub_offset_multiplier" )
+    | Some _, None, Some _, Some _
+     |Some _, None, None, Some _
+     |Some _, None, Some _, None -> (
+      match c with
+      | Check -> Some "greater_or_equal"
+      | Constrain | Unconstrain -> Some "lb_offset_multiplier" )
+    | None, Some _, Some _, Some _
+     |None, Some _, None, Some _
+     |None, Some _, Some _, None -> (
+      match c with
+      | Check -> Some "less_or_equal"
+      | Constrain | Unconstrain -> Some "ub_offset_multiplier" )
     | Some _, Some _, None, None -> (
       match c with
       | Check ->
@@ -230,7 +248,7 @@ let check_constraint_to_string t (c : constrainaction) =
       match c with
       | Check -> None
       | Constrain | Unconstrain -> Some "offset_multiplier" )
-    | _ -> failwith "TODO Currently impossible" )
+    | None, None, None, None -> None (* should be impossible! *) )
   | Identity -> None
 
 let constrain_constraint_to_string t (c : constrainaction) =
@@ -256,19 +274,55 @@ let same_shape decl_id decl_var id var meta =
         ; meta } ]
 
 let check_transform_shape decl_id decl_var meta = function
-  | Program.LUOM {lower= Some e1; upper= Some e2; _} ->
-      same_shape decl_id decl_var "lower" e1 meta
-      @ same_shape decl_id decl_var "upper" e2 meta
-  | LUOM {offset= Some e1; multiplier= Some e2; _} ->
-      same_shape decl_id decl_var "offset" e1 meta
-      @ same_shape decl_id decl_var "multiplier" e2 meta
-  | LUOM {offset= Some e; _} -> same_shape decl_id decl_var "offset" e meta
-  | LUOM {multiplier= Some e; _} ->
-      same_shape decl_id decl_var "multiplier" e meta
-  | LUOM {lower= Some e; _} -> same_shape decl_id decl_var "lower" e meta
-  | LUOM {upper= Some e; _} -> same_shape decl_id decl_var "upper" e meta
-  | LUOM _ (* TODO *) | Covariance | Correlation | CholeskyCov | CholeskyCorr
-   |Ordered | PositiveOrdered | Simplex | UnitVector | Identity ->
+  | Program.LUOM {lower; upper; offset; multiplier} -> (
+    match (lower, upper, offset, multiplier) with
+    | Some e1, Some e2, Some e3, Some e4 ->
+        same_shape decl_id decl_var "lower" e1 meta
+        @ same_shape decl_id decl_var "upper" e2 meta
+        @ same_shape decl_id decl_var "offset" e3 meta
+        @ same_shape decl_id decl_var "multiplier" e4 meta
+    | None, Some e1, Some e2, Some e3 ->
+        same_shape decl_id decl_var "upper" e1 meta
+        @ same_shape decl_id decl_var "offset" e2 meta
+        @ same_shape decl_id decl_var "multiplier" e3 meta
+    | Some e1, None, Some e2, Some e3 ->
+        same_shape decl_id decl_var "lower" e1 meta
+        @ same_shape decl_id decl_var "offset" e2 meta
+        @ same_shape decl_id decl_var "multiplier" e3 meta
+    | Some e1, Some e2, None, Some e3 ->
+        same_shape decl_id decl_var "lower" e1 meta
+        @ same_shape decl_id decl_var "upper" e2 meta
+        @ same_shape decl_id decl_var "multiplier" e3 meta
+    | Some e1, Some e2, Some e3, None ->
+        same_shape decl_id decl_var "lower" e1 meta
+        @ same_shape decl_id decl_var "upper" e2 meta
+        @ same_shape decl_id decl_var "offset" e3 meta
+    | Some e1, Some e2, None, None ->
+        same_shape decl_id decl_var "lower" e1 meta
+        @ same_shape decl_id decl_var "upper" e2 meta
+    | None, Some e1, Some e2, None ->
+        same_shape decl_id decl_var "upper" e1 meta
+        @ same_shape decl_id decl_var "offset" e2 meta
+    | None, Some e1, None, Some e2 ->
+        same_shape decl_id decl_var "upper" e1 meta
+        @ same_shape decl_id decl_var "multiplier" e2 meta
+    | Some e1, None, Some e2, None ->
+        same_shape decl_id decl_var "lower" e1 meta
+        @ same_shape decl_id decl_var "offset" e2 meta
+    | Some e1, None, None, Some e2 ->
+        same_shape decl_id decl_var "lower" e1 meta
+        @ same_shape decl_id decl_var "multiplier" e2 meta
+    | None, None, Some e1, Some e2 ->
+        same_shape decl_id decl_var "offset" e1 meta
+        @ same_shape decl_id decl_var "multiplier" e2 meta
+    | Some e, None, None, None -> same_shape decl_id decl_var "lower" e meta
+    | None, Some e, None, None -> same_shape decl_id decl_var "upper" e meta
+    | None, None, Some e, None -> same_shape decl_id decl_var "offset" e meta
+    | None, None, None, Some e ->
+        same_shape decl_id decl_var "multiplier" e meta
+    | None, None, None, None -> [] (* should never happen but just in case *) )
+  | Covariance | Correlation | CholeskyCov | CholeskyCorr | Ordered
+   |PositiveOrdered | Simplex | UnitVector | Identity ->
       []
 
 let copy_indices indexed (var : Expr.Typed.t) =
@@ -285,18 +339,37 @@ let copy_indices indexed (var : Expr.Typed.t) =
                   Expr.Helpers.infer_type_of_indexed var.meta.type_ indices }
           }
 
+let offset_mult_from_off var a =
+  [copy_indices var a; {a with Expr.Fixed.pattern= Lit (Int, "1")}]
+
+let offset_mult_from_mult var a =
+  [{a with Expr.Fixed.pattern= Lit (Int, "0")}; copy_indices var a]
+
 let extract_transform_args var = function
   | Program.LUOM {lower; upper; offset; multiplier} -> (
     match (lower, upper, offset, multiplier) with
+    | Some a1, Some a2, Some a3, Some a4 ->
+        [ copy_indices var a1; copy_indices var a2; copy_indices var a3
+        ; copy_indices var a4 ]
+    | Some a1, Some a2, Some a3, None ->
+        [copy_indices var a1; copy_indices var a2]
+        @ offset_mult_from_off var a3
+    | Some a1, Some a2, None, Some a3 ->
+        [copy_indices var a1; copy_indices var a2]
+        @ offset_mult_from_mult var a3
+    | Some a1, None, Some a2, Some a3 | None, Some a1, Some a2, Some a3 ->
+        [copy_indices var a1; copy_indices var a2; copy_indices var a3]
     | Some a1, Some a2, None, None | None, None, Some a1, Some a2 ->
         [copy_indices var a1; copy_indices var a2]
     | Some a, None, None, None | None, Some a, None, None ->
         [copy_indices var a]
-    | None, None, Some a, None ->
-        [copy_indices var a; {a with Expr.Fixed.pattern= Lit (Int, "1")}]
-    | None, None, None, Some a ->
-        [{a with pattern= Lit (Int, "0")}; copy_indices var a]
-    | _ -> failwith "TODO currently impossible" )
+    | Some a1, None, Some a2, None | None, Some a1, Some a2, None ->
+        copy_indices var a1 :: offset_mult_from_off var a2
+    | Some a1, None, None, Some a2 | None, Some a1, None, Some a2 ->
+        copy_indices var a1 :: offset_mult_from_mult var a2
+    | None, None, Some a, None -> offset_mult_from_off var a
+    | None, None, None, Some a -> offset_mult_from_mult var a
+    | None, None, None, None -> [] (* should be impossible*) )
   | Covariance | Correlation | CholeskyCov | CholeskyCorr | Ordered
    |PositiveOrdered | Simplex | UnitVector | Identity ->
       []
