@@ -608,7 +608,7 @@ Syntax error in 'err-decl-no-expression.stan', line 2, column 13 to column 14, p
      4:  model {
    -------------------------------------------------
 
-An expression (not containing binary logical operators) is expected for type lower bound.
+Numerical expression expected after '=' in a lower expression.
   $ ../../../../install/default/bin/stanc err-decl-vector-2.stan
 Syntax error in 'err-decl-vector-2.stan', line 2, column 10 to column 11, parsing error:
    -------------------------------------------------
@@ -2435,17 +2435,6 @@ Semantic error in 'validate_set_double_offset_multiplier_bad2.stan', line 3, col
    -------------------------------------------------
 
 Multiplier must be a scalar. Instead found type vector.
-  $ ../../../../install/default/bin/stanc validate_set_double_offset_multiplier_bad3.stan
-Syntax error in 'validate_set_double_offset_multiplier_bad3.stan', line 2, column 15 to column 25, parsing error:
-   -------------------------------------------------
-     1:  parameters {
-     2:    real<lower=1,multiplier=-31> a;
-                        ^
-     3:    real y;
-     4:  }
-   -------------------------------------------------
-
-"upper =" expression (not containing binary logical operators) ">" expected after "<lower =" expression "," in top-level variable declaration.
   $ ../../../../install/default/bin/stanc validate_set_double_range_lower_bad1.stan
 Semantic error in 'validate_set_double_range_lower_bad1.stan', line 3, column 13 to column 14:
    -------------------------------------------------

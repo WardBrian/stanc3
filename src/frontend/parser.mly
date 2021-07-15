@@ -451,30 +451,90 @@ range:
     { grammar_logger "upper_range" ; LUOM {lower=None; upper=Some e; offset=None; multiplier=None  } }
 
 (* unfortunately no way around the permutation here
- * for brevity and clarity I'm forcing the constraints to be grouped.
- * no 'upper, multiplier, lower' etc
  *)
 nonempty_constraint:
-  | OFFSET ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e2=constr_expression COMMA
-    UPPER ASSIGN e4=constr_expression  COMMA LOWER ASSIGN e3=constr_expression 
-  | OFFSET ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e2=constr_expression COMMA
-    LOWER ASSIGN e3=constr_expression COMMA UPPER ASSIGN e4=constr_expression
-  | LOWER ASSIGN e3=constr_expression COMMA UPPER ASSIGN e4=constr_expression COMMA
-    MULTIPLIER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e1=constr_expression
-  | UPPER ASSIGN e4=constr_expression COMMA LOWER ASSIGN e3=constr_expression COMMA
-    MULTIPLIER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e1=constr_expression
+  | LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression 
+  | LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA OFFSET ASSIGN e3=constr_expression 
+  | LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression 
+  | LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e3=constr_expression 
+  | LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA OFFSET ASSIGN e3=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e3=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
+  | OFFSET ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression 
+  | OFFSET ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | OFFSET ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression 
+  | OFFSET ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
+  | OFFSET ASSIGN e3=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | OFFSET ASSIGN e3=constr_expression COMMA MULTIPLIER ASSIGN e4=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
+  | MULTIPLIER ASSIGN e4=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e3=constr_expression 
+  | MULTIPLIER ASSIGN e4=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | MULTIPLIER ASSIGN e4=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e3=constr_expression 
+  | MULTIPLIER ASSIGN e4=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
+  | MULTIPLIER ASSIGN e4=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | MULTIPLIER ASSIGN e4=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
     { grammar_logger "offset_mult_lower_upper_range" ; 
-      Program.LUOM {lower=Some e3; upper=Some e4; offset=Some e1; multiplier=Some e2}
+      Program.LUOM {lower=Some e1; upper=Some e2; offset=Some e3; multiplier=Some e4}
     }
-  | OFFSET ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e2=constr_expression COMMA UPPER ASSIGN e3=constr_expression
-  | UPPER ASSIGN e3=constr_expression COMMA MULTIPLIER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e1=constr_expression
+  | LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e3=constr_expression 
+  | LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e3=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
+  | OFFSET ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | OFFSET ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression
+    { grammar_logger "offset_lower_upper_range" ; 
+      Program.LUOM {lower=Some e1; upper=Some e2; offset=Some e3; multiplier=None}
+    }
+  | LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression 
+  | LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression 
+  | UPPER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
+  | MULTIPLIER ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression 
+  | MULTIPLIER ASSIGN e3=constr_expression COMMA UPPER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
+    { grammar_logger "mult_lower_upper_range" ; 
+      Program.LUOM {lower=Some e1; upper=Some e2; offset=None; multiplier=Some e3}
+    }
+  | UPPER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression 
+  | UPPER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression COMMA OFFSET ASSIGN e2=constr_expression 
+  | OFFSET ASSIGN e2=constr_expression COMMA UPPER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression 
+  | OFFSET ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression COMMA UPPER ASSIGN e1=constr_expression 
+  | MULTIPLIER ASSIGN e3=constr_expression COMMA UPPER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e2=constr_expression 
+  | MULTIPLIER ASSIGN e3=constr_expression COMMA OFFSET ASSIGN e2=constr_expression COMMA UPPER ASSIGN e1=constr_expression 
     { grammar_logger "offset_mult_upper_range" ; 
-      Program.LUOM {lower=None; upper=Some e3; offset=Some e1; multiplier=Some e2} 
+      Program.LUOM {lower=None; upper=Some e1; offset=Some e2; multiplier=Some e3} 
     }
-  | OFFSET ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e2=constr_expression COMMA LOWER ASSIGN e3=constr_expression
-  | LOWER ASSIGN e3=constr_expression COMMA MULTIPLIER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e1=constr_expression
+  | LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression 
+  | LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression COMMA OFFSET ASSIGN e2=constr_expression 
+  | OFFSET ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression 
+  | OFFSET ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
+  | MULTIPLIER ASSIGN e3=constr_expression COMMA LOWER ASSIGN e1=constr_expression COMMA OFFSET ASSIGN e2=constr_expression 
+  | MULTIPLIER ASSIGN e3=constr_expression COMMA OFFSET ASSIGN e2=constr_expression COMMA LOWER ASSIGN e1=constr_expression 
     { grammar_logger "offset_mult_lower_range" ; 
-      Program.LUOM {lower=Some e3; upper=None; offset=Some e1; multiplier=Some e2} 
+      Program.LUOM {lower=Some e1; upper=None; offset=Some e2; multiplier=Some e3} 
+    }
+  | OFFSET ASSIGN e1=constr_expression COMMA LOWER ASSIGN e2=constr_expression
+  | LOWER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e1=constr_expression
+    { grammar_logger "offset_lower_range" ; 
+      Program.LUOM {lower=Some e2; upper=None; offset=Some e1; multiplier=None} 
+    }
+  | MULTIPLIER ASSIGN e1=constr_expression COMMA LOWER ASSIGN e2=constr_expression
+  | LOWER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e1=constr_expression
+    { grammar_logger "multiplier_lower_range" ; 
+      Program.LUOM {lower=Some e2; upper=None; offset=None; multiplier=Some e1} 
+    }
+  | OFFSET ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression
+  | UPPER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e1=constr_expression
+    { grammar_logger "offset_upper_range" ; 
+      Program.LUOM {lower=None; upper=Some e2; offset=Some e1; multiplier=None} 
+    }
+  | MULTIPLIER ASSIGN e1=constr_expression COMMA UPPER ASSIGN e2=constr_expression
+  | UPPER ASSIGN e2=constr_expression COMMA MULTIPLIER ASSIGN e1=constr_expression
+    { grammar_logger "multiplier_upper_range" ; 
+      Program.LUOM {lower=None; upper=Some e2; offset=None; multiplier=Some e1} 
     }
   | OFFSET ASSIGN e1=constr_expression COMMA MULTIPLIER ASSIGN e2=constr_expression
   | MULTIPLIER ASSIGN e2=constr_expression COMMA OFFSET ASSIGN e1=constr_expression

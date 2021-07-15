@@ -1374,7 +1374,7 @@ Syntax error in 'location-scale-bad1.stan', line 1, column 27 to column 32, pars
                                     ^
    -------------------------------------------------
 
-Expected "offset = " expression (not containing binary logical operators).
+Expected ">" or further constraints such as "multiplier = " expression (not containing binary logical operators) after "offset = " expression.
   $ ../../../../../install/default/bin/stanc location-scale-bad10.stan
 Syntax error in 'location-scale-bad10.stan', line 1, column 27 to column 32, parsing error:
    -------------------------------------------------
@@ -1392,13 +1392,13 @@ Syntax error in 'location-scale-bad11.stan', line 1, column 25 to column 30, par
 
 Expected "=" expression (not containing binary logical operators) ">" after "multiplier".
   $ ../../../../../install/default/bin/stanc location-scale-bad2.stan
-Syntax error in 'location-scale-bad2.stan', line 1, column 40 to column 41, parsing error:
+Syntax error in 'location-scale-bad2.stan', line 1, column 41 to column 42, parsing error:
    -------------------------------------------------
      1:  data { vector<offset = T, multiplier = T,> x;}
-                                                 ^
+                                                  ^
    -------------------------------------------------
 
-Expected ">" after "multiplier = " expression.
+Expected '>' or further constraint expression after multiplier expression.
   $ ../../../../../install/default/bin/stanc location-scale-bad3.stan
 Syntax error in 'location-scale-bad3.stan', line 1, column 39 to column 44, parsing error:
    -------------------------------------------------
@@ -1406,7 +1406,7 @@ Syntax error in 'location-scale-bad3.stan', line 1, column 39 to column 44, pars
                                                 ^
    -------------------------------------------------
 
-Expected "multiplier = " expression (not containing binary logical operators).
+Expected expression (not containing binary logical operators) after "multiplier =".
   $ ../../../../../install/default/bin/stanc location-scale-bad4.stan
 Syntax error in 'location-scale-bad4.stan', line 1, column 38 to column 43, parsing error:
    -------------------------------------------------
@@ -1414,7 +1414,7 @@ Syntax error in 'location-scale-bad4.stan', line 1, column 38 to column 43, pars
                                                ^
    -------------------------------------------------
 
-Expected "multiplier = " expression (not containing binary logical operators).
+Expected "=" expression (not containing binary logical operators) ">" after "multiplier".
   $ ../../../../../install/default/bin/stanc location-scale-bad5.stan
 Syntax error in 'location-scale-bad5.stan', line 1, column 28 to column 33, parsing error:
    -------------------------------------------------
@@ -1422,7 +1422,7 @@ Syntax error in 'location-scale-bad5.stan', line 1, column 28 to column 33, pars
                                      ^
    -------------------------------------------------
 
-Expected ">" or ", multiplier = " expression (not containing binary logical operators) ">" after "offset = " expression.
+Expected ">" or further constraints such as "multiplier = " expression (not containing binary logical operators) after "offset = " expression.
   $ ../../../../../install/default/bin/stanc location-scale-bad6.stan
 Syntax error in 'location-scale-bad6.stan', line 1, column 24 to column 29, parsing error:
    -------------------------------------------------
@@ -1454,7 +1454,7 @@ Syntax error in 'location-scale-bad9.stan', line 1, column 29 to column 30, pars
                                       ^
    -------------------------------------------------
 
-Expected '>' or offset expression after multiplier expression.
+Expected '>' or further constraint expression after multiplier expression.
   $ ../../../../../install/default/bin/stanc mystery1.stan
 Syntax error in 'mystery1.stan', line 1, column 22 to column 23, parsing error:
    -------------------------------------------------
@@ -3085,7 +3085,7 @@ Syntax error in 'transformations-bad15.stan', line 1, column 20 to column 25, pa
                              ^
    -------------------------------------------------
 
-Expression (not containing binary logical operators) expected after "upper =". Ill-formed expression.
+Expected expression (not containing binary logical operators) after "upper = ".
   $ ../../../../../install/default/bin/stanc transformations-bad16.stan
 Syntax error in 'transformations-bad16.stan', line 1, column 20 to column 25, parsing error:
    -------------------------------------------------
@@ -3103,13 +3103,13 @@ Syntax error in 'transformations-bad17.stan', line 1, column 14 to column 19, pa
 
 We expect to see "lower =", "upper =", "offset =" or "multiplier =" followed by an expression after "<".
   $ ../../../../../install/default/bin/stanc transformations-bad2.stan
-Syntax error in 'transformations-bad2.stan', line 1, column 30 to column 31, parsing error:
+Syntax error in 'transformations-bad2.stan', line 1, column 31 to column 32, parsing error:
    -------------------------------------------------
      1:  data { vector<lower=T, upper=T,> x;}
-                                       ^
+                                        ^
    -------------------------------------------------
 
-Expected ">" after "upper = " expression.
+Expected ">" or further constraints such as "multiplier = " expression (not containing binary logical operators) after "offset = " expression.
   $ ../../../../../install/default/bin/stanc transformations-bad3.stan
 Syntax error in 'transformations-bad3.stan', line 1, column 29 to column 34, parsing error:
    -------------------------------------------------
@@ -3133,7 +3133,7 @@ Syntax error in 'transformations-bad5.stan', line 1, column 24 to column 29, par
                                  ^
    -------------------------------------------------
 
-"upper =" expression (not containing binary logical operators) ">" expected after "<lower =" expression "," in top-level variable declaration.
+Further constraint expression expected after "<lower =" expression "," in top-level variable declaration.
   $ ../../../../../install/default/bin/stanc transformations-bad6.stan
 Syntax error in 'transformations-bad6.stan', line 1, column 21 to column 26, parsing error:
    -------------------------------------------------
