@@ -216,6 +216,34 @@ let pp_bijector ppf trans =
     | Program.Identity -> []
     | LUOM {lower; upper; offset; multiplier} -> (
       match (lower, upper, offset, multiplier) with
+      | Some lb, Some ub, Some o, Some m ->
+          [("Sigmoid", [lb; ub]); ("Scale", [m]); ("Shift", [o])]
+      | Some lb, Some ub, Some o, None ->
+          [("Sigmoid", [lb; ub]); ("Shift", [o])]
+      | Some lb, Some ub, None, Some m ->
+          [("Sigmoid", [lb; ub]); ("Scale", [m])]
+      | Some lb, None, Some o, Some m ->
+          [("Exp", []); ("Shift", [lb]); ("Scale", [m]); ("Shift", [o])]
+      | None, Some ub, Some o, Some m ->
+          [ ("Exp", [])
+          ; ("Scale", [Expr.Helpers.float (-1.)])
+          ; ("Shift", [ub])
+          ; ("Scale", [m])
+          ; ("Shift", [o]) ]
+      | Some lb, None, Some o, None ->
+          [("Exp", []); ("Shift", [lb]); ("Shift", [o])]
+      | Some lb, None, None, Some m ->
+          [("Exp", []); ("Shift", [lb]); ("Scale", [m])]
+      | None, Some ub, Some o, None ->
+          [ ("Exp", [])
+          ; ("Scale", [Expr.Helpers.float (-1.)])
+          ; ("Shift", [ub])
+          ; ("Shift", [o]) ]
+      | None, Some ub, None, Some m ->
+          [ ("Exp", [])
+          ; ("Scale", [Expr.Helpers.float (-1.)])
+          ; ("Shift", [ub])
+          ; ("Scale", [m]) ]
       | Some lb, Some ub, None, None -> [("Sigmoid", [lb; ub])]
       | Some lb, None, None, None -> [("Exp", []); ("Shift", [lb])]
       | None, Some ub, None, None ->
@@ -223,7 +251,7 @@ let pp_bijector ppf trans =
       | None, None, Some o, Some m -> [("Scale", [m]); ("Shift", [o])]
       | None, None, Some o, None -> [("Shift", [o])]
       | None, None, None, Some m -> [("Scale", [m])]
-      | _ -> failwith "TODO Currently impossible 4" )
+      | None, None, None, None -> [] )
     | CholeskyCorr -> [("CorrelationCholesky", [])]
     | Correlation -> [("CorrelationCholesky", []); ("CholeskyOuterProduct", [])]
     | _ ->
