@@ -22,38 +22,7 @@ open Middle
 open Fmt
 open Expression_gen
 open Statement_gen
-
-(* TODO: move to seperate file and code gen more like this with a structured type *)
-type template =
-  | Typename of string
-  | Require of string * string
-  | Bool of string
-
-let pp_template ppf template =
-  match template with
-  | Typename t -> pf ppf "typename %s" t
-  | Require (r, t) -> pf ppf "%s<%s>*" r t
-  | Bool s -> pf ppf "bool %s" s
-
-let pp_template_defaults ppf template =
-  match template with
-  | Require _ -> pf ppf "%a = nullptr" pp_template template
-  | _ -> pp_template ppf template
-
-let pp_templates ~defaults ppf templates =
-  match templates with
-  | [] -> ()
-  | _ ->
-      pf ppf "template <@[%a@]>@ "
-        (list ~sep:comma
-           (if defaults then pp_template_defaults else pp_template) )
-        templates
-
-type found_functor =
-  { struct_template: template option
-  ; arg_templates: template list
-  ; signature: string
-  ; defn: string }
+open Cpp
 
 let standalone_functions = ref false
 
