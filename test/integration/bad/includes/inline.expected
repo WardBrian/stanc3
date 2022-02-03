@@ -1,0 +1,40 @@
+This holds technically valid Stan programs which use #include directives in
+strange ways.
+
+The current expectation is that they will work correctly in `inline.expected`
+and fail in `stanc.expected`. If they begin passing both places, they should
+be moved to `test/integration/cli-args/canonicalize/include`.
+
+  $ ../../../../../install/default/bin/stanc --auto-format --canonicalize=includes --include-paths="." else.stan
+generated quantities {
+  int x;
+  if (1) 
+  
+    if (1) 
+      ;
+    else {
+      x = 25;
+    }
+}
+
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format --canonicalize=includes --include-paths="." expr.stan
+model {
+  1 ~ bernoulli(0);
+}
+
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format --canonicalize=includes --include-paths="." if.stan
+generated quantities {
+  int x;
+  if (1) 
+    x = 3;
+  
+  // else in other file
+  
+  else {
+    x = 25;
+  }
+}
+
+[exit 0]

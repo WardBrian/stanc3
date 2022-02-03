@@ -9,7 +9,6 @@ type t =
   | DebugDataError of (Middle.Location_span.t * string)
 
 let get_context ?code Middle.Location.{filename; included_from; _} =
-  Option.try_with @@ fun () ->
   match (included_from, code) with
   | None, Some code ->
       (* If the location is not included from anywhere, and we
@@ -27,10 +26,10 @@ let get_context ?code Middle.Location.{filename; included_from; _} =
           String.split_lines (Map.find_exn m filename))
 
 let pp_context ?code ppf loc =
-  let context =
-    get_context ?code loc
-    |> Option.map ~f:(fun lines -> (loc, Array.of_list lines)) in
-  (Fmt.option Middle.Location.pp_context_for) ppf context
+  try
+    Middle.Location.pp_context_for ppf
+      (loc, Array.of_list (get_context ?code loc))
+  with _ -> ()
 
 let red = Fmt.(styled `Bold (styled (`Fg `Red) string))
 

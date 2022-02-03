@@ -1,0 +1,7 @@
+This holds technically valid Stan programs which use #include directives in
+strange ways.
+
+The current expectation is that they will work correctly in `inline.expected`
+and fail in `stanc.expected`. If they begin passing both places, they should
+be moved to `test/integration/cli-args/canonicalize/include`.
+
