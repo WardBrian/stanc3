@@ -1,0 +1,212 @@
+This holds technically valid Stan programs which use #include directives in
+strange ways.
+
+The current expectation is that they will work correctly in `inline.expected`
+and fail in `stanc.expected`. If they begin passing both places, they should
+be moved to `test/integration/cli-args/canonicalize/include`.
+
+  $ ../../../../../install/default/bin/stanc --auto-format --include-paths="." else.stan
+Uncaught exception:
+  
+  ("Fatal error: this should never happen. Please file a bug on https://github.com/stan-dev/stanc3/issues/new and include the model that caused this issue."
+   ("Pretty-printed program does match the original!"
+    (prog
+     ((functionblock ()) (datablock ()) (transformeddatablock ())
+      (parametersblock ()) (transformedparametersblock ()) (modelblock ())
+      (generatedquantitiesblock
+       (((stmts
+          (((stmt
+             (VarDecl (decl_type SInt) (transformation Identity)
+              (is_global true)
+              (variables
+               (((identifier ((name x) (id_loc <opaque>)))
+                 (initial_value ()))))))
+            (smeta ((loc <opaque>))))
+           ((stmt
+             (IfThenElse ((expr (IntNumeral 1)) (emeta ((loc <opaque>))))
+              ((stmt
+                (IfThenElse ((expr (IntNumeral 1)) (emeta ((loc <opaque>))))
+                 ((stmt Skip) (smeta ((loc <opaque>))))
+                 (((stmt
+                    (Block
+                     (((stmt
+                        (Assignment
+                         (assign_lhs
+                          ((lval (LVariable ((name x) (id_loc <opaque>))))
+                           (lmeta ((loc <opaque>)))))
+                         (assign_op Assign)
+                         (assign_rhs
+                          ((expr (IntNumeral 25)) (emeta ((loc <opaque>)))))))
+                       (smeta ((loc <opaque>)))))))
+                   (smeta ((loc <opaque>)))))))
+               (smeta ((loc <opaque>))))
+              ()))
+            (smeta ((loc <opaque>))))))
+         (xloc
+          ((begin_loc
+            ((filename else.stan) (line_num 1) (col_num 0)
+             (included_from ())))
+           (end_loc
+            ((filename else.stan) (line_num 8) (col_num 1)
+             (included_from ()))))))))
+      (comments <opaque>)))
+    (result_ast
+     ((functionblock ()) (datablock ()) (transformeddatablock ())
+      (parametersblock ()) (transformedparametersblock ()) (modelblock ())
+      (generatedquantitiesblock
+       (((stmts
+          (((stmt
+             (VarDecl (decl_type SInt) (transformation Identity)
+              (is_global true)
+              (variables
+               (((identifier ((name x) (id_loc <opaque>)))
+                 (initial_value ()))))))
+            (smeta ((loc <opaque>))))
+           ((stmt
+             (IfThenElse ((expr (IntNumeral 1)) (emeta ((loc <opaque>))))
+              ((stmt
+                (IfThenElse ((expr (IntNumeral 1)) (emeta ((loc <opaque>))))
+                 ((stmt Skip) (smeta ((loc <opaque>)))) ()))
+               (smeta ((loc <opaque>))))
+              ()))
+            (smeta ((loc <opaque>))))
+           ((stmt
+             (IfThenElse ((expr (IntNumeral 1)) (emeta ((loc <opaque>))))
+              ((stmt Skip) (smeta ((loc <opaque>))))
+              (((stmt
+                 (Block
+                  (((stmt
+                     (Assignment
+                      (assign_lhs
+                       ((lval (LVariable ((name x) (id_loc <opaque>))))
+                        (lmeta ((loc <opaque>)))))
+                      (assign_op Assign)
+                      (assign_rhs
+                       ((expr (IntNumeral 25)) (emeta ((loc <opaque>)))))))
+                    (smeta ((loc <opaque>)))))))
+                (smeta ((loc <opaque>)))))))
+            (smeta ((loc <opaque>))))))
+         (xloc
+          ((begin_loc
+            ((filename string) (line_num 1) (col_num 0) (included_from ())))
+           (end_loc
+            ((filename string) (line_num 7) (col_num 1) (included_from ()))))))))
+      (comments <opaque>)))))
+
+Raised at Base__Error.raise in file "src/error.ml" (inlined), line 8, characters 14-30
+Called from Base__Error.raise_s in file "src/error.ml", line 9, characters 19-40
+Called from Frontend__Pretty_printing.pretty_print_program in file "src/frontend/Pretty_printing.ml", line 560, characters 2-44
+Called from Dune__exe__Stanc.use_file in file "src/stanc/stanc.ml", line 305, characters 6-273
+Called from Dune__exe__Stanc in file "src/stanc/stanc.ml", line 428, characters 9-16
+  $ ../../../../../install/default/bin/stanc --auto-format --include-paths="." expr.stan
+Uncaught exception:
+  
+  ("Fatal error: this should never happen. Please file a bug on https://github.com/stan-dev/stanc3/issues/new and include the model that caused this issue."
+   ("Pretty-printed program failed to parse"
+     "Syntax error in './expr.inc', line 1, column 12, included from\
+    \n'string', line 2, column 16, parsing error:\
+    \n   -------------------------------------------------\
+    \n     1:  bernoulli(0);\
+    \n                     ^\
+    \n   -------------------------------------------------\
+    \n\
+    \nIll-formed phrase. Found an expression. This can be followed by a \",\", a \"}\", a \")\", a \"]\", a \"[\" or an infix or postfix operator.\
+    \n"
+    (prog
+     ((functionblock ()) (datablock ()) (transformeddatablock ())
+      (parametersblock ()) (transformedparametersblock ())
+      (modelblock
+       (((stmts
+          (((stmt
+             (Tilde (arg ((expr (IntNumeral 1)) (emeta ((loc <opaque>)))))
+              (distribution ((name bernoulli) (id_loc <opaque>)))
+              (args (((expr (IntNumeral 0)) (emeta ((loc <opaque>))))))
+              (truncation NoTruncate)))
+            (smeta ((loc <opaque>))))))
+         (xloc
+          ((begin_loc
+            ((filename expr.stan) (line_num 1) (col_num 0)
+             (included_from ())))
+           (end_loc
+            ((filename expr.stan) (line_num 3) (col_num 24)
+             (included_from ()))))))))
+      (generatedquantitiesblock ()) (comments <opaque>)))
+     "model {\
+    \n  1 ~ bernoulli(#include expr.inc\
+    \n                0);\
+    \n}\
+    \n"))
+
+Raised at Base__Error.raise in file "src/error.ml" (inlined), line 8, characters 14-30
+Called from Base__Error.raise_s in file "src/error.ml", line 9, characters 19-40
+Called from Frontend__Pretty_printing.check_correctness in file "src/frontend/Pretty_printing.ml", line 539, characters 8-185
+Called from Frontend__Pretty_printing.pretty_print_program in file "src/frontend/Pretty_printing.ml", line 560, characters 2-44
+Called from Dune__exe__Stanc.use_file in file "src/stanc/stanc.ml", line 305, characters 6-273
+Called from Dune__exe__Stanc in file "src/stanc/stanc.ml", line 428, characters 9-16
+  $ ../../../../../install/default/bin/stanc --auto-format --include-paths="." if.stan
+Uncaught exception:
+  
+  ("Fatal error: this should never happen. Please file a bug on https://github.com/stan-dev/stanc3/issues/new and include the model that caused this issue."
+   ("Pretty-printed program failed to parse"
+     "Syntax error in 'string', line 6, column 2 to column 6, parsing error:\
+    \nIll-formed block. Expected a statement, variable declaration, or just \"}\".\
+    \n"
+    (prog
+     ((functionblock ()) (datablock ()) (transformeddatablock ())
+      (parametersblock ()) (transformedparametersblock ()) (modelblock ())
+      (generatedquantitiesblock
+       (((stmts
+          (((stmt
+             (VarDecl (decl_type SInt) (transformation Identity)
+              (is_global true)
+              (variables
+               (((identifier ((name x) (id_loc <opaque>)))
+                 (initial_value ()))))))
+            (smeta ((loc <opaque>))))
+           ((stmt
+             (IfThenElse ((expr (IntNumeral 1)) (emeta ((loc <opaque>))))
+              ((stmt
+                (Assignment
+                 (assign_lhs
+                  ((lval (LVariable ((name x) (id_loc <opaque>))))
+                   (lmeta ((loc <opaque>)))))
+                 (assign_op Assign)
+                 (assign_rhs
+                  ((expr (IntNumeral 3)) (emeta ((loc <opaque>)))))))
+               (smeta ((loc <opaque>))))
+              (((stmt
+                 (Block
+                  (((stmt
+                     (Assignment
+                      (assign_lhs
+                       ((lval (LVariable ((name x) (id_loc <opaque>))))
+                        (lmeta ((loc <opaque>)))))
+                      (assign_op Assign)
+                      (assign_rhs
+                       ((expr (IntNumeral 25)) (emeta ((loc <opaque>)))))))
+                    (smeta ((loc <opaque>)))))))
+                (smeta ((loc <opaque>)))))))
+            (smeta ((loc <opaque>))))))
+         (xloc
+          ((begin_loc
+            ((filename if.stan) (line_num 1) (col_num 0) (included_from ())))
+           (end_loc
+            ((filename if.stan) (line_num 6) (col_num 19) (included_from ()))))))))
+      (comments <opaque>)))
+     "generated quantities {\
+    \n  int x;\
+    \n  if (1) \
+    \n    x = 3;\
+    \n  #include else.inc\
+    \n  else {\
+    \n    \
+    \n  }\
+    \n}\
+    \n"))
+
+Raised at Base__Error.raise in file "src/error.ml" (inlined), line 8, characters 14-30
+Called from Base__Error.raise_s in file "src/error.ml", line 9, characters 19-40
+Called from Frontend__Pretty_printing.check_correctness in file "src/frontend/Pretty_printing.ml", line 539, characters 8-185
+Called from Frontend__Pretty_printing.pretty_print_program in file "src/frontend/Pretty_printing.ml", line 560, characters 2-44
+Called from Dune__exe__Stanc.use_file in file "src/stanc/stanc.ml", line 305, characters 6-273
+Called from Dune__exe__Stanc in file "src/stanc/stanc.ml", line 428, characters 9-16
