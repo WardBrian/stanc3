@@ -1,8 +1,10 @@
 (library
  (name frontend)
  (public_name stanc.frontend)
- (libraries core_kernel re menhirLib fmt middle common yojson)
- (inline_tests)
+ (libraries core_kernel re menhirLib fmt middle common common_io yojson)
+ (inline_tests
+  ; we need to specify an implementation of the virtual library for testing
+  (libraries caml_io))
  (preprocess
   (pps ppx_jane ppx_deriving.fold ppx_deriving.map)))
 

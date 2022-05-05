@@ -1,0 +1,5 @@
+(library
+ (name caml_io)
+ (public_name stanc.caml_io)
+ (libraries core_kernel)
+ (implements common_io))

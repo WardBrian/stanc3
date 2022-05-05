@@ -1,0 +1,7 @@
+(library
+ (name json_io)
+ (public_name stanc.json_io)
+ (libraries js_of_ocaml core_kernel)
+ (preprocess
+  (pps js_of_ocaml-ppx ppx_jane))
+ (implements common_io))

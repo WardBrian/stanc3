@@ -1,0 +1,4 @@
+(library
+ (name common_io)
+ (public_name stanc.common_io)
+ (virtual_modules reader))

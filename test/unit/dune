@@ -5,7 +5,8 @@
   frontend
   stan_math_backend
   middle
-  analysis_and_optimization)
+  analysis_and_optimization
+  caml_io)
  (inline_tests)
  (preprocess
   (pps ppx_jane ppx_deriving.map ppx_deriving.fold)))
