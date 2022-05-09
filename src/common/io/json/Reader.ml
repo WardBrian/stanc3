@@ -16,12 +16,17 @@ let require_module s =
     (Js.Unsafe.js_expr "require")
     [|Js.Unsafe.inject (Js.string s)|]
 
+let maybe_fs : fs Js.t option =
+  try require_module "fs" |> Option.some with _ -> None
+
 let try_process_file (callback : string -> 'a) fname =
-  try
-    let fs : fs Js.t = require_module "fs" in
-    (fs##readFileSync (Js.string fname))##toString
-    |> Js.to_string |> callback |> Option.some
-  with _ -> None
+  Option.value_map
+    ~f:(fun fs ->
+      try
+        (fs##readFileSync (Js.string fname))##toString
+        |> Js.to_string |> callback |> Option.some
+      with _ -> None )
+    ~default:None maybe_fs
 
 let read_lines = try_process_file String.split_lines
 let lexbuf_of = try_process_file Lexing.from_string
