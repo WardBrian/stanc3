@@ -15,6 +15,9 @@ cross:
 static:
 	dune build src/stanc/stanc.exe --profile static
 
+js:
+	dune build src/stancjs/stancjs.bc
+
 clean:
 	dune clean
 

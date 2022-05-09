@@ -1,0 +1,10 @@
+$ node basic-io.js
+
+$ node includes.js
+parameters {
+  real y;
+}
+model {
+  y ~ std_normal();
+}
+

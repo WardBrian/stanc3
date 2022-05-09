@@ -1,0 +1,18 @@
+(rule
+ (targets stancjs.output)
+ (deps
+  ../../../src/stancjs/stancjs.bc.js
+  (:jsfiles
+   (glob_files *.js))
+  (:stanfiles
+   (glob_files *.stan*))
+  ../utils/utils.js)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run %{bin:run_js_on_args} %{jsfiles}))))
+
+(rule
+ (alias runjstest)
+ (action
+  (diff stancjs.expected stancjs.output)))
