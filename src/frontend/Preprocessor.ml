@@ -64,7 +64,7 @@ let rec try_open_in paths fname pos =
               (Middle.Location.to_string
                  (Middle.Location.of_position_exn
                     (Stack.top_exn include_stack).lex_start_p ) ) )
-      | _ -> try_open_in rest_of_paths fname pos )
+      | None -> try_open_in rest_of_paths fname pos )
 
 let maybe_remove_quotes str =
   let open String in
