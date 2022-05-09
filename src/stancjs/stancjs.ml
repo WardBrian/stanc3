@@ -58,7 +58,6 @@ let stan2cpp model_name parse_fn model is_flag_set flag_val =
                       Canonicalize.{settings with deprecations= true}
                   | "parentheses" -> {settings with parentheses= true}
                   | "braces" -> {settings with braces= true}
-                  (* this probably never applies to stancjs, but for completion: *)
                   | "includes" -> {settings with inline_includes= true}
                   | _ -> settings in
                 List.fold ~f:parse ~init:Canonicalize.none
@@ -201,6 +200,8 @@ let stan2cpp_io_wrapped filename flags =
   let name =
     flag_val "name" |> Option.value ~default:(remove_dotstan filename ^ "_model")
   in
+  Preprocessor.include_paths :=
+    flag_val "include-paths" |> Option.value ~default:"" |> String.split ~on:',' ;
   let result, warnings, pedantic_mode_warnings =
     stan2cpp name Parse.parse_file filename is_flag_set flag_val in
   let warnings =
