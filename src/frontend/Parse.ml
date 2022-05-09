@@ -68,15 +68,11 @@ let parse_string parse_fun str =
   parse parse_fun lexbuf
 
 let parse_file parse_fun path =
-  let chan =
-    try Ok (In_channel.create path) with _ -> Error (Errors.FileNotFound path)
-  in
-  match chan with
-  | Error err -> (Error err, [])
-  | Ok chan ->
+  match Common_io.Reader.lexbuf_of path with
+  | None -> (Error (Errors.FileNotFound path), [])
+  | Some lexbuf ->
       let lexbuf =
         let open Lexing in
-        let lexbuf = from_channel chan in
         lexbuf.lex_start_p <-
           {pos_fname= path; pos_lnum= 1; pos_bol= 0; pos_cnum= 0} ;
         lexbuf.lex_curr_p <- lexbuf.lex_start_p ;

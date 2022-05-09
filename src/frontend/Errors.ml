@@ -27,7 +27,8 @@ let pp_context_with_message ?code ppf (msg, loc) =
   let context_callback =
     match code with
     | Some s -> fun () -> String.split_lines s
-    | None -> fun () -> Common_io.Reader.read loc.filename |> Option.value_exn
+    | None ->
+        fun () -> Common_io.Reader.read_lines loc.filename |> Option.value_exn
   in
   Fmt.pf ppf "%a@,%s" (Fmt.option Fmt.string)
     (context_to_string context_callback loc)
