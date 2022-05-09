@@ -19,7 +19,7 @@ let warn_uninitialized_msgs (uninit_vars : (Location_span.t * string) Set.Poly.t
   in
   Set.Poly.(to_list (map filtered_uninit_vars ~f:show_var_info))
 
-let stan2cpp model_name model_string is_flag_set flag_val =
+let stan2cpp model_name parse_fn model is_flag_set flag_val =
   Common.Gensym.reset_danger_use_cautiously () ;
   Typechecker.model_name := model_name ;
   Typechecker.check_that_all_functions_have_definition :=
@@ -32,8 +32,8 @@ let stan2cpp model_name model_string is_flag_set flag_val =
         r.return (Result.Ok (Fmt.str "%s" version), [], []) ;
       let ast, parser_warnings =
         if is_flag_set "functions-only" then
-          Parse.parse_string Parser.Incremental.functions_only model_string
-        else Parse.parse_string Parser.Incremental.program model_string in
+          parse_fn Parser.Incremental.functions_only model
+        else parse_fn Parser.Incremental.program model in
       let open Result.Monad_infix in
       let result =
         ast
@@ -143,7 +143,7 @@ let stan2cpp model_name model_string is_flag_set flag_val =
           (Result.Ok cpp, warnings, pedantic_mode_warnings)
       | Result.Error _ as e -> (e, parser_warnings, []) )
 
-let wrap_result ?printed_filename ~code ~warnings = function
+let wrap_result ?printed_filename ?code ~warnings = function
   | Result.Ok s ->
       Js.Unsafe.obj
         [| ("result", Js.Unsafe.inject (Js.string s))
@@ -154,13 +154,13 @@ let wrap_result ?printed_filename ~code ~warnings = function
   | Error e ->
       let e =
         Fmt.str "%a"
-          (Errors.pp ?printed_filename ?code:(Some (Js.to_string code)))
+          (Errors.pp ?printed_filename ?code:(Option.map ~f:Js.to_string code))
           e in
       Js.Unsafe.obj
         [| ("errors", Js.Unsafe.inject (Array.map ~f:Js.string [|e|]))
          ; ("warnings", Js.Unsafe.inject Js.array_empty) |]
 
-let stan2cpp_wrapped name code (flags : Js.string_array Js.t Js.opt) =
+let process_flags (flags : Js.string_array Js.t Js.opt) =
   let flags =
     let to_ocaml_str_array a =
       Js.(str_array a |> to_array |> Array.map ~f:to_string) in
@@ -176,14 +176,38 @@ let stan2cpp_wrapped name code (flags : Js.string_array Js.t Js.opt) =
       >>= fun flags ->
       Array.find flags ~f:(String.is_prefix ~prefix)
       >>= String.chop_prefix ~prefix) in
+  (is_flag_set, flag_val)
+
+let stan2cpp_wrapped name code flags =
+  let is_flag_set, flag_val = process_flags flags in
   let printed_filename = flag_val "filename-in-msg" in
   let result, warnings, pedantic_mode_warnings =
-    stan2cpp (Js.to_string name) (Js.to_string code) is_flag_set flag_val in
+    stan2cpp (Js.to_string name) Parse.parse_string (Js.to_string code)
+      is_flag_set flag_val in
   let warnings =
     List.map
       ~f:(Fmt.str "%a" (Warnings.pp ?printed_filename))
       (warnings @ pedantic_mode_warnings) in
-  wrap_result ?printed_filename ~code result ~warnings
+  wrap_result ?printed_filename ?code:(Some code) result ~warnings
+
+let remove_dotstan s =
+  if String.is_suffix ~suffix:".stanfunctions" s then String.drop_suffix s 14
+  else String.drop_suffix s 5
+
+let stan2cpp_io_wrapped filename flags =
+  let is_flag_set, flag_val = process_flags flags in
+  let printed_filename = flag_val "filename-in-msg" in
+  let filename = Js.to_string filename in
+  let name =
+    flag_val "name" |> Option.value ~default:(remove_dotstan filename ^ "_model")
+  in
+  let result, warnings, pedantic_mode_warnings =
+    stan2cpp name Parse.parse_file filename is_flag_set flag_val in
+  let warnings =
+    List.map
+      ~f:(Fmt.str "%a" (Warnings.pp ?printed_filename))
+      (warnings @ pedantic_mode_warnings) in
+  wrap_result ?printed_filename result ~warnings
 
 let dump_stan_math_signatures () =
   Js.string @@ Fmt.str "%a" Stan_math_signatures.pretty_print_all_math_sigs ()
@@ -195,4 +219,5 @@ let dump_stan_math_distributions () =
 let () =
   Js.export "dump_stan_math_signatures" dump_stan_math_signatures ;
   Js.export "dump_stan_math_distributions" dump_stan_math_distributions ;
+  Js.export "stanc_io" stan2cpp_io_wrapped ;
   Js.export "stanc" stan2cpp_wrapped
