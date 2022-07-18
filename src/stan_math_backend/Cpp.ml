@@ -1,11 +1,5 @@
 open! Core_kernel
 
-type template_parameter =
-  | Typename of string  (** The name of a template typename *)
-  | Require of string * string
-      (** A C++ type trait and the name which needs to satisfy that *)
-  | Bool of string  (** A named boolean template type *)
-
 type identifier = string
 
 type expr =
@@ -26,6 +20,15 @@ type type_ =
   | Class of identifier
   | Matrix of type_ * int * int
   | TypeTrait of string * type_ list
+      (** e.g. stan::promote_scalar, stan:base_type *)
+
+module Types = struct
+  let local_scalar = Class "local_scalar_t__"
+  let complex s = Complex s
+  let vector s = Matrix (s, -1, 1)
+  let row_vector s = Matrix (s, 1, -1)
+  let matrix s = Matrix (s, -1, -1)
+end
 
 type var_defn =
   { const: bool [@default false]
@@ -43,15 +46,23 @@ type stmt =
   | Block of stmt list
   | Comment of string
 
-type return_ty = Type of type_ | Void
+type template_parameter =
+  | Typename of string  (** The name of a template typename *)
+  | Require of string * string
+      (** A C++ type trait and the name which needs to satisfy that *)
+  | Bool of string  (** A named boolean template type *)
+
+type return_ty =
+  | Type of
+      {type_: type_; inline: bool [@default false]; const: bool [@default false]}
+  | Void
 
 type fun_defn =
-  { inline: bool [@default false]
-  ; const: bool [@default false]
-  ; templates: template_parameter list [@default []]
+  { templates: template_parameter list [@default []]
   ; name: identifier
   ; return_type: return_ty
   ; args: type_ * string list
+  ; const: bool [@default false]
   ; body: stmt list option }
 [@@deriving make]
 
