@@ -41,9 +41,10 @@ let (!=) = Stdlib.(!=)
        BREAK "break" CONTINUE "continue" PROFILE "profile"
 %token VOID "void" INT "int" REAL "real" COMPLEX "complex" VECTOR "vector"
        ROWVECTOR "row_vector" ARRAY "array" MATRIX "matrix" ORDERED "ordered"
+       COMPLEXVECTOR "complex_vector" COMPLEXROWVECTOR "complex_row_vector"
        POSITIVEORDERED "positive_ordered" SIMPLEX "simplex" UNITVECTOR "unit_vector"
        CHOLESKYFACTORCORR "cholesky_factor_corr" CHOLESKYFACTORCOV "cholesky_factor_cov"
-       CORRMATRIX "corr_matrix" COVMATRIX "cov_matrix"
+       CORRMATRIX "corr_matrix" COVMATRIX "cov_matrix" COMPLEXMATRIX "complex_matrix"
 %token LOWER "lower" UPPER "upper" OFFSET "offset" MULTIPLIER "multiplier"
 %token <string> INTNUMERAL "24"
 %token <string> REALNUMERAL "3.1415"
@@ -143,33 +144,32 @@ function_block:
 data_block:
   | DATABLOCK LBRACE tvd=list(top_var_decl_no_assign) RBRACE
     { grammar_logger "data_block" ;
-      {stmts= List.concat tvd; xloc= Location_span.of_positions_exn $loc} }
+      {stmts= tvd; xloc= Location_span.of_positions_exn $loc} }
 
 transformed_data_block:
   | TRANSFORMEDDATABLOCK LBRACE tvds=list(top_vardecl_or_statement) RBRACE
     { grammar_logger "transformed_data_block" ;
-      {stmts= List.concat tvds; xloc= Location_span.of_positions_exn $loc} }
-    (* NOTE: this allows mixing of statements and top_var_decls *)
+      {stmts= tvds; xloc= Location_span.of_positions_exn $loc} }
 
 parameters_block:
   | PARAMETERSBLOCK LBRACE tvd=list(top_var_decl_no_assign) RBRACE
     { grammar_logger "parameters_block" ;
-      {stmts= List.concat tvd; xloc= Location_span.of_positions_exn $loc} }
+      {stmts= tvd; xloc= Location_span.of_positions_exn $loc} }
 
 transformed_parameters_block:
   | TRANSFORMEDPARAMETERSBLOCK LBRACE tvds=list(top_vardecl_or_statement) RBRACE
     { grammar_logger "transformed_parameters_block" ;
-      {stmts= List.concat tvds; xloc= Location_span.of_positions_exn $loc} }
+      {stmts= tvds; xloc= Location_span.of_positions_exn $loc} }
 
 model_block:
   | MODELBLOCK LBRACE vds=list(vardecl_or_statement) RBRACE
     { grammar_logger "model_block" ;
-      {stmts= List.concat vds; xloc= Location_span.of_positions_exn $loc} }
+      {stmts= vds; xloc= Location_span.of_positions_exn $loc} }
 
 generated_quantities_block:
   | GENERATEDQUANTITIESBLOCK LBRACE tvds=list(top_vardecl_or_statement) RBRACE
     { grammar_logger "generated_quantities_block" ;
-      {stmts= List.concat tvds; xloc= Location_span.of_positions_exn $loc} }
+      {stmts= tvds; xloc= Location_span.of_positions_exn $loc} }
 
 (* function definitions *)
 identifier:
@@ -216,6 +216,9 @@ reserved_word:
   | VECTOR { build_id "vector" $loc }
   | ROWVECTOR { build_id "row_vector" $loc }
   | MATRIX { build_id "matrix" $loc }
+  | COMPLEXVECTOR { build_id "complex_vector" $loc }
+  | COMPLEXROWVECTOR { build_id "complex_row_vector" $loc }
+  | COMPLEXMATRIX { build_id "complex_matrix" $loc }
   | ORDERED { build_id "ordered" $loc }
   | POSITIVEORDERED { build_id "positive_ordered" $loc }
   | SIMPLEX { build_id "simplex" $loc }
@@ -277,6 +280,12 @@ basic_type:
     {  grammar_logger "basic_type ROWVECTOR" ; UnsizedType.URowVector }
   | MATRIX
     {  grammar_logger "basic_type MATRIX" ; UnsizedType.UMatrix }
+  | COMPLEXVECTOR
+    {  grammar_logger "basic_type COMPLEXVECTOR" ; UnsizedType.UComplexVector }
+  | COMPLEXROWVECTOR
+    {  grammar_logger "basic_type COMPLEXROWVECTOR" ; UnsizedType.UComplexRowVector }
+  | COMPLEXMATRIX
+    {  grammar_logger "basic_type COMPLEXMATRIX" ; UnsizedType.UComplexMatrix }
 
 unsized_dims:
   | LBRACK cs=list(COMMA) RBRACK
@@ -295,8 +304,8 @@ optional_assignment(rhs):
     { Option.map ~f:snd rhs_opt }
 
 id_and_optional_assignment(rhs):
-  | id=decl_identifier rhs_opt=optional_assignment(rhs)
-    { (id, rhs_opt) }
+  | identifier=decl_identifier initial_value=optional_assignment(rhs)
+    { Ast.{identifier; initial_value} }
 
 (*
  * All rules for declaration statements.
@@ -325,18 +334,19 @@ decl(type_rule, rhs):
       SEMICOLON
     { Input_warnings.array_syntax $loc;
       (fun ~is_global ->
-      [{ stmt=
+      { stmt=
           VarDecl {
-              decl_type= Sized (reducearray (fst ty, dims))
+              decl_type= (reducearray (fst ty, dims))
             ; transformation= snd ty
-            ; identifier= id
-            ; initial_value= rhs_opt
+            ; variables= [ { identifier= id
+                           ; initial_value= rhs_opt
+                           } ]
             ; is_global
             }
       ; smeta= {
           loc= Location_span.of_positions_exn $loc
         }
-    }])
+    })
     }
 
   (* This rule matches non-array declarations and also the new array syntax, e.g:
@@ -349,19 +359,17 @@ decl(type_rule, rhs):
     { (fun ~is_global ->
       let dims = Option.value ~default:[] dims_opt
       in
-      List.map vs ~f:(fun (id, rhs_opt) ->
-          { stmt=
-              VarDecl {
-                  decl_type= Sized (reducearray (fst ty, dims))
-                ; transformation= snd ty
-                ; identifier= id
-                ; initial_value= rhs_opt
-                ; is_global
-                }
-          ; smeta= {
-              loc= Location_span.of_positions_exn $sloc
+      { stmt=
+          VarDecl {
+              decl_type= (reducearray (fst ty, dims))
+            ; transformation= snd ty
+            ; variables=vs
+            ; is_global
             }
-          })
+      ; smeta= {
+          loc= Location_span.of_positions_exn $sloc
+        }
+      }
     )}
 
 var_decl:
@@ -383,10 +391,9 @@ top_var_decl_no_assign:
     }
   | SEMICOLON
     { grammar_logger "top_var_decl_no_assign_skip";
-      [ { stmt= Skip
-        ; smeta= { loc= Location_span.of_positions_exn $loc
-        }
-      }]
+      { stmt= Skip
+      ; smeta= { loc= Location_span.of_positions_exn $loc }
+      }
     }
 
 sized_basic_type:
@@ -397,11 +404,17 @@ sized_basic_type:
   | COMPLEX
     { grammar_logger "COMPLEX_var_type" ; (SizedType.SComplex, Identity) }
   | VECTOR LBRACK e=expression RBRACK
-    { grammar_logger "VECTOR_var_type" ; (SizedType.SVector (Common.Helpers.AoS, e), Identity) }
+    { grammar_logger "VECTOR_var_type" ; (SizedType.SVector (Mem_pattern.AoS, e), Identity) }
   | ROWVECTOR LBRACK e=expression RBRACK
     { grammar_logger "ROWVECTOR_var_type" ; (SizedType.SRowVector (AoS, e) , Identity) }
   | MATRIX LBRACK e1=expression COMMA e2=expression RBRACK
     { grammar_logger "MATRIX_var_type" ; (SizedType.SMatrix (AoS, e1, e2), Identity) }
+  | COMPLEXVECTOR LBRACK e=expression RBRACK
+    { grammar_logger "COMPLEXVECTOR_var_type" ; (SizedType.SComplexVector e, Identity) }
+  | COMPLEXROWVECTOR LBRACK e=expression RBRACK
+    { grammar_logger "COMPLEXROWVECTOR_var_type" ; (SizedType.SComplexRowVector e , Identity) }
+  | COMPLEXMATRIX LBRACK e1=expression COMMA e2=expression RBRACK
+    { grammar_logger "COMPLEXMATRIX_var_type" ; (SizedType.SComplexMatrix (e1, e2), Identity) }
 
 top_var_type:
   | INT r=range_constraint
@@ -416,6 +429,12 @@ top_var_type:
     { grammar_logger "ROWVECTOR_top_var_type" ; (SRowVector (AoS, e), c) }
   | MATRIX c=type_constraint LBRACK e1=expression COMMA e2=expression RBRACK
     { grammar_logger "MATRIX_top_var_type" ; (SMatrix (AoS, e1, e2), c) }
+  | COMPLEXVECTOR c=type_constraint LBRACK e=expression RBRACK
+    { grammar_logger "COMPLEXVECTOR_top_var_type" ; (SComplexVector e, c) }
+  | COMPLEXROWVECTOR c=type_constraint LBRACK e=expression RBRACK
+    { grammar_logger "COMPLEXROWVECTOR_top_var_type" ; (SComplexRowVector e, c) }
+  | COMPLEXMATRIX c=type_constraint LBRACK e1=expression COMMA e2=expression RBRACK
+    { grammar_logger "COMPLEXMATRIX_top_var_type" ; (SComplexMatrix (e1, e2), c) }
   | ORDERED LBRACK e=expression RBRACK
     { grammar_logger "ORDERED_top_var_type" ; (SVector (AoS, e), Ordered) }
   | POSITIVEORDERED LBRACK e=expression RBRACK
@@ -754,14 +773,14 @@ truncation:
        | None, None -> NoTruncate  }
 
 nested_statement:
-  | IF LPAREN e=expression RPAREN s1=statement ELSE s2=statement
+  | IF LPAREN e=expression RPAREN s1=vardecl_or_statement ELSE s2=vardecl_or_statement
     {  grammar_logger "ifelse_statement" ; IfThenElse (e, s1, Some s2) }
-  | IF LPAREN e=expression RPAREN s=statement %prec below_ELSE
+  | IF LPAREN e=expression RPAREN s=vardecl_or_statement %prec below_ELSE
     {  grammar_logger "if_statement" ; IfThenElse (e, s, None) }
-  | WHILE LPAREN e=expression RPAREN s=statement
+  | WHILE LPAREN e=expression RPAREN s=vardecl_or_statement
     {  grammar_logger "while_statement" ; While (e, s) }
   | FOR LPAREN id=identifier IN e1=expression COLON e2=expression RPAREN
-    s=statement
+    s=vardecl_or_statement
     {
       grammar_logger "for_statement" ;
       For {loop_variable= id;
@@ -769,22 +788,22 @@ nested_statement:
            upper_bound= e2;
            loop_body= s;}
     }
-  | FOR LPAREN id=identifier IN e=expression RPAREN s=statement
+  | FOR LPAREN id=identifier IN e=expression RPAREN s=vardecl_or_statement
     {  grammar_logger "foreach_statement" ; ForEach (id, e, s) }
   | PROFILE LPAREN st=string_literal RPAREN LBRACE l=list(vardecl_or_statement) RBRACE
-    {  grammar_logger "profile_statement" ; Profile (st, List.concat l) }
+    {  grammar_logger "profile_statement" ; Profile (st, l) }
   | LBRACE l=list(vardecl_or_statement)  RBRACE
-    {  grammar_logger "block_statement" ; Block (List.concat l) } (* NOTE: I am choosing to allow mixing of statements and var_decls *)
+    {  grammar_logger "block_statement" ; Block l } (* NOTE: I am choosing to allow mixing of statements and var_decls *)
 
 (* statement or var decls *)
 vardecl_or_statement:
   | s=statement
-    { grammar_logger "vardecl_or_statement_statement" ; [s] }
+    { grammar_logger "vardecl_or_statement_statement" ; s }
   | v=var_decl
     { grammar_logger "vardecl_or_statement_vardecl" ; v }
 
 top_vardecl_or_statement:
   | s=statement
-    { grammar_logger "top_vardecl_or_statement_statement" ; [s] }
+    { grammar_logger "top_vardecl_or_statement_statement" ; s }
   | v=top_var_decl
     { grammar_logger "top_vardecl_or_statement_top_vardecl" ; v }

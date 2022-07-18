@@ -3,11 +3,7 @@ open Ast
 open Deprecation_analysis
 
 type canonicalizer_settings =
-  { deprecations: bool
-  ; parentheses: bool
-  ; braces: bool
-  ; (* TODO: NYI. Really for the pretty printer but it makes sense to live here *)
-    inline_includes: bool }
+  {deprecations: bool; parentheses: bool; braces: bool; inline_includes: bool}
 
 let all =
   {deprecations= true; parentheses= true; inline_includes= true; braces= true}
@@ -39,12 +35,6 @@ let rec replace_deprecated_expr
   let expr =
     match expr with
     | GetLP -> GetTarget
-    | FunApp (StanLib FnPlain, {name= "abs"; id_loc}, [e])
-      when Middle.UnsizedType.is_real_type e.emeta.type_ ->
-        FunApp
-          ( StanLib FnPlain
-          , {name= "fabs"; id_loc}
-          , [replace_deprecated_expr deprecated_userdefined e] )
     | FunApp (StanLib FnPlain, {name= "if_else"; _}, [c; t; e]) ->
         Paren
           (replace_deprecated_expr deprecated_userdefined
@@ -85,11 +75,38 @@ let rec replace_deprecated_expr
               , {name; id_loc}
               , List.map ~f:(replace_deprecated_expr deprecated_userdefined) e
               ) )
+    | PrefixOp (PNot, e) ->
+        PrefixOp
+          (PNot, replace_boolean_real ~parens:true deprecated_userdefined e)
+    | BinOp (e1, ((And | Or) as op), e2) ->
+        BinOp
+          ( replace_boolean_real ~parens:true deprecated_userdefined e1
+          , op
+          , replace_boolean_real ~parens:true deprecated_userdefined e2 )
     | _ ->
         map_expression
           (replace_deprecated_expr deprecated_userdefined)
           ident expr in
   {expr; emeta}
+
+and replace_boolean_real ?(parens = false) deprecated_userdefined e =
+  match e with
+  | {emeta= {type_= UReal; _}; _} when parens ->
+      { emeta= {e.emeta with type_= UInt}
+      ; expr=
+          Paren (replace_boolean_real ~parens:false deprecated_userdefined e) }
+  | {emeta= {type_= UReal; _}; _} ->
+      { emeta= {e.emeta with type_= UInt}
+      ; expr=
+          BinOp
+            ( replace_deprecated_expr deprecated_userdefined e
+            , NEquals
+            , { expr= RealNumeral "0.0"
+              ; emeta=
+                  { type_= UInt
+                  ; loc= Middle.Location_span.empty
+                  ; ad_level= DataOnly } } ) }
+  | _ -> replace_deprecated_expr deprecated_userdefined e
 
 let replace_deprecated_lval deprecated_userdefined {lval; lmeta} =
   let is_multiindex = function
@@ -136,6 +153,16 @@ let rec replace_deprecated_stmt
           ; funname= {name= newname; id_loc}
           ; arguments
           ; body= replace_deprecated_stmt deprecated_userdefined body }
+    | IfThenElse (({emeta= {type_= UReal; _}; _} as cond), ifb, elseb) ->
+        IfThenElse
+          ( replace_boolean_real deprecated_userdefined cond
+          , replace_deprecated_stmt deprecated_userdefined ifb
+          , Option.map ~f:(replace_deprecated_stmt deprecated_userdefined) elseb
+          )
+    | While (({emeta= {type_= UReal; _}; _} as cond), body) ->
+        While
+          ( replace_boolean_real deprecated_userdefined cond
+          , replace_deprecated_stmt deprecated_userdefined body )
     | _ ->
         map_statement
           (replace_deprecated_expr deprecated_userdefined)
@@ -150,6 +177,10 @@ let rec no_parens {expr; emeta} =
   | Variable _ | IntNumeral _ | RealNumeral _ | ImagNumeral _ | GetLP
    |GetTarget ->
       {expr; emeta}
+  | BinOp (({expr= BinOp (_, op1, _); _} as e1), op2, e2)
+    when Middle.Operator.(is_cmp op1 && is_cmp op2) ->
+      { expr= BinOp ({e1 with expr= Paren (no_parens e1)}, op2, keep_parens e2)
+      ; emeta }
   | TernaryIf _ | BinOp _ | PrefixOp _ | PostfixOp _ ->
       {expr= map_expression keep_parens ident expr; emeta}
   | Indexed (e, l) ->
@@ -167,7 +198,8 @@ let rec no_parens {expr; emeta} =
 
 and keep_parens {expr; emeta} =
   match expr with
-  | Paren {expr= Paren e; _} -> keep_parens e
+  | Promotion (e, ut, ad) -> {expr= Promotion (keep_parens e, ut, ad); emeta}
+  | Paren ({expr= Paren _; _} as e) -> keep_parens e
   | Paren ({expr= BinOp _; _} as e)
    |Paren ({expr= PrefixOp _; _} as e)
    |Paren ({expr= PostfixOp _; _} as e)
@@ -180,17 +212,11 @@ let parens_lval = map_lval_with no_parens ident
 let rec parens_stmt ({stmt; smeta} : typed_statement) : typed_statement =
   let stmt =
     match stmt with
-    | VarDecl
-        { decl_type= d
-        ; transformation= t
-        ; identifier
-        ; initial_value= init
-        ; is_global } ->
+    | VarDecl {decl_type= d; transformation= t; variables; is_global} ->
         VarDecl
-          { decl_type= Middle.Type.map no_parens d
+          { decl_type= Middle.SizedType.map no_parens d
           ; transformation= Middle.Transformation.map keep_parens t
-          ; identifier
-          ; initial_value= Option.map ~f:no_parens init
+          ; variables= List.map ~f:(map_variable no_parens) variables
           ; is_global }
     | For {loop_variable; lower_bound; upper_bound; loop_body} ->
         For

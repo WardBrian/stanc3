@@ -10,8 +10,6 @@ let stan_namespace_qualify f =
   if String.is_suffix ~suffix:"functor__" f || String.contains f ':' then f
   else "stan::math::" ^ f
 
-let is_stan_math f = ends_with "__" f || starts_with "stan::math::" f
-
 (* retun true if the type of the expression
    is integer, real, or complex (e.g. not a container) *)
 let is_scalar e =
@@ -56,28 +54,6 @@ let promote_adtype =
       | _ -> accum )
     ~init:UnsizedType.DataOnly
 
-let promote_unsizedtype es =
-  let rec fold_type accum mtype =
-    match (accum, mtype) with
-    | UnsizedType.UReal, _ -> UnsizedType.UReal
-    | _, UnsizedType.UReal -> UReal
-    | UArray t1, UArray t2 -> UArray (fold_type t1 t2)
-    | _, mtype -> mtype in
-  List.map es ~f:Expr.Typed.type_of
-  |> List.reduce ~f:fold_type
-  |> Option.value ~default:UReal
-
-let%expect_test "promote_unsized" =
-  let e mtype =
-    Expr.{Fixed.pattern= Var "x"; meta= Typed.Meta.{empty with type_= mtype}}
-  in
-  let tests =
-    [[e UInt; e UReal]; [e UReal; e UInt]; [e (UArray UInt); e (UArray UReal)]]
-  in
-  print_s
-    [%sexp (tests |> List.map ~f:promote_unsizedtype : UnsizedType.t list)] ;
-  [%expect {| (UReal UReal (UArray UReal)) |}]
-
 let to_var s = Expr.{Fixed.pattern= Var s; meta= Typed.Meta.empty}
 
 let rec pp_unsizedtype_custom_scalar ppf (scalar, ut) =
@@ -88,13 +64,17 @@ let rec pp_unsizedtype_custom_scalar ppf (scalar, ut) =
   | UMatrix -> pf ppf "Eigen::Matrix<%s, -1, -1>" scalar
   | URowVector -> pf ppf "Eigen::Matrix<%s, 1, -1>" scalar
   | UVector -> pf ppf "Eigen::Matrix<%s, -1, 1>" scalar
+  | UComplexMatrix -> pf ppf "Eigen::Matrix<std::complex<%s>, -1, -1>" scalar
+  | UComplexRowVector -> pf ppf "Eigen::Matrix<std::complex<%s>, 1, -1>" scalar
+  | UComplexVector -> pf ppf "Eigen::Matrix<std::complex<%s>, -1, 1>" scalar
   | UMathLibraryFunction | UFun _ ->
       Common.FatalError.fatal_error_msg
         [%message "Function types not implemented"]
 
 let pp_unsizedtype_custom_scalar_eigen_exprs ppf (scalar, ut) =
   match ut with
-  | UnsizedType.UInt | UReal | UMatrix | URowVector | UVector ->
+  | UnsizedType.UInt | UReal | UMatrix | URowVector | UVector | UComplexVector
+   |UComplexMatrix | UComplexRowVector ->
       string ppf scalar
   | UComplex -> pf ppf "std::complex<%s>" scalar
   | UArray t ->
@@ -114,8 +94,7 @@ let pp_expr_type ppf e =
 let rec pp_possibly_var_decl ppf (adtype, ut, mem_pattern) =
   let scalar = local_scalar ut adtype in
   let pp_var_decl ppf p_ut =
-    if mem_pattern = Common.Helpers.SoA && adtype = UnsizedType.AutoDiffable
-    then
+    if mem_pattern = Mem_pattern.SoA && adtype = UnsizedType.AutoDiffable then
       pf ppf "@[<hov 2>stan::conditional_var_value_t<%s,@ @,%a>@]" scalar
         pp_unsizedtype_local (adtype, p_ut)
     else pf ppf "%a" pp_unsizedtype_local (adtype, p_ut) in
@@ -123,7 +102,9 @@ let rec pp_possibly_var_decl ppf (adtype, ut, mem_pattern) =
   | UArray t ->
       pf ppf "@[<hov 2>std::vector<@,%a>@]" pp_possibly_var_decl
         (adtype, t, mem_pattern)
-  | UMatrix | UVector | URowVector -> pf ppf "%a" pp_var_decl ut
+  | UMatrix | UVector | URowVector | UComplexRowVector | UComplexVector
+   |UComplexMatrix ->
+      pf ppf "%a" pp_var_decl ut
   | UReal | UInt | UComplex -> pf ppf "%a" pp_unsizedtype_local (adtype, ut)
   | x -> raise_s [%message (x : UnsizedType.t) "not implemented yet"]
 
@@ -228,7 +209,14 @@ and pp_scalar_binary ppf op fn es =
   if is_scalar (first es) && is_scalar (second es) then pp_binary_op ppf op es
   else pp_binary_f ppf fn es
 
-and gen_operator_app op ppf es =
+and gen_operator_app op ppf es_in =
+  let remove_basic_promotion (e : 'a Expr.Fixed.t) =
+    match e.pattern with Promotion (e, _, _) when is_scalar e -> e | _ -> e
+  in
+  let es =
+    if List.for_all es_in ~f:is_scalar then
+      List.map ~f:remove_basic_promotion es_in
+    else es_in in
   match op with
   | Operator.Plus -> pp_scalar_binary ppf "+" "stan::math::add" es
   | PMinus ->
@@ -249,7 +237,13 @@ and gen_operator_app op ppf es =
         is_matrix (second es)
         && (is_matrix (first es) || is_row_vector (first es))
       then pp_binary_f ppf "stan::math::mdivide_right" es
-      else pp_scalar_binary ppf "/" "stan::math::divide" es
+      else
+        let f e = Expr.Typed.type_of e = UInt in
+        (* NB: Not stripping promotions due to semantics of int / int *)
+        let es' =
+          if List.for_all ~f es && not (List.for_all ~f es_in) then es_in
+          else es in
+        pp_scalar_binary ppf "/" "stan::math::divide" es'
   | Modulo -> pp_binary_f ppf "stan::math::modulus" es
   | LDivide -> pp_binary_f ppf "stan::math::mdivide_left" es
   | And | Or ->
@@ -266,8 +260,7 @@ and gen_operator_app op ppf es =
   | Greater -> pp_binary_f ppf "stan::math::logical_gt" es
   | Geq -> pp_binary_f ppf "stan::math::logical_gte" es
 
-and gen_misc_special_math_app (f : string)
-    (mem_pattern : Common.Helpers.mem_pattern)
+and gen_misc_special_math_app (f : string) (mem_pattern : Mem_pattern.t)
     (ret_type : UnsizedType.returntype option) =
   match f with
   | "lmultiply" ->
@@ -280,7 +273,7 @@ and gen_misc_special_math_app (f : string)
   | f when Map.mem fn_renames f ->
       Some (fun ppf es -> pp_call ppf (Map.find_exn fn_renames f, pp_expr, es))
   | "rep_matrix" | "rep_vector" | "rep_row_vector" | "append_row" | "append_col"
-    when mem_pattern = Common.Helpers.SoA -> (
+    when mem_pattern = Mem_pattern.SoA -> (
       let is_autodiffable Expr.Fixed.{meta= Expr.Typed.Meta.{adlevel; _}; _} =
         adlevel = UnsizedType.AutoDiffable in
       match ret_type with
@@ -354,7 +347,7 @@ and gen_functionals fname suffix es mem_pattern =
             let normalized_dist_functor =
               Utils.stdlib_distribution_name (chop_functor_suffix f)
               ^ reduce_sum_functor_suffix in
-            ( strf "%s<%s%s>" fname normalized_dist_functor propto_template
+            ( Fmt.str "%s<%s%s>" fname normalized_dist_functor propto_template
             , grainsize :: container :: msgs :: tl )
         | x, f :: y0 :: t0 :: ts :: rel_tol :: abs_tol :: max_steps :: tl
           when Stan_math_signatures.is_variadic_ode_fn x
@@ -406,7 +399,7 @@ and gen_functionals fname suffix es mem_pattern =
             :: tl ) ->
             let next_map_rect_id = Hashtbl.length map_rect_calls + 1 in
             Hashtbl.add_exn map_rect_calls ~key:next_map_rect_id ~data:f ;
-            (strf "%s<%d, %s>" fname next_map_rect_id f, tl @ [msgs])
+            (Fmt.str "%s<%d, %s>" fname next_map_rect_id f, tl @ [msgs])
         | _, args -> (fname, args @ [msgs]) in
       let fname =
         stan_namespace_qualify fname |> demangle_unnormalized_name false suffix
@@ -420,8 +413,9 @@ and read_data ut ppf es =
     | UnsizedType.UArray UInt -> "i"
     | UArray UReal -> "r"
     | UArray UComplex -> "c"
-    | UInt | UReal | UComplex | UVector | URowVector | UMatrix | UArray _
-     |UFun _ | UMathLibraryFunction ->
+    | UInt | UReal | UComplex | UVector | URowVector | UMatrix
+     |UComplexMatrix | UComplexRowVector | UComplexVector | UArray _ | UFun _
+     |UMathLibraryFunction ->
         Common.FatalError.fatal_error_msg
           [%message "Can't ReadData of " (ut : UnsizedType.t)] in
   pf ppf "context__.vals_%s(%a)" i_or_r_or_c pp_expr (List.hd_exn es)
@@ -457,8 +451,7 @@ and pp_user_defined_fun ppf (f, suffix, es) =
 and pp_compiler_internal_fn ad ut f ppf es =
   let pp_array_literal ut ppf es =
     pf ppf "std::vector<%a>{@,%a}" pp_unsizedtype_local (ad, ut)
-      (list ~sep:comma (pp_promoted ad ut))
-      es in
+      (list ~sep:comma pp_expr) es in
   match f with
   | Internal_fun.FnMakeArray ->
       let ut =
@@ -480,6 +473,17 @@ and pp_compiler_internal_fn ad ut f ppf es =
             (List.length es) (list ~sep:comma pp_expr) es
     | UMatrix ->
         pf ppf "stan::math::to_matrix(@,%a)" (pp_array_literal URowVector) es
+    | UComplexRowVector ->
+        let st = local_scalar ut (promote_adtype es) in
+        if List.is_empty es then
+          pf ppf "Eigen::Matrix<std::complex<%s>,1,-1>(0)" st
+        else
+          pf ppf "(Eigen::Matrix<std::complex<%s>,1,-1>(%d) <<@ %a).finished()"
+            st (List.length es) (list ~sep:comma pp_expr) es
+    | UComplexMatrix ->
+        pf ppf "stan::math::to_matrix(@,%a)"
+          (pp_array_literal UComplexRowVector)
+          es
     | _ ->
         Common.FatalError.fatal_error_msg
           [%message
@@ -510,25 +514,11 @@ and pp_compiler_internal_fn ad ut f ppf es =
             (UnsizedType.AutoDiffable, ut, mem_pattern)
             (list ~sep:comma pp_expr) args )
   | FnDeepCopy ->
-      gen_fun_app FnPlain ppf "stan::model::deep_copy" es Common.Helpers.AoS
+      gen_fun_app FnPlain ppf "stan::model::deep_copy" es Mem_pattern.AoS
         (Some UnsizedType.Void)
   | _ ->
-      gen_fun_app FnPlain ppf (Internal_fun.to_string f) es Common.Helpers.AoS
+      gen_fun_app FnPlain ppf (Internal_fun.to_string f) es Mem_pattern.AoS
         (Some UnsizedType.Void)
-
-and pp_promoted ad ut ppf e =
-  match e with
-  | Expr.{Fixed.meta= {Typed.Meta.type_; adlevel; _}; _}
-    when type_ = ut && adlevel = ad ->
-      pp_expr ppf e
-  | {pattern= FunApp (CompilerInternal Internal_fun.FnMakeArray, es); _} ->
-      pp_compiler_internal_fn ad ut Internal_fun.FnMakeArray ppf es
-  | _ -> (
-    match ut with
-    | UnsizedType.UComplex -> pf ppf "@[<hov>%a@]" pp_expr e
-    | _ ->
-        pf ppf "stan::math::promote_scalar<%s>(@[<hov>%a@])"
-          (local_scalar ut ad) pp_expr e )
 
 and pp_indexed ppf (vident, indices, pretty) =
   pf ppf "@[<hov 2>stan::model::rvalue(@,%s,@ %S,@ %a)@]" vident pretty
@@ -561,11 +551,13 @@ and pp_expr ppf Expr.Fixed.{pattern; meta} =
   | Lit (Str, s) -> pf ppf "\"%s\"" (Cpp_str.escaped s)
   | Lit (Imaginary, s) -> pf ppf "stan::math::to_complex(0, %s)" s
   | Lit ((Real | Int), s) -> pf ppf "%s" s
+  | Promotion (expr, UReal, _) when is_scalar expr -> pp_expr ppf expr
+  | Promotion (expr, UComplex, DataOnly) when is_scalar expr ->
+      (* this is in principle a little better than promote_scalar since it is constexpr *)
+      pf ppf "stan::math::to_complex(%a, 0)" pp_expr expr
   | Promotion (expr, ut, ad) ->
-      if is_scalar expr && ut = UReal then pp_expr ppf expr
-      else
-        pf ppf "stan::math::promote_scalar<%a>(%a)" pp_unsizedtype_local
-          (ad, ut) pp_expr expr
+      pf ppf "stan::math::promote_scalar<%a>(%a)" pp_unsizedtype_local (ad, ut)
+        pp_expr expr
   | FunApp
       ( StanLib (op, _, _)
       , [ { meta= {type_= URowVector; _}
@@ -576,9 +568,19 @@ and pp_expr ppf Expr.Fixed.{pattern; meta} =
       else
         pf ppf "(Eigen::Matrix<%s,-1,1>(%d) <<@ %a).finished()" st
           (List.length es) (list ~sep:comma pp_expr) es
+  | FunApp
+      ( StanLib (op, _, _)
+      , [ { meta= {type_= UComplexRowVector; _}
+          ; pattern= FunApp (CompilerInternal FnMakeRowVec, es) } ] )
+    when Operator.(Some Transpose = of_string_opt op) ->
+      let st = local_scalar UComplexVector (promote_adtype es) in
+      if List.is_empty es then
+        pf ppf "Eigen::Matrix<std::complex<%s>,-1,1>(0)" st
+      else
+        pf ppf "(Eigen::Matrix<std::complex<%s>,-1,1>(%d) <<@ %a).finished()" st
+          (List.length es) (list ~sep:comma pp_expr) es
   | FunApp (StanLib (f, suffix, mem_pattern), es) ->
-      let fun_args = List.map ~f:Expr.Typed.fun_arg es in
-      let ret_type = Stan_math_signatures.stan_math_returntype f fun_args in
+      let ret_type = Some (UnsizedType.ReturnType meta.type_) in
       gen_fun_app suffix ppf f es mem_pattern ret_type
   | FunApp (CompilerInternal f, es) ->
       pp_compiler_internal_fn meta.adlevel meta.type_ f ppf es

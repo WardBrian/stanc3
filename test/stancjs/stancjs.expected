@@ -1,5 +1,14 @@
 $ node allow-undefined.js
-Semantic error in 'string', line 3, column 8 to column 11: 
+Semantic error in 'string', line 3, column 8 to column 11:
+   -------------------------------------------------
+     1:  
+     2:  functions {
+     3:      int foo(real a);
+                 ^
+     4:  }
+     5:  transformed data {
+   -------------------------------------------------
+
 Function is declared without specifying a definition.
 
 $ node auto-format.js
@@ -26,7 +35,15 @@ model {
 }
 
 $ node basic.js
-Semantic error in 'string', line 6, column 4 to column 5: 
+Semantic error in 'string', line 6, column 4 to column 5:
+   -------------------------------------------------
+     4:  }
+     5:  model {
+     6:      z ~ std_normal();
+             ^
+     7:  }
+   -------------------------------------------------
+
 Identifier 'z' not in scope.
 
 $ node canonical.js
@@ -70,10 +87,26 @@ dim(p) = (4, 3)
 $ node debug.js
 
 $ node filename.js
-Semantic error in 'good_filename', line 6, column 4 to column 5: 
+Semantic error in 'good_filename', line 6, column 4 to column 5:
+   -------------------------------------------------
+     4:  }
+     5:  model {
+     6:      z ~ std_normal();
+             ^
+     7:  }
+   -------------------------------------------------
+
 Identifier 'z' not in scope.
 
-Semantic error in 'string', line 6, column 4 to column 5: 
+Semantic error in 'string', line 6, column 4 to column 5:
+   -------------------------------------------------
+     4:  }
+     5:  model {
+     6:      z ~ std_normal();
+             ^
+     7:  }
+   -------------------------------------------------
+
 Identifier 'z' not in scope.
 
 $ node functions-only.js
@@ -153,38 +186,61 @@ real test_lpdf(real a, real b) {
 }
 $ node good_after_bad.js
 Syntax error in 'string', line 8, column 0 to column 5, parsing error:
+   -------------------------------------------------
+     6:      y ~ std_normal();
+     7:  }
+     8:  model {
+         ^
+     9:      y ~ std_normal();
+    10:  }
+   -------------------------------------------------
+
 Expected "generated quantities {" or end of file after end of model block.
 
 $ node info.js
-{ "inputs": { "a": { "type": "int", "dimensions": 0},
-              "b": { "type": "real", "dimensions": 0},
-              "c": { "type": "real", "dimensions": 1},
-              "d": { "type": "real", "dimensions": 1},
-              "e": { "type": "real", "dimensions": 2},
-              "f": { "type": "int", "dimensions": 1},
-              "g": { "type": "real", "dimensions": 1},
-              "h": { "type": "real", "dimensions": 2},
-              "i": { "type": "real", "dimensions": 3},
-              "j": { "type": "int", "dimensions": 3} },
-  "parameters": { "l": { "type": "real", "dimensions": 1},
-                  "m": { "type": "real", "dimensions": 1},
-                  "n": { "type": "real", "dimensions": 1},
-                  "o": { "type": "real", "dimensions": 1},
-                  "p": { "type": "real", "dimensions": 2},
-                  "q": { "type": "real", "dimensions": 2},
-                  "r": { "type": "real", "dimensions": 2},
-                  "s": { "type": "real", "dimensions": 2},
-                  "y": { "type": "real", "dimensions": 0} },
-  "transformed parameters": {  },
-  "generated quantities": {  },
-  "functions": [  ],
-  "distributions": [  ],
-  "included_files": [  ] }
-
+{
+  "inputs": {
+    "a": { "type": "int", "dimensions": 0 },
+    "b": { "type": "real", "dimensions": 0 },
+    "c": { "type": "real", "dimensions": 1 },
+    "d": { "type": "real", "dimensions": 1 },
+    "e": { "type": "real", "dimensions": 2 },
+    "f": { "type": "int", "dimensions": 1 },
+    "g": { "type": "real", "dimensions": 1 },
+    "h": { "type": "real", "dimensions": 2 },
+    "i": { "type": "real", "dimensions": 3 },
+    "j": { "type": "int", "dimensions": 3 }
+  },
+  "parameters": {
+    "l": { "type": "real", "dimensions": 1 },
+    "m": { "type": "real", "dimensions": 1 },
+    "n": { "type": "real", "dimensions": 1 },
+    "o": { "type": "real", "dimensions": 1 },
+    "p": { "type": "real", "dimensions": 2 },
+    "q": { "type": "real", "dimensions": 2 },
+    "r": { "type": "real", "dimensions": 2 },
+    "s": { "type": "real", "dimensions": 2 },
+    "y": { "type": "real", "dimensions": 0 }
+  },
+  "transformed parameters": {},
+  "generated quantities": {},
+  "functions": [],
+  "distributions": [],
+  "included_files": []
+}
 $ node math_sigs.js
 
 $ node optimization.js
-Semantic error in 'string', line 3, column 8 to column 11: 
+Semantic error in 'string', line 3, column 8 to column 11:
+   -------------------------------------------------
+     1:  
+     2:  functions {
+     3:      int foo(real a);
+                 ^
+     4:  }
+     5:  
+   -------------------------------------------------
+
 Function is declared without specifying a definition.
 
 $ node pedantic.js
@@ -200,3 +256,4 @@ $ node version.js
 %%NAME%% %%VERSION%%
 $ node warnings.js
 ["Warning in 'string', line 4, column 4: Comments beginning with # are\n    deprecated and this syntax will be removed in Stan 2.32.0. Use // to\n    begin line comments; this can be done automatically using the auto-format\n    flag to stanc"]
+["Warning in 'string', line 10, column 11: Found int division:\n      x / w\n    Values will be rounded towards zero. If rounding is not desired you can\n    write\n    the division as\n      x * 1.0 / w\n    If rounding is intended please use the integer division operator %/%."]

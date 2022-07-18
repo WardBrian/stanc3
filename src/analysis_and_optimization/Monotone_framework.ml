@@ -134,14 +134,14 @@ let reverse (type l) (module F : FLOWGRAPH with type labels = l) =
     with type labels = l )
 
 (** Modify the end nodes of a flowgraph to depend on its inits
- * To force the monotone framework to run until the program never changes
- *  this function modifies the input `Flowgraph` so that it's end nodes
- *  depend on it's initial nodes. The inits of the reverse flowgraph are used
- *  for this since we normally have both the forward and reverse flowgraphs
- *  available.
- * @tparam l Type of the label for each flowgraph, most commonly an int
- * @param Flowgraph The flowgraph to modify
- * @param RevFlowgraph The same flowgraph as `Flowgraph` but reversed.
+  To force the monotone framework to run until the program never changes
+   this function modifies the input [Flowgraph] so that it's end nodes
+   depend on it's initial nodes. The inits of the reverse flowgraph are used
+   for this since we normally have both the forward and reverse flowgraphs
+   available.
+  @param l Type of the label for each flowgraph, most commonly an int
+  @param Flowgraph The flowgraph to modify
+  @param RevFlowgraph The same flowgraph as [Flowgraph] but reversed.
  *
  *)
 let make_circular_flowgraph (type l)
@@ -326,7 +326,9 @@ let constant_propagation_transfer ?(preserve_stability = false)
                We could do the same for matrix and array expressions if we wanted. *)
             | Assignment ((s, t, []), e) -> (
               match Partial_evaluator.try_eval_expr (subst_expr m e) with
-              | {pattern= Lit (_, _); _} as e'
+              | { pattern=
+                    Promotion ({pattern= Lit (_, _); _}, _, _) | Lit (_, _)
+                ; _ } as e'
                 when not (preserve_stability && UnsizedType.is_autodiffable t)
                 ->
                   Map.set m ~key:s ~data:e'
@@ -343,12 +345,14 @@ let constant_propagation_transfer ?(preserve_stability = false)
     with type labels = int
      and type properties = (string, Expr.Typed.t) Map.Poly.t option )
 
-let label_top_decls
+let rec label_top_decls
     (flowgraph_to_mir : (int, Middle.Stmt.Located.Non_recursive.t) Map.Poly.t)
     label : string Set.Poly.t =
   let stmt = Map.Poly.find_exn flowgraph_to_mir label in
   match stmt.pattern with
   | Decl {decl_id= s; _} -> Set.Poly.singleton s
+  | SList ids ->
+      Set.Poly.union_list (List.map ~f:(label_top_decls flowgraph_to_mir) ids)
   | _ -> Set.Poly.empty
 
 (** The transfer function for an expression propagation analysis,
@@ -404,33 +408,37 @@ let copy_propagation_transfer (globals : string Set.Poly.t)
     type labels = int
     type properties = (string, Expr.Typed.t) Map.Poly.t option
 
-    let transfer_function l p =
-      match p with
+    let transfer_function int_label optional_map =
+      match optional_map with
       | None -> None
-      | Some m ->
-          let mir_node = (Map.find_exn flowgraph_to_mir l).pattern in
-          let kill_var m v =
+      | Some expr_map ->
+          let mir_node = (Map.find_exn flowgraph_to_mir int_label).pattern in
+          let kill_var m var_name =
             Map.filteri m ~f:(fun ~key ~(data : Expr.Typed.t) ->
-                not (key = v || data.pattern = Var v) ) in
+                not (key = var_name || data.pattern = Var var_name) ) in
           Some
             ( match mir_node with
-            | Assignment ((s, _, []), {pattern= Var t; meta}) ->
-                let m' = kill_var m s in
-                if Set.Poly.mem globals s then m'
-                else Map.set m' ~key:s ~data:Expr.Fixed.{pattern= Var t; meta}
-            | Decl {decl_id= s; _} | Assignment ((s, _, _), _) -> kill_var m s
-            | Profile (_, b) | Block b ->
+            | Assignment ((assignee, _, []), {pattern= Var assigner; meta}) ->
+                let m' = kill_var expr_map assignee in
+                if Set.Poly.mem globals assignee then expr_map
+                else
+                  Map.set m' ~key:assignee
+                    ~data:Expr.Fixed.{pattern= Var assigner; meta}
+            | Decl {decl_id= name; _} | Assignment ((name, _, _), _) ->
+                kill_var expr_map name
+            | Profile (_, stmt_lst) | Block stmt_lst ->
                 let kills =
                   Set.Poly.union_list
-                    (List.map ~f:(label_top_decls flowgraph_to_mir) b) in
-                Set.Poly.fold kills ~init:m ~f:kill_var
+                    (List.map ~f:(label_top_decls flowgraph_to_mir) stmt_lst)
+                in
+                Set.Poly.fold kills ~init:expr_map ~f:kill_var
             | TargetPE _
              |NRFunApp (_, _)
-             |Break | Continue | Return _ | Skip
+             |Break | Continue | Return _ | Skip | SList _
              |IfElse (_, _, _)
              |While (_, _)
-             |For _ | SList _ ->
-                m ) end : TRANSFER_FUNCTION
+             |For _ ->
+                expr_map ) end : TRANSFER_FUNCTION
     with type labels = int
      and type properties = (string, Expr.Typed.t) Map.Poly.t option )
 
@@ -1014,12 +1022,12 @@ let lazy_expressions_mfp
   (latest_expr, used_not_latest_expressions_mfp)
 
 (** Run the minimal fixed point algorithm to deduce the smallest set of
- *   variables that satisfy a set of conditions.
- * @param Flowgraph The set of nodes to analyze
- * @param flowgraph_to_mir Map of nodes to their actual values in the MIR
- * @param initial_variables The set of variables to start in the set
- * @param gen_variable Used in the transfer function to deduce variables
- *  that should be in the set
+    variables that satisfy a set of conditions.
+  @param Flowgraph The set of nodes to analyze
+  @param flowgraph_to_mir Map of nodes to their actual values in the MIR
+  @param initial_variables The set of variables to start in the set
+  @param gen_variable Used in the transfer function to deduce variables
+   that should be in the set
  *
  *)
 let minimal_variables_mfp

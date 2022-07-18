@@ -2,6 +2,10 @@ functions {
    void promote_complex_array(array[] complex zs){
       print(zs[0]);
    }
+
+   real sum_weird(complex_matrix zs){
+      return sum(get_real(zs)) + sum(get_imag(zs));
+   }
 }
 
 generated quantities {
@@ -29,4 +33,6 @@ generated quantities {
    array[3] int xs = {1,2,3};
    promote_complex_array(xs);
 
+   matrix[2,2] A = [[1,2], [3,4]];
+   real answer = sum_weird(A);
 }

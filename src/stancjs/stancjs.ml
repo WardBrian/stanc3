@@ -20,6 +20,7 @@ let warn_uninitialized_msgs (uninit_vars : (Location_span.t * string) Set.Poly.t
   Set.Poly.(to_list (map filtered_uninit_vars ~f:show_var_info))
 
 let stan2cpp model_name model_string is_flag_set flag_val =
+  Common.Gensym.reset_danger_use_cautiously () ;
   Typechecker.model_name := model_name ;
   Typechecker.check_that_all_functions_have_definition :=
     not (is_flag_set "allow_undefined" || is_flag_set "allow-undefined") ;
@@ -89,7 +90,9 @@ let stan2cpp model_name model_string is_flag_set flag_val =
           r.return (Result.Ok (Fmt.str "%a" Program.Typed.pp mir), warnings, []) ;
         if is_flag_set "debug-generate-data" then
           r.return
-            ( Result.Ok (Debug_data_generation.print_data_prog typed_ast)
+            ( Result.Ok
+                (Debug_data_generation.print_data_prog
+                   (Ast_to_Mir.gather_data typed_ast) )
             , warnings
             , [] ) ;
         let opt_mir =
@@ -111,6 +114,11 @@ let stan2cpp model_name model_string is_flag_set flag_val =
         if is_flag_set "debug-optimized-mir-pretty" then
           r.return
             (Result.Ok (Fmt.str "%a" Program.Typed.pp opt_mir), warnings, []) ;
+        if is_flag_set "debug-mem-patterns" then
+          r.return
+            ( Result.Ok (Fmt.str "%a" Memory_patterns.pp_mem_patterns opt_mir)
+            , warnings
+            , [] ) ;
         if is_flag_set "debug-transformed-mir" then
           r.return
             ( Result.Ok
@@ -135,7 +143,7 @@ let stan2cpp model_name model_string is_flag_set flag_val =
           (Result.Ok cpp, warnings, pedantic_mode_warnings)
       | Result.Error _ as e -> (e, parser_warnings, []) )
 
-let wrap_result ?printed_filename ~warnings = function
+let wrap_result ?printed_filename ~code ~warnings = function
   | Result.Ok s ->
       Js.Unsafe.obj
         [| ("result", Js.Unsafe.inject (Js.string s))
@@ -144,7 +152,10 @@ let wrap_result ?printed_filename ~warnings = function
                (Js.array (List.to_array (List.map ~f:Js.string warnings))) )
         |]
   | Error e ->
-      let e = Fmt.str "%a" (Errors.pp ?printed_filename) e in
+      let e =
+        Fmt.str "%a"
+          (Errors.pp ?printed_filename ?code:(Some (Js.to_string code)))
+          e in
       Js.Unsafe.obj
         [| ("errors", Js.Unsafe.inject (Array.map ~f:Js.string [|e|]))
          ; ("warnings", Js.Unsafe.inject Js.array_empty) |]
@@ -172,11 +183,16 @@ let stan2cpp_wrapped name code (flags : Js.string_array Js.t Js.opt) =
     List.map
       ~f:(Fmt.str "%a" (Warnings.pp ?printed_filename))
       (warnings @ pedantic_mode_warnings) in
-  wrap_result ?printed_filename result ~warnings
+  wrap_result ?printed_filename ~code result ~warnings
 
 let dump_stan_math_signatures () =
   Js.string @@ Fmt.str "%a" Stan_math_signatures.pretty_print_all_math_sigs ()
 
+let dump_stan_math_distributions () =
+  Js.string
+  @@ Fmt.str "%a" Stan_math_signatures.pretty_print_all_math_distributions ()
+
 let () =
   Js.export "dump_stan_math_signatures" dump_stan_math_signatures ;
+  Js.export "dump_stan_math_distributions" dump_stan_math_distributions ;
   Js.export "stanc" stan2cpp_wrapped

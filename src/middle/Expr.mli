@@ -24,18 +24,6 @@ module Fixed : sig
   include Fixed.S with module Pattern := Pattern
 end
 
-module NoMeta : sig
-  module Meta : sig
-    type t = unit [@@deriving compare, sexp, hash]
-
-    include Specialized.Meta with type t := unit
-  end
-
-  include Specialized.S with module Meta := Meta and type t = Meta.t Fixed.t
-
-  val remove_meta : 'a Fixed.t -> t
-end
-
 module Typed : sig
   module Meta : sig
     type t =
@@ -55,40 +43,26 @@ module Typed : sig
   val fun_arg : t -> UnsizedType.autodifftype * UnsizedType.t
 end
 
-module Labelled : sig
-  module Meta : sig
-    type t =
-      { type_: UnsizedType.t
-      ; loc: Location_span.t [@sexp.opaque] [@compare.ignore]
-      ; adlevel: UnsizedType.autodifftype
-      ; label: Label.Int_label.t }
-    [@@deriving compare, create, sexp, hash]
-
-    include Specialized.Meta with type t := t
-  end
-
-  include Specialized.S with module Meta := Meta and type t = Meta.t Fixed.t
-
-  val type_of : t -> UnsizedType.t
-  val loc_of : t -> Location_span.t
-  val adlevel_of : t -> UnsizedType.autodifftype
-  val label_of : t -> Label.Int_label.t
-  val label : ?init:int -> Typed.t -> t
-  val associate : ?init:t Label.Int_label.Map.t -> t -> t Label.Int_label.Map.t
-
-  val associate_index :
-    t Label.Int_label.Map.t -> t Index.t -> t Label.Int_label.Map.t
-end
-
 module Helpers : sig
   val int : int -> Typed.t
   val float : float -> Typed.t
+  val complex : float * float -> Typed.t
   val str : string -> Typed.t
   val variable : string -> Typed.t
   val zero : Typed.t
   val one : Typed.t
+  val unary_op : Operator.t -> Typed.t -> Typed.t
   val binop : Typed.t -> Operator.t -> Typed.t -> Typed.t
   val binop_list : Typed.t list -> Operator.t -> default:Typed.t -> Typed.t
+  val row_vector : float list -> Typed.t
+  val vector : float list -> Typed.t
+  val matrix : float list list -> Typed.t
+  val matrix_from_rows : Typed.t list -> Typed.t
+  val complex_row_vector : (float * float) list -> Typed.t
+  val complex_vector : (float * float) list -> Typed.t
+  val complex_matrix_from_rows : Typed.t list -> Typed.t
+  val array_expr : Typed.t list -> Typed.t
+  val try_unpack : Typed.t -> Typed.t list option
   val loop_bottom : Typed.t
 
   val internal_funapp :

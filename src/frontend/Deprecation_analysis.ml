@@ -6,7 +6,8 @@ let deprecated_functions =
   String.Map.of_alist_exn
     [ ("multiply_log", ("lmultiply", "2.32.0"))
     ; ("binomial_coefficient_log", ("lchoose", "2.32.0"))
-    ; ("cov_exp_quad", ("gp_exp_quad_cov", "2.32.0")) ]
+    ; ("cov_exp_quad", ("gp_exp_quad_cov", "2.32.0"))
+    ; ("fabs", ("abs", "2.33.0")) ]
 
 let deprecated_odes =
   String.Map.of_alist_exn
@@ -26,7 +27,7 @@ let deprecated_distributions =
               | Lpmf -> Some (name ^ "_log", name ^ "_lpmf")
               | Cdf -> Some (name ^ "_cdf_log", name ^ "_lcdf")
               | Ccdf -> Some (name ^ "_ccdf_log", name ^ "_lccdf")
-              | Rng | UnaryVectorized -> None ) ) ) )
+              | Rng | Log | UnaryVectorized _ -> None ) ) ) )
 
 let stan_lib_deprecations =
   Map.merge_skewed deprecated_distributions deprecated_functions
@@ -100,14 +101,6 @@ let rec collect_deprecated_expr (acc : (Location_span.t * string) list)
     ({expr; emeta} : (typed_expr_meta, fun_kind) expr_with) :
     (Location_span.t * string) list =
   match expr with
-  | FunApp (StanLib FnPlain, {name= "abs"; _}, [e])
-    when Middle.UnsizedType.is_real_type e.emeta.type_ ->
-      collect_deprecated_expr
-        ( acc
-        @ [ ( emeta.loc
-            , "Use of the `abs` function with real-valued arguments is \
-               deprecated; use function `fabs` instead." ) ] )
-        e
   | FunApp (StanLib FnPlain, {name= "if_else"; _}, l) ->
       acc
       @ [ ( emeta.loc
@@ -144,6 +137,27 @@ let rec collect_deprecated_expr (acc : (Location_span.t * string) list)
                 ) ]
           | _ -> [] ) in
       acc @ w @ List.concat_map l ~f:(fun e -> collect_deprecated_expr [] e)
+  | PrefixOp (PNot, ({emeta= {type_= UReal; loc; _}; _} as e)) ->
+      let acc =
+        acc
+        @ [ ( loc
+            , "Using a real as a boolean value is deprecated and will be \
+               disallowed in Stan 2.34. Use an explicit != 0 comparison \
+               instead. This can be automatically changed using the \
+               canonicalize flag for stanc" ) ] in
+      collect_deprecated_expr acc e
+  | BinOp (({emeta= {type_= UReal; loc; _}; _} as e1), (And | Or), e2)
+   |BinOp (e1, (And | Or), ({emeta= {type_= UReal; loc; _}; _} as e2)) ->
+      let acc =
+        acc
+        @ [ ( loc
+            , "Using a real as a boolean value is deprecated and will be \
+               disallowed in Stan 2.34. Use an explicit != 0 comparison \
+               instead. This can be automatically changed using the \
+               canonicalize flag for stanc" ) ] in
+      let acc = collect_deprecated_expr acc e1 in
+      let acc = collect_deprecated_expr acc e2 in
+      acc
   | _ -> fold_expression collect_deprecated_expr (fun l _ -> l) acc expr
 
 let collect_deprecated_lval acc l =
@@ -169,6 +183,25 @@ let rec collect_deprecated_stmt (acc : (Location_span.t * string) list) {stmt; _
                  inside of it." ) ] in
       collect_deprecated_stmt acc body
   | FunDef {body; _} -> collect_deprecated_stmt acc body
+  | IfThenElse ({emeta= {type_= UReal; loc; _}; _}, ifb, elseb) ->
+      let acc =
+        acc
+        @ [ ( loc
+            , "Condition of type real is deprecated and will be disallowed in \
+               Stan 2.34. Use an explicit != 0 comparison instead. This can be \
+               automatically changed using the canonicalize flag for stanc" ) ]
+      in
+      let acc = collect_deprecated_stmt acc ifb in
+      Option.value_map ~default:acc ~f:(collect_deprecated_stmt acc) elseb
+  | While ({emeta= {type_= UReal; loc; _}; _}, body) ->
+      let acc =
+        acc
+        @ [ ( loc
+            , "Condition of type real is deprecated and will be disallowed in \
+               Stan 2.34. Use an explicit != 0 comparison instead. This can be \
+               automatically changed using the canonicalize flag for stanc" ) ]
+      in
+      collect_deprecated_stmt acc body
   | _ ->
       fold_statement collect_deprecated_expr collect_deprecated_stmt
         collect_deprecated_lval

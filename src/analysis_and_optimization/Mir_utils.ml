@@ -12,7 +12,7 @@ let rec fold_expr ~take_expr ~(init : 'c) (expr : Expr.Typed.t) : 'c =
 
 let fold_stmts ~take_expr ~take_stmt ~(init : 'c) (stmts : Stmt.Located.t List.t)
     : 'c =
-  (* let rec fold_expr (state : 'c) (expr : Expr.Typed.Meta.t Expr.Fixed.t) =
+  (* let rec fold_expr (state : 'c) (expr : Expr.t) =
    *   Expr.Fixed.Pattern.fold_left
    *     ~f:(fun a e -> fold_expr (take_expr a e) e)
    *     ~init:state
@@ -27,6 +27,8 @@ let fold_stmts ~take_expr ~take_stmt ~(init : 'c) (stmts : Stmt.Located.t List.t
 
 let rec num_expr_value (v : Expr.Typed.t) : (float * string) option =
   match v with
+  (* internal type promotions should be ignored *)
+  | {pattern= Fixed.Pattern.Promotion (e, _, _); _} -> num_expr_value e
   | {pattern= Fixed.Pattern.Lit (Real, str); _}
    |{pattern= Fixed.Pattern.Lit (Int, str); _} ->
       Some (float_of_string str, str)
@@ -311,7 +313,7 @@ let rec fn_subst_expr m e =
   match m e with
   | Some e' ->
       (* let print_expr (e:Expr.Typed.t) = *)
-      (* [%sexp (e.pattern : Expr.Typed.Meta.t Expr.Fixed.t Expr.Fixed.Pattern.t)] |> Sexp.to_string *)
+      (* [%sexp (e.pattern : Expr.Typed.t Expr.Fixed.Pattern.t)] |> Sexp.to_string *)
       (* in *)
       (* let _ = print_endline ("Replaced expr: " ^ print_expr e ^ " -> " ^ print_expr e') in *)
       e'
@@ -459,6 +461,46 @@ let cleanup_empty_stmts stmts =
   List.map stmts ~f:(rewrite_bottom_up ~f:Fn.id ~g:cleanup_stmt)
   |> List.concat_map ~f:flatten_block
   |> List.concat_map ~f:ellide_skip
+
+(**
+ * Convert a Type.Unsized to a Type.Sized.
+ * This function is useful in the inlining scheme as
+ * the Mem_patterns optimization cannot work with decl types
+ * for unsized types. (Steve: tmk the inline optimization is the only place
+ * we create Decl's with unsized types.)
+ *
+ * Note that there is no true mapping from Sized types to Unsized types.
+ * Any sizes are set to 0 and it is assumed that the intent
+ * of Types.Unsized with inner UFun types is to size the return
+ * type of the UFun. Any Decl that uses this type should
+ * have initialize set to false.
+ *)
+let unsafe_unsized_to_sized_type (rt : Expr.Typed.t Type.t) =
+  match rt with
+  | Type.Sized _ as ret_type -> ret_type
+  | Unsized ut ->
+      let rec to_sized a =
+        match a with
+        | UnsizedType.UReal -> SizedType.SReal
+        | UInt -> SInt
+        | UComplex -> SComplex
+        | UArray t -> SArray (to_sized t, Expr.Helpers.int 0)
+        | UMatrix ->
+            SMatrix (Mem_pattern.AoS, Expr.Helpers.int 0, Expr.Helpers.int 0)
+        | UVector -> SVector (AoS, Expr.Helpers.int 0)
+        | URowVector -> SRowVector (AoS, Expr.Helpers.int 0)
+        | UComplexMatrix ->
+            SComplexMatrix (Expr.Helpers.int 0, Expr.Helpers.int 0)
+        | UComplexVector -> SComplexVector (Expr.Helpers.int 0)
+        | UComplexRowVector -> SComplexRowVector (Expr.Helpers.int 0)
+        | UFun (_, UnsizedType.ReturnType inner_ut, _, _) -> to_sized inner_ut
+        | UFun (_, Void, _, _) | UMathLibraryFunction ->
+            Common.FatalError.fatal_error_msg
+              [%message
+                ( "return type of a function was a void user defined function \
+                   or math library function."
+                  : string )] in
+      Type.Sized (to_sized ut)
 
 let%expect_test "cleanup" =
   let open Expr.Helpers in

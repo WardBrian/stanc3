@@ -124,6 +124,9 @@ type untyped_lval = (untyped_expression, located_meta) lval_with
 type typed_lval = (typed_expression, typed_expr_meta) lval_with
 [@@deriving sexp, hash, compare, map, fold]
 
+type 'e variable = {identifier: identifier; initial_value: 'e option}
+[@@deriving sexp, hash, compare, map, fold]
+
 (** Statement shapes, where we substitute untyped_expression and untyped_statement
     for 'e and 's respectively to get untyped_statement and typed_expression and
     typed_statement to get typed_statement    *)
@@ -156,13 +159,12 @@ type ('e, 's, 'l, 'f) statement =
   | Profile of string * 's list
   | Block of 's list
   | VarDecl of
-      { decl_type: 'e Middle.Type.t
+      { decl_type: 'e SizedType.t
       ; transformation: 'e Transformation.t
-      ; identifier: identifier
-      ; initial_value: 'e option
-      ; is_global: bool }
+      ; is_global: bool
+      ; variables: 'e variable list }
   | FunDef of
-      { returntype: Middle.UnsizedType.returntype
+      { returntype: UnsizedType.returntype
       ; funname: identifier
       ; arguments:
           (Middle.UnsizedType.autodifftype * Middle.UnsizedType.t * identifier)
@@ -325,12 +327,16 @@ let rec get_loc_expr (e : untyped_expression) =
       e.emeta.loc.end_loc
   | FunApp (_, id, _) | CondDistApp (_, id, _) -> id.id_loc.end_loc
 
-let get_loc_dt (t : untyped_expression Type.t) =
+let get_loc_dt (t : untyped_expression SizedType.t) =
   match t with
-  | Type.Unsized _ | Sized (SInt | SReal | SComplex) -> None
-  | Sized
-      (SVector (_, e) | SRowVector (_, e) | SMatrix (_, e, _) | SArray (_, e))
-    ->
+  | SInt | SReal | SComplex -> None
+  | SVector (_, e)
+   |SRowVector (_, e)
+   |SMatrix (_, e, _)
+   |SComplexVector e
+   |SComplexRowVector e
+   |SComplexMatrix (e, _)
+   |SArray (_, e) ->
       Some e.emeta.loc.begin_loc
 
 let get_loc_tf (t : untyped_expression Transformation.t) =
@@ -360,10 +366,10 @@ let get_first_loc (s : untyped_statement) =
   | Assignment _ | Profile _ | Block _ | Tilde _ | Break | Continue
    |ReturnVoid | Print _ | Reject _ | Skip ->
       s.smeta.loc.begin_loc
-  | VarDecl {decl_type; transformation; identifier; _} -> (
+  | VarDecl {decl_type; transformation; variables; _} -> (
     match get_loc_dt decl_type with
     | Some loc -> loc
     | None -> (
       match get_loc_tf transformation with
       | Some loc -> loc
-      | None -> identifier.id_loc.begin_loc ) )
+      | None -> (List.hd_exn variables).identifier.id_loc.begin_loc ) )

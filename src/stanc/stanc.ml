@@ -28,7 +28,9 @@ let dump_tx_mir = ref false
 let dump_tx_mir_pretty = ref false
 let dump_opt_mir = ref false
 let dump_opt_mir_pretty = ref false
+let dump_mem_pattern = ref false
 let dump_stan_math_sigs = ref false
+let dump_stan_math_distributions = ref false
 let opt_lvl = ref Optimize.O0
 let no_soa_opt = ref false
 let soa_opt = ref false
@@ -88,6 +90,12 @@ let options =
       , Arg.Set dump_opt_mir_pretty
       , " For debugging purposes: pretty print the MIR after it's been \
          optimized. Only has an effect when optimizations are turned on." )
+    ; ( "--debug-mem-patterns"
+      , Arg.Set dump_mem_pattern
+      , " For debugging purposes: print a list of matrix variables and their \
+         memory type, either AoS (array of structs) or the more efficient SoA \
+         (struct of arrays). Only has an effect when optimizations are turned \
+         on." )
     ; ( "--debug-transformed-mir"
       , Arg.Set dump_tx_mir
       , " For debugging purposes: print the MIR after the backend has \
@@ -100,6 +108,10 @@ let options =
       , Arg.Set dump_stan_math_sigs
       , " Dump out the list of supported type signatures for Stan Math backend."
       )
+    ; ( "--dump-stan-math-distributions"
+      , Arg.Set dump_stan_math_distributions
+      , " Dump out the list of supported probability distributions and their \
+         supported suffix types for the Stan Math backend." )
     ; ( "--warn-uninitialized"
       , Arg.Set warn_uninitialized
       , " Emit warnings about uninitialized variables to stderr. Currently an \
@@ -232,6 +244,27 @@ let remove_dotstan s =
   if String.is_suffix ~suffix:".stanfunctions" s then String.drop_suffix s 14
   else String.drop_suffix s 5
 
+let get_ast_or_exit ?printed_filename ?(print_warnings = true)
+    ?(bare_functions = false) filename =
+  let res, warnings =
+    if bare_functions then
+      Parse.parse_file Parser.Incremental.functions_only filename
+    else Parse.parse_file Parser.Incremental.program filename in
+  if print_warnings then
+    (Warnings.pp_warnings ?printed_filename) Fmt.stderr warnings ;
+  match res with
+  | Result.Ok ast -> ast
+  | Result.Error err -> Errors.pp Fmt.stderr err ; exit 1
+
+let type_ast_or_exit ast =
+  match Typechecker.check_program ast with
+  | Result.Ok (p, warns) ->
+      Warnings.pp_warnings Fmt.stderr warns ;
+      p
+  | Result.Error error ->
+      Errors.pp_semantic_error Fmt.stderr error ;
+      exit 1
+
 (*
       I am not using Fmt to print to stderr here because there was a pretty awful
       bug where it would unpredictably fail to flush. It would flush when using
@@ -248,13 +281,13 @@ let print_or_write data =
 
 let use_file filename =
   let ast =
-    Frontend_utils.get_ast_or_exit filename
+    get_ast_or_exit filename
       ~print_warnings:(not !canonicalize_settings.deprecations)
       ~bare_functions:!bare_functions in
   (* must be before typecheck to fix up deprecated syntax which gets rejected *)
   let ast = Canonicalize.repair_syntax ast !canonicalize_settings in
   Debugging.ast_logger ast ;
-  let typed_ast = Frontend_utils.type_ast_or_exit ast in
+  let typed_ast = type_ast_or_exit ast in
   let canonical_ast =
     Canonicalize.canonicalize_program typed_ast !canonicalize_settings in
   if !pretty_print_program then
@@ -271,7 +304,8 @@ let use_file filename =
     Warnings.pp_warnings Fmt.stderr ?printed_filename
       (Deprecation_analysis.collect_warnings typed_ast) ;
   if !generate_data then
-    print_endline (Debug_data_generation.print_data_prog typed_ast) ;
+    print_endline
+      (Debug_data_generation.print_data_prog (Ast_to_Mir.gather_data typed_ast)) ;
   Debugging.typed_ast_logger typed_ast ;
   if not !pretty_print_program then (
     let mir = Ast_to_Mir.trans_prog filename typed_ast in
@@ -289,17 +323,18 @@ let use_file filename =
       Sexp.pp_hum Format.std_formatter [%sexp (tx_mir : Middle.Program.Typed.t)] ;
     if !dump_tx_mir_pretty then Program.Typed.pp Format.std_formatter tx_mir ;
     let opt_mir =
-      let opt =
-        let set_optims =
-          let base_optims = Optimize.level_optimizations !opt_lvl in
-          if !no_soa_opt then {base_optims with optimize_soa= false}
-          else if !soa_opt then {base_optims with optimize_soa= true}
-          else base_optims in
-        Optimize.optimization_suite ~settings:set_optims tx_mir in
-      if !dump_opt_mir then
-        Sexp.pp_hum Format.std_formatter [%sexp (opt : Middle.Program.Typed.t)] ;
-      if !dump_opt_mir_pretty then Program.Typed.pp Format.std_formatter opt ;
-      opt in
+      let set_optims =
+        let base_optims = Optimize.level_optimizations !opt_lvl in
+        if !no_soa_opt then {base_optims with optimize_soa= false}
+        else if !soa_opt then {base_optims with optimize_soa= true}
+        else base_optims in
+      Optimize.optimization_suite ~settings:set_optims tx_mir in
+    if !dump_mem_pattern then
+      Memory_patterns.pp_mem_patterns Format.std_formatter opt_mir ;
+    if !dump_opt_mir then
+      Sexp.pp_hum Format.std_formatter
+        [%sexp (opt_mir : Middle.Program.Typed.t)] ;
+    if !dump_opt_mir_pretty then Program.Typed.pp Format.std_formatter opt_mir ;
     if !output_file = "" then output_file := remove_dotstan !model_file ^ ".hpp" ;
     let cpp = Fmt.str "%a" Stan_math_code_gen.pp_prog opt_mir in
     Out_channel.write_all !output_file ~data:cpp ;
@@ -315,10 +350,13 @@ let main () =
   (* Parse the arguments. *)
   Arg.parse options add_file usage ;
   print_deprecated_arg_warning ;
-  (* print_deprecated_arg_warning options; *)
   (* Deal with multiple modalities *)
   if !dump_stan_math_sigs then (
     Stan_math_signatures.pretty_print_all_math_sigs Format.std_formatter () ;
+    exit 0 ) ;
+  if !dump_stan_math_distributions then (
+    Stan_math_signatures.pretty_print_all_math_distributions
+      Format.std_formatter () ;
     exit 0 ) ;
   if !model_file = "" then model_file_err () ;
   (* if we only have functions, always compile as standalone *)
