@@ -62,6 +62,8 @@ let templates udf suffix =
   | FnTarget when udf -> [TemplateType "propto__"]
   | _ -> []
 
+let serializer_in = Var "in__"
+
 let rec local_scalar ut ad =
   match (ut, ad) with
   | UnsizedType.UArray t, _ -> local_scalar t ad
@@ -134,7 +136,7 @@ and vector_literal ?(column = false) scalar es =
   else
     let vector = constructor (List.length es) in
     let values = lower_exprs es in
-    (Parens (vector << values)).@!("finished")
+    (vector << values).@!("finished")
 
 and read_data ut es =
   let val_method =
@@ -148,7 +150,8 @@ and read_data ut es =
         Common.FatalError.fatal_error_msg
           [%message "Can't ReadData of " (ut : UnsizedType.t)] in
   let open Exprs in
-  (Var "context__").@((val_method, [lower_expr (List.hd_exn es)]))
+  let data_context = Var "context__" in
+  data_context.@((val_method, [lower_expr (List.hd_exn es)]))
 
 and lower_fun_app _ _ _ _ _ = failwith "todo"
 
@@ -195,23 +198,24 @@ and lower_compiler_internal ad ut f es =
             "Unexpected type for row vector literal" (ut : UnsizedType.t)] )
   | FnReadData -> read_data ut es
   | FnReadDataSerializer ->
-      (Var "in__").@?(("read", [lower_unsizedtype_local AutoDiffable UReal], []))
+      serializer_in.@?(("read", [lower_unsizedtype_local AutoDiffable UReal], []))
   | FnReadParam {constrain; dims; mem_pattern} -> (
       let constrain_opt = constraint_to_string constrain in
       match constrain_opt with
       | None ->
-          (Var "in__").@?(( "template read"
-                          , [lower_possibly_var_decl AutoDiffable ut mem_pattern]
-                          , lower_exprs dims ))
+          serializer_in.@?(( "template read"
+                           , [ lower_possibly_var_decl AutoDiffable ut
+                                 mem_pattern ]
+                           , lower_exprs dims ))
       | Some constraint_string ->
           let constraint_args = transform_args constrain in
           let lp =
             Expr.Fixed.{pattern= Var "lp__"; meta= Expr.Typed.Meta.empty} in
           let args = constraint_args @ [lp] @ dims in
-          (Var "in__").@?(( "template read_constrain_" ^ constraint_string
-                          , [ lower_possibly_var_decl AutoDiffable ut mem_pattern
-                            ; TemplateType "jacobian__" ]
-                          , lower_exprs args )) )
+          serializer_in.@?(( "template read_constrain_" ^ constraint_string
+                           , [ lower_possibly_var_decl AutoDiffable ut
+                                 mem_pattern; TemplateType "jacobian__" ]
+                           , lower_exprs args )) )
   | FnDeepCopy ->
       lower_fun_app Fun_kind.FnPlain "stan::model::deep_copy" es Mem_pattern.AoS
         (Some UnsizedType.Void)
@@ -223,7 +227,7 @@ and lower_expr (Expr.Fixed.{pattern; meta} : Expr.Typed.t) : Cpp.expr =
   let open Exprs in
   match pattern with
   | Var s -> Var s
-  | Lit (Str, s) -> Literal ("\"" ^ Cpp_str.escaped s ^ "\"")
+  | Lit (Str, s) -> literal_string (Cpp_str.escaped s)
   | Lit (Imaginary, s) ->
       fun_call "stan::math::to_complex" [Literal "0"; Literal s]
   | Lit ((Real | Int), s) -> Literal s

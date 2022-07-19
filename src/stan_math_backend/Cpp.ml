@@ -53,10 +53,25 @@ type expr =
 [@@deriving sexp]
 
 module Exprs = struct
+  (** Some operators to make streams and method calls look more
+      like the resultant C++ *)
+
   let ( << ) a b = StreamInsertion (a, b)
-  let ( .@!() ) a b = MethodCall (a, b, [], [])
-  let ( .@() ) a (b, c) = MethodCall (a, b, [], c)
-  let ( .@?() ) a (b, c, d) = MethodCall (a, b, c, d)
+
+  let method_call obj name templates args =
+    match obj with
+    | Var _ -> MethodCall (obj, name, templates, args)
+    | _ -> MethodCall (Parens obj, name, templates, args)
+
+  let ( .@!() ) obj name = method_call obj name [] []
+  let ( .@() ) obj (name, args) = method_call obj name [] args
+
+  let ( .@?() ) obj (name, templates, args) =
+    method_call obj name templates args
+
+  (** Some helper values and functions *)
+
+  let literal_string s = Literal ("\"" ^ s ^ "\"")
   let std_vector_expr t es = InitalizerExpr (Vector t, es)
   let quiet_NaN = Literal "std::numeric_limits<double>::quiet_NaN()"
   let fun_call s es = FunCall (s, [], es)
@@ -309,7 +324,7 @@ module Tests = struct
     let open Types in
     let vector = Constructor (row_vector Double, [Literal "3"]) in
     let values = [Literal "1"; Var "a"; Literal "3"] in
-    let e = (Parens (vector << values)).@!("finished") in
+    let e = (vector << values).@!("finished") in
     print_s [%sexp (e : expr)] ;
     print_endline "" ;
     Printing.pp_expr Fmt.stdout e ;
