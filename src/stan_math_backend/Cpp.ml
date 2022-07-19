@@ -302,15 +302,24 @@ module Tests = struct
         std::vector<std::vector<double>>,
         const T0__& |}]
 
+  (* This shows off some of the fancy syntax OCaml lets us use,
+      like [<<] or [.@()]*)
   let%expect_test "eigen init" =
     let open Exprs in
     let open Types in
-    let e =
-      (Parens
-         ( Constructor (matrix Double, [Literal "3"])
-         << [Literal "1"; Var "a"; Literal "3"] ) ).@!("finished") in
+    let vector = Constructor (row_vector Double, [Literal "3"]) in
+    let values = [Literal "1"; Var "a"; Literal "3"] in
+    let e = (Parens (vector << values)).@!("finished") in
+    print_s [%sexp (e : expr)] ;
+    print_endline "" ;
     Printing.pp_expr Fmt.stdout e ;
     [%expect
       {|
-          (Eigen::Matrix<double,-1,-1>(3) << 1, a, 3).finished() |}]
+          (MethodCall
+           (Parens
+            (StreamInsertion (Constructor (Matrix Double 1 -1) ((Literal 3)))
+             ((Literal 1) (Var a) (Literal 3))))
+           finished () ())
+
+          (Eigen::Matrix<double,1,-1>(3) << 1, a, 3).finished() |}]
 end

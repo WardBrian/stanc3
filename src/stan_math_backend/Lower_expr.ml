@@ -131,7 +131,10 @@ and vector_literal ?(column = false) scalar es =
   let constructor size =
     Constructor (fn scalar, [Literal (string_of_int size)]) in
   if List.is_empty es then constructor 0
-  else (Parens (constructor (List.length es) << lower_exprs es)).@!("finished")
+  else
+    let vector = constructor (List.length es) in
+    let values = lower_exprs es in
+    (Parens (vector << values)).@!("finished")
 
 and read_data ut es =
   let val_method =
