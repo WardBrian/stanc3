@@ -107,12 +107,14 @@ type var_defn =
 type stmt =
   | Expression of expr
   | VarDef of var_defn
-  | For of expr * expr * expr * stmt
+  | For of var_defn * expr * expr * stmt
   | While of expr * stmt
   | IfElse of expr * stmt * stmt
   | TryCatch of stmt * var_defn * stmt
   | Block of stmt list
   | Return of expr
+  | Break
+  | Continue
   | Using of string * string option
   | Comment of string
 [@@deriving sexp]
@@ -134,6 +136,12 @@ module Stmts = struct
                  , [ Var "e"
                    ; Index (Var "locations_array__", Var "current_statement__")
                    ] ) ) ] )
+
+  let fori loopvar lower upper body =
+    let init = make_var_defn ~type_:Int ~name:loopvar ~init:(Some lower) () in
+    let stop = BinOp (Var loopvar, LEq, upper) in
+    let incr = Unary (Incr, Var loopvar) in
+    For (init, stop, incr, body)
 end
 
 type template_parameter =
@@ -252,7 +260,7 @@ module Printing = struct
     | Parens e -> (parens pp_expr) ppf e
     | Cast (t, e) -> pf ppf "(%a)%a" pp_type_ t pp_expr e
     | Constructor (t, es) ->
-        pf ppf "%a(@[%a@])" pp_type_ t (list ~sep:comma pp_expr) es
+        pf ppf "@[<hov 2>%a(%a)@]" pp_type_ t (list ~sep:comma pp_expr) es
     | InitalizerExpr (t, es) ->
         pf ppf "%a{@[%a@]}" pp_type_ t (list ~sep:comma pp_expr) es
     | StreamInsertion (e, es) ->
@@ -286,10 +294,12 @@ module Printing = struct
     match s with
     | Expression e -> pf ppf "%a;" pp_expr e
     | Return e -> pf ppf "return %a;" pp_expr e
+    | Break -> string ppf "break;"
+    | Continue -> string ppf "continue;"
     | VarDef vd -> pf ppf "%a;" pp_var_defn vd
     | For (init, cond, incr, s) ->
-        pf ppf "@[<v 2>for(@[<hov>%a; %a; %a@])@ @[%a@]@]" pp_expr init pp_expr
-          cond pp_expr incr pp_stmt s
+        pf ppf "@[<v 2>for(@[<hov>%a; %a; %a@])@ @[%a@]@]" pp_var_defn init
+          pp_expr cond pp_expr incr pp_stmt s
     | While (e, s) ->
         pf ppf "@[<v 2>while(@[%a@])@ @[%a@]@]" pp_expr e pp_stmt s
     | IfElse (cond, thn, els) ->

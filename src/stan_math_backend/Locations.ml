@@ -48,3 +48,11 @@ let pp_globals ppf location_list =
 let pp_smeta ppf location_num =
   if location_num = no_span_num then ()
   else Fmt.pf ppf "current_statement__ = %d;@;" location_num
+
+let create_loc_assignment location_num =
+  let open Cpp in
+  if location_num = no_span_num then []
+  else
+    [ Expression
+        (Assign (Var "current_statement__", Literal (string_of_int location_num))
+        ) ]
