@@ -32,8 +32,10 @@ module Types = struct
   let str_array i = Array (Const (Pointer (Typename "char")), i)
 end
 
-type operator = Times | Divide | Add | Subtract | Eq | LEq | GEq | And | Or
+type operator = Multiply | Divide | Add | Subtract | Eq | LEq | GEq | And | Or
 [@@deriving sexp]
+
+type unary_op = PMinus | Incr [@@deriving sexp]
 
 type expr =
   | Literal of string
@@ -41,41 +43,57 @@ type expr =
   | Parens of expr
   | FunCall of identifier * type_ list * expr list
   | MethodCall of expr * identifier * type_ list * expr list
+  | StaticMethodCall of type_ * identifier * type_ list * expr list
   | Constructor of type_ * expr list
   | InitalizerExpr of type_ * expr list
   | TernaryIf of expr * expr * expr
   | Cast of type_ * expr
   | Index of expr * expr
   | Assign of expr * expr (* NB: Not all exprs are valid lvalues! *)
-  | Incr of expr
+  | Unary of unary_op * expr
   | StreamInsertion of expr * expr list
   | BinOp of expr * operator * expr
 [@@deriving sexp]
 
 module Exprs = struct
-  (** Some operators to make streams and method calls look more
-      like the resultant C++ *)
-
-  let ( << ) a b = StreamInsertion (a, b)
+  (** Some helper values and functions *)
 
   let method_call obj name templates args =
     match obj with
     | Var _ -> MethodCall (obj, name, templates, args)
     | _ -> MethodCall (Parens obj, name, templates, args)
 
-  let ( .@!() ) obj name = method_call obj name [] []
-  let ( .@() ) obj (name, args) = method_call obj name [] args
-
-  let ( .@?() ) obj (name, templates, args) =
-    method_call obj name templates args
-
-  (** Some helper values and functions *)
-
   let literal_string s = Literal ("\"" ^ s ^ "\"")
   let std_vector_expr t es = InitalizerExpr (Vector t, es)
-  let quiet_NaN = Literal "std::numeric_limits<double>::quiet_NaN()"
   let fun_call s es = FunCall (s, [], es)
   let templated_fun_call s ts es = FunCall (s, ts, es)
+  let quiet_NaN = fun_call "std::numeric_limits<double>::quiet_NaN" []
+  let int_min = fun_call "std::numeric_limits<int>::min" []
+end
+
+module Expression_syntax = struct
+  (** Some operators to make streams and method calls look more
+      like the resultant C++ *)
+
+  include Exprs
+
+  let ( << ) a b = StreamInsertion (a, b)
+  let ( .@!() ) obj name = method_call obj name [] []
+  let ( .@?() ) obj (name, args) = method_call obj name [] args
+
+  let ( .@<>() ) obj (name, templates, args) =
+    method_call obj name templates args
+
+  let ( |::! ) ty name = StaticMethodCall (ty, name, [], [])
+  let ( |::? ) ty (name, args) = StaticMethodCall (ty, name, [], args)
+
+  let ( |::<> ) ty (name, templates, args) =
+    StaticMethodCall (ty, name, templates, args)
+
+  let ( + ) a b = BinOp (a, Add, b)
+  let ( - ) a b = BinOp (a, Subtract, b)
+  let ( * ) a b = BinOp (a, Multiply, b)
+  let ( / ) a b = BinOp (a, Divide, b)
 end
 
 type var_defn =
@@ -210,9 +228,9 @@ module Printing = struct
           (pp_requires ~default) requires
 
   let pp_operator ppf = function
-    | Times -> string ppf "*"
+    | Multiply -> string ppf "*"
     | Divide -> string ppf "/"
-    | Add -> string ppf "/"
+    | Add -> string ppf "+"
     | Subtract -> string ppf "-"
     | Eq -> string ppf "=="
     | LEq -> string ppf "<="
@@ -220,12 +238,16 @@ module Printing = struct
     | And -> string ppf "&&"
     | Or -> string ppf "||"
 
+  let pp_unary_op ppf = function
+    | PMinus -> string ppf "-"
+    | Incr -> string ppf "++"
+
   let rec pp_expr ppf e =
     let maybe_templates ppf ts =
       if List.length ts = 0 then nop ppf ()
-      else pf ppf "<@[%a@]>" (list ~sep:comma pp_type_) ts in
+      else pf ppf "<@,%a>" (list ~sep:comma pp_type_) ts in
     match e with
-    | Literal s -> pf ppf "@[%a@]" text s
+    | Literal s -> pf ppf "%a" text s
     | Var id -> string ppf id
     | Parens e -> (parens pp_expr) ppf e
     | Cast (t, e) -> pf ppf "(%a)%a" pp_type_ t pp_expr e
@@ -236,16 +258,19 @@ module Printing = struct
     | StreamInsertion (e, es) ->
         pf ppf "%a <<@[@ %a@]" pp_expr e (list ~sep:comma pp_expr) es
     | FunCall (fn, tys, es) ->
-        pf ppf "%s%a(@[%a@,)@]" fn maybe_templates tys (list ~sep:comma pp_expr)
-          es
+        pf ppf "@[<hov 2>%s%a(@,%a@])" fn maybe_templates tys
+          (list ~sep:comma pp_expr) es
     | MethodCall (e, fn, tys, es) ->
-        pf ppf "@[<hov 4>%a@,.%s%a(@[%a@])@]" pp_expr e fn maybe_templates tys
-          (list pp_expr) es
+        pf ppf "@[<hov 2>%a.%s%a(@[@,%a@])@]" pp_expr e fn maybe_templates tys
+          (list ~sep:comma pp_expr) es
+    | StaticMethodCall (ty, fn, tys, es) ->
+        pf ppf "@[<hov 2>%a::%s%a(@[@,%a@])@]" pp_type_ ty fn maybe_templates
+          tys (list ~sep:comma pp_expr) es
     | TernaryIf (e1, e2, e3) ->
         pf ppf "%a ? %a : %a" pp_expr e1 pp_expr e2 pp_expr e3
     | Index (e1, e2) -> pf ppf "%a[%a]" pp_expr e1 pp_expr e2
     | Assign (e1, e2) -> pf ppf "%a = %a" pp_expr e1 pp_expr e2
-    | Incr e -> pf ppf "++%a" pp_expr e
+    | Unary (op, e) -> pf ppf "%a%a" pp_unary_op op pp_expr e
     | BinOp (e1, op, e2) ->
         pf ppf "@[<hov 2>%a %a@ %a@]" pp_expr e1 pp_operator op pp_expr e2
 
@@ -320,7 +345,7 @@ module Tests = struct
   (* This shows off some of the fancy syntax OCaml lets us use,
       like [<<] or [.@()]*)
   let%expect_test "eigen init" =
-    let open Exprs in
+    let open Expression_syntax in
     let open Types in
     let vector = Constructor (row_vector Double, [Literal "3"]) in
     let values = [Literal "1"; Var "a"; Literal "3"] in
