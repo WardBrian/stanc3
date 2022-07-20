@@ -169,10 +169,18 @@ type fun_defn =
   ; body: stmt list option }
 [@@deriving make, sexp]
 
-type directive = Include of string | IfNDef of string * defn
+type class_defn =
+  { name: identifier
+  ; final: bool [@default true]
+  ; base: type_
+  ; private_members: defn list
+  ; public_members: defn list }
+
+and directive = Include of string | IfNDef of string * defn
 
 and defn =
   | FunDef of fun_defn
+  | Class of identifier * type_ * defn list
   | Struct of template_parameter option * identifier * defn list
   | TopVarDef of var_defn
   | TopComment of string
@@ -180,6 +188,11 @@ and defn =
   | Namespace of identifier * defn list
   | Preprocessor of directive
 [@@deriving sexp]
+
+(* can't be derivided since it is simultaneously declared with non-records *)
+let make_class_defn ~name ~base ?(final = true) ~private_members ~public_members
+    () =
+  {name; base; final; private_members; public_members}
 
 type program = defn list [@@deriving sexp]
 
