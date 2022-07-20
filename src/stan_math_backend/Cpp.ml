@@ -109,10 +109,11 @@ type stmt =
   | VarDef of var_defn
   | For of var_defn * expr * expr * stmt
   | While of expr * stmt
-  | IfElse of expr * stmt * stmt
+  | IfElse of expr * stmt * stmt option
   | TryCatch of stmt * var_defn * stmt
   | Block of stmt list
-  | Return of expr
+  | Return of expr option
+  | Throw of expr
   | Break
   | Continue
   | Using of string * string option
@@ -142,6 +143,9 @@ module Stmts = struct
     let stop = BinOp (Var loopvar, LEq, upper) in
     let incr = Unary (Incr, Var loopvar) in
     For (init, stop, incr, body)
+
+  let block stmts = match stmts with [(Block _ as b)] -> b | _ -> Block stmts
+  let if_block cond stmts = IfElse (cond, block stmts, None)
 end
 
 type template_parameter =
@@ -293,7 +297,8 @@ module Printing = struct
   let rec pp_stmt ppf s =
     match s with
     | Expression e -> pf ppf "%a;" pp_expr e
-    | Return e -> pf ppf "return %a;" pp_expr e
+    | Return e -> pf ppf "return %a;" (option pp_expr) e
+    | Throw e -> pf ppf "throw %a;" pp_expr e
     | Break -> string ppf "break;"
     | Continue -> string ppf "continue;"
     | VarDef vd -> pf ppf "%a;" pp_var_defn vd
@@ -303,8 +308,10 @@ module Printing = struct
     | While (e, s) ->
         pf ppf "@[<v 2>while(@[%a@])@ @[%a@]@]" pp_expr e pp_stmt s
     | IfElse (cond, thn, els) ->
-        pf ppf "@[<v 2>if(@[%a@])@ @[%a@]@]@,@[<v 2>else @[%a@]@]" pp_expr cond
-          pp_stmt thn pp_stmt els
+        pf ppf "@[<v 2>if(@[%a@])@ @[%a@]@]@,@[<v 2>%a@]" pp_expr cond pp_stmt
+          thn
+          (option (fun ppf els -> pf ppf "else @[%a@]" pp_stmt els))
+          els
     | Block stmts ->
         pf ppf "@[<v>@[<v 2>{@,%a@]@,}@]" (list ~sep:cut pp_stmt) stmts
     | Using (s, init) ->

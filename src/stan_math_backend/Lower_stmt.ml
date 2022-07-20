@@ -89,15 +89,21 @@ let rec initialize_value st adtype =
 let lower_assign_sized st adtype initialize =
   if initialize then Some (initialize_value st adtype) else None
 
-let (*rec*) lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
+let lower_bool_expr expr =
+  match Expr.Typed.type_of expr with
+  | UReal -> Exprs.fun_call "stan::math::as_bool" [lower_expr expr]
+  | _ -> lower_expr expr
+
+let rec lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
   let remove_promotions (e : 'a Expr.Fixed.t) =
     (* assignment handles one level of promotion internally, don't do it twice *)
     match e.pattern with Promotion (e, _, _) -> e | _ -> e in
-  let wrap_e e = [Expression e] in
   let location =
     match pattern with
     | Block _ | SList _ | Decl _ | Skip | Break | Continue -> []
     | _ -> Locations.create_loc_assignment meta in
+  let wrap_e e = [Expression e] in
+  let open Expression_syntax in
   location
   @
   match pattern with
@@ -117,6 +123,41 @@ let (*rec*) lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
     when List.for_all ~f:is_single_index idcs ->
       Assign (lower_indexed_simple (to_mir_var assignee) idcs, lower_expr rhs)
       |> wrap_e
+  | TargetPE e ->
+      let accum = Var "lp_accum__" in
+      accum.@?(("add", [lower_expr e])) |> wrap_e
+  | NRFunApp (CompilerInternal FnPrint, args) ->
+      let lower_arg a =
+        Expression
+          (Exprs.fun_call "stan::math::stan_print"
+             [Var "pstream__"; lower_expr a] ) in
+      let args = args @ [Expr.Helpers.str "\n"] in
+      [Stmts.if_block (Var "pstream__") (List.map ~f:lower_arg args)]
+  | IfElse (cond, ifbranch, elsebranch) ->
+      [ IfElse
+          ( lower_expr cond
+          , Stmts.block (lower_statement ifbranch)
+          , Option.map ~f:(Fn.compose Stmts.block lower_statement) elsebranch )
+      ]
+  | While (cond, body) ->
+      [While (lower_bool_expr cond, Stmts.block (lower_statement body))]
+  | For
+      { body=
+          { pattern=
+              Assignment
+                (_, {pattern= FunApp (CompilerInternal (FnReadParam _), _); _})
+          ; _ } as body
+      ; _ } ->
+      lower_statement body
+      (* Skip For loop part, just emit body due to the way FnReadParam emits *)
+  | For {loopvar; lower; upper; body} ->
+      [ Stmts.fori loopvar (lower_expr lower) (lower_expr upper)
+          (Stmts.block (lower_statement body)) ]
+  | Break -> [Break]
+  | Continue -> [Continue]
+  | Return e -> [Return (Option.map ~f:lower_expr e)]
+  | Block ls -> [Stmts.block (List.concat_map ~f:lower_statement ls)]
+  | SList ls -> List.concat_map ~f:lower_statement ls
   | _ -> failwith "todo"
 (* | Assignment ((assignee, _, idcs), rhs) ->
        (* XXX I think in general we don't need to do a deepcopy if e is nested
@@ -141,12 +182,7 @@ let (*rec*) lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
          (str "assigning variable %s" assignee)
          (if List.length idcs = 0 then "" else ", ")
          pp_indexes idcs
-   | TargetPE e -> pf ppf "@[<hov 2>lp_accum__.add(@,%a@]);" pp_expr e
-   | NRFunApp (CompilerInternal FnPrint, args) ->
-       let pp_arg ppf a =
-         pf ppf "stan::math::stan_print(pstream__, %a);" pp_expr a in
-       let args = args @ [Expr.Helpers.str "\n"] in
-       pf ppf "if (pstream__) %a" pp_block (list ~sep:cut pp_arg, args)
+
    | NRFunApp (CompilerInternal FnReject, args) ->
        let err_strm = "errmsg_stream__" in
        let add_to_string ppf e = pf ppf "%s << %a;" err_strm pp_expr e in
@@ -191,30 +227,10 @@ let (*rec*) lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
          (list ~sep:comma pp_expr) args
    | NRFunApp (UserDefined (fname, suffix), args) ->
        pf ppf "%a;" pp_user_defined_fun (fname, suffix, args)
-   | Break -> string ppf "break;"
-   | Continue -> string ppf "continue;"
-   | Return e -> pf ppf "@[<hov 4>return %a;@]" (option pp_expr) e
    | Skip -> string ppf ";"
-   | IfElse (cond, ifbranch, elsebranch) ->
-       let pp_else ppf x = pf ppf "else %a" pp_statement x in
-       pf ppf "if (@[<hov>%a@]) %a %a" pp_bool_expr cond pp_block_s ifbranch
-         (option pp_else) elsebranch
-   | While (cond, body) ->
-       pf ppf "while (@[<hov>%a@]) %a" pp_bool_expr cond pp_block_s body
-   | For
-       { body=
-           { pattern=
-               Assignment
-                 (_, {pattern= FunApp (CompilerInternal (FnReadParam _), _); _})
-           ; _ } as body
-       ; _ } ->
-       pp_statement ppf body
-       (* Skip For loop part, just emit body due to the way FnReadParam emits *)
-   | For {loopvar; lower; upper; body} ->
-       pp_for_loop ppf (loopvar, lower, upper, pp_statement, body)
+
    | Profile (name, ls) -> pp_profile ppf (pp_stmt_list, name, ls)
-   | Block ls -> pp_block ppf (pp_stmt_list, ls)
-   | SList ls -> pp_stmt_list ppf ls
+
    | Decl {decl_adtype; decl_id; decl_type; initialize; _} ->
        pp_decl ppf (decl_id, decl_type, decl_adtype, initialize) *)
 
