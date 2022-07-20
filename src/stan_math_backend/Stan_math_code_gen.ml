@@ -24,6 +24,8 @@ open Expression_gen
 open Statement_gen
 open Function_gen
 
+let pp_expr = Lower_expr.pp_expr
+let pp_statement = Lower_stmt.pp_statement
 let standalone_functions = ref false
 
 let stanc_args_to_print =

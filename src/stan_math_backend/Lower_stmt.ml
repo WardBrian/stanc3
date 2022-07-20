@@ -9,6 +9,29 @@ let unused s = Cast (Void, Var s)
 let lower_st st adtype =
   lower_unsizedtype_local adtype (SizedType.to_unsized st)
 
+let check_to_string = function
+  | Transformation.Lower _ -> Some "greater_or_equal"
+  | Upper _ -> Some "less_or_equal"
+  | CholeskyCov -> Some "cholesky_factor"
+  | LowerUpper _ ->
+      Common.FatalError.fatal_error_msg
+        [%message "LowerUpper is really two other checks tied together"]
+  | Offset _ | Multiplier _ | OffsetMultiplier _ -> None
+  | t -> constraint_to_string t
+
+let math_fn_translations = function
+  | Internal_fun.FnLength -> Some ("length", [])
+  | FnValidateSize -> Some ("stan::math::validate_non_negative_index", [])
+  | FnValidateSizeSimplex -> Some ("stan::math::validate_positive_index", [])
+  | FnValidateSizeUnitVector ->
+      Some ("stan::math::validate_unit_vector_index", [])
+  | FnReadWriteEventsOpenCL x -> Some (x ^ ".wait_for_read_write_events", [])
+  | _ -> None
+
+let trans_math_fn f =
+  Option.(
+    value ~default:(Internal_fun.to_string f, []) (math_fn_translations f))
+
 let nan_type st adtype =
   match (adtype, st) with
   | UnsizedType.AutoDiffable, _ -> Var "DUMMY_VAR__"
@@ -89,6 +112,46 @@ let rec initialize_value st adtype =
 let lower_assign_sized st adtype initialize =
   if initialize then Some (initialize_value st adtype) else None
 
+let lower_unsized_decl name ut adtype =
+  let type_ =
+    match (Transform_Mir.is_opencl_var name, ut) with
+    | _, UnsizedType.(UInt | UReal) | false, _ ->
+        lower_unsizedtype_local adtype ut
+    | true, UArray UInt -> Typename "matrix_cl<int>"
+    | true, _ -> Typename "matrix_cl<double>" in
+  VarDef (make_var_defn ~type_ ~name ())
+
+let lower_possibly_opencl_decl name st adtype =
+  let ut = SizedType.to_unsized st in
+  let mem_pattern = SizedType.get_mem_pattern st in
+  match (Transform_Mir.is_opencl_var name, ut) with
+  | _, UnsizedType.(UInt | UReal) | false, _ ->
+      lower_possibly_var_decl adtype ut mem_pattern
+  | true, UArray UInt -> Typename "matrix_cl<int>"
+  | true, _ -> Typename "matrix_cl<double>"
+
+let lower_sized_decl name st adtype initialize =
+  let type_ = lower_possibly_opencl_decl name st adtype in
+  let init = lower_assign_sized st adtype initialize in
+  VarDef (make_var_defn ~type_ ~name ~init ())
+
+let lower_decl vident pst adtype initialize =
+  match pst with
+  | Type.Sized st -> lower_sized_decl vident st adtype initialize
+  | Unsized ut -> lower_unsized_decl vident ut adtype
+
+let lower_profile name body =
+  let profile =
+    Expression
+      (Constructor
+         (* HACKY - not really a constructor in the same way*)
+         ( Typename "stan::math::profile<local_scalar_t__> profile__"
+         , [ Var name
+           ; Exprs.templated_fun_call "const_cast"
+               [Ref (Typename "stan::math::profile_map")]
+               [Var "profiles__"] ] ) ) in
+  Stmts.block (profile :: body)
+
 let lower_bool_expr expr =
   match Expr.Typed.type_of expr with
   | UReal -> Exprs.fun_call "stan::math::as_bool" [lower_expr expr]
@@ -123,6 +186,29 @@ let rec lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
     when List.for_all ~f:is_single_index idcs ->
       Assign (lower_indexed_simple (to_mir_var assignee) idcs, lower_expr rhs)
       |> wrap_e
+  | Assignment ((assignee, _, idcs), rhs) ->
+      (* XXX I think in general we don't need to do a deepcopy if e is nested
+         inside some function call - the function should get its own copy
+         (in all cases???) *)
+      let rec maybe_deep_copy e =
+        let recurse (e : 'a Expr.Fixed.t) =
+          { e with
+            Expr.Fixed.pattern= Expr.Fixed.Pattern.map maybe_deep_copy e.pattern
+          } in
+        match e.pattern with
+        | _ when UnsizedType.is_scalar_type (Expr.Typed.type_of e) -> e
+        | FunApp (CompilerInternal _, _) -> e
+        | (Indexed ({Expr.Fixed.pattern= Var v; _}, _) | Var v)
+          when v = assignee ->
+            { e with
+              Expr.Fixed.pattern= FunApp (CompilerInternal FnDeepCopy, [e]) }
+        | _ -> recurse e in
+      let rhs = maybe_deep_copy (remove_promotions rhs) in
+      Exprs.fun_call "stan::model::assign"
+        ( [ Var assignee; lower_expr rhs
+          ; Exprs.literal_string ("assigning variable " ^ assignee) ]
+        @ List.map ~f:lower_index idcs )
+      |> wrap_e
   | TargetPE e ->
       let accum = Var "lp_accum__" in
       accum.@?(("add", [lower_expr e])) |> wrap_e
@@ -133,6 +219,48 @@ let rec lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
              [Var "pstream__"; lower_expr a] ) in
       let args = args @ [Expr.Helpers.str "\n"] in
       [Stmts.if_block (Var "pstream__") (List.map ~f:lower_arg args)]
+  | NRFunApp (CompilerInternal FnReject, args) ->
+      let err_strm_name = "errmsg_stream__" in
+      let stream_decl =
+        VarDef
+          (make_var_defn ~type_:(Typename "std::stringstream")
+             ~name:err_strm_name () ) in
+      let throw =
+        Throw
+          (Exprs.fun_call "std::domain_error" [(Var err_strm_name).@!("str")])
+      in
+      let add_to_string e = Expression (Var err_strm_name << [lower_expr e]) in
+      (stream_decl :: List.map ~f:add_to_string args) @ [throw]
+  | NRFunApp (CompilerInternal (FnCheck {trans; var_name; var}), args) ->
+      Option.value_map (check_to_string trans) ~default:[] ~f:(fun check_name ->
+          let function_arg = Expr.Helpers.variable "function__" in
+          Exprs.fun_call
+            ("stan::math::check_" ^ check_name)
+            ( [ lower_expr function_arg; Exprs.literal_string var_name
+              ; lower_expr var ]
+            @ List.map ~f:lower_expr args )
+          |> wrap_e )
+  | NRFunApp (CompilerInternal (FnWriteParam {unconstrain_opt; var}), _) -> (
+      let out = Var "out__" in
+      match
+        (unconstrain_opt, Option.bind ~f:constraint_to_string unconstrain_opt)
+      with
+      (* When the current block or this transformation doesn't require unconstraining,
+         use vanilla write *)
+      | None, _ | _, None -> out.@?(("write", [lower_expr var])) |> wrap_e
+      (* Otherwise, use stan::io::serializer's write_free functions *)
+      | Some trans, Some unconstrain_string ->
+          let unconstrain_args = transform_args trans in
+          let write_fn = "write_free_" ^ unconstrain_string in
+          out.@?((write_fn, lower_exprs (unconstrain_args @ [var]))) |> wrap_e )
+  | NRFunApp (CompilerInternal f, args) ->
+      let fname, extra_args = trans_math_fn f in
+      Exprs.fun_call fname (lower_exprs (extra_args @ args)) |> wrap_e
+  | NRFunApp (StanLib (fname, _, _), args) ->
+      Exprs.fun_call (stan_namespace_qualify fname) (lower_exprs args) |> wrap_e
+  | NRFunApp (UserDefined (fname, suffix), args) ->
+      lower_user_defined_fun fname suffix args |> wrap_e
+  | Skip -> [Semicolon]
   | IfElse (cond, ifbranch, elsebranch) ->
       [ IfElse
           ( lower_expr cond
@@ -158,81 +286,13 @@ let rec lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
   | Return e -> [Return (Option.map ~f:lower_expr e)]
   | Block ls -> [Stmts.block (List.concat_map ~f:lower_statement ls)]
   | SList ls -> List.concat_map ~f:lower_statement ls
-  | _ -> failwith "todo"
-(* | Assignment ((assignee, _, idcs), rhs) ->
-       (* XXX I think in general we don't need to do a deepcopy if e is nested
-          inside some function call - the function should get its own copy
-          (in all cases???) *)
-       let rec maybe_deep_copy e =
-         let recurse (e : 'a Expr.Fixed.t) =
-           { e with
-             Expr.Fixed.pattern= Expr.Fixed.Pattern.map maybe_deep_copy e.pattern
-           } in
-         match e.pattern with
-         | _ when UnsizedType.is_scalar_type (Expr.Typed.type_of e) -> e
-         | FunApp (CompilerInternal _, _) -> e
-         | (Indexed ({Expr.Fixed.pattern= Var v; _}, _) | Var v)
-           when v = assignee ->
-             { e with
-               Expr.Fixed.pattern= FunApp (CompilerInternal FnDeepCopy, [e]) }
-         | _ -> recurse e in
-       let rhs = maybe_deep_copy (remove_promotions rhs) in
-       pf ppf "@[<hov 2>stan::model::assign(@,%s,@ %a,@ %S%s%a@]);" assignee
-         pp_expr rhs
-         (str "assigning variable %s" assignee)
-         (if List.length idcs = 0 then "" else ", ")
-         pp_indexes idcs
+  | Decl {decl_adtype; decl_id; decl_type; initialize; _} ->
+      [lower_decl decl_id decl_type decl_adtype initialize]
+  | Profile (name, ls) ->
+      [lower_profile name (List.concat_map ~f:lower_statement ls)]
 
-   | NRFunApp (CompilerInternal FnReject, args) ->
-       let err_strm = "errmsg_stream__" in
-       let add_to_string ppf e = pf ppf "%s << %a;" err_strm pp_expr e in
-       pf ppf "std::stringstream %s;@," err_strm ;
-       pf ppf "%a@," (list ~sep:cut add_to_string) args ;
-       pf ppf "throw std::domain_error(%s.str());" err_strm
-   | NRFunApp (CompilerInternal (FnCheck {trans; var_name; var}), args) ->
-       Option.iter (check_to_string trans) ~f:(fun check_name ->
-           let function_arg = Expr.Helpers.variable "function__" in
-           if List.length args = 0 then
-             pf ppf "%s(@[<hov 2>%a, %a,@, %a@]);"
-               ("stan::math::check_" ^ check_name)
-               pp_expr function_arg pp_expr
-               (Expr.Helpers.str var_name)
-               pp_expr var
-           else
-             pf ppf "%s(@[<hov 2>%a, %a,@, %a,@, %a@]);"
-               ("stan::math::check_" ^ check_name)
-               pp_expr function_arg pp_expr
-               (Expr.Helpers.str var_name)
-               pp_expr var (list ~sep:comma pp_expr) args )
-   | NRFunApp (CompilerInternal (FnWriteParam {unconstrain_opt; var}), _) -> (
-     match
-       (unconstrain_opt, Option.bind ~f:constraint_to_string unconstrain_opt)
-     with
-     (* When the current block or this transformation doesn't require unconstraining,
-        use vanilla write *)
-     | None, _ | _, None -> pf ppf "@[<hov 2>out__.write(@,%a);@]" pp_expr var
-     (* Otherwise, use stan::io::serializer's write_free functions *)
-     | Some trans, Some unconstrain_string ->
-         let unconstrain_args = transform_args trans in
-         pf ppf "@[<hov 2>out__.write_free_%s(@,%a);@]" unconstrain_string
-           (list ~sep:comma pp_expr)
-           (unconstrain_args @ [var]) )
-   | NRFunApp (CompilerInternal f, args) ->
-       let fname, extra_args = trans_math_fn f in
-       pf ppf "%s(@[<hov>%a@]);" fname (list ~sep:comma pp_expr)
-         (extra_args @ args)
-   | NRFunApp (StanLib (fname, _, _), args) ->
-       pf ppf "%s(@[<hov>%a@]);"
-         (stan_namespace_qualify fname)
-         (list ~sep:comma pp_expr) args
-   | NRFunApp (UserDefined (fname, suffix), args) ->
-       pf ppf "%a;" pp_user_defined_fun (fname, suffix, args)
-   | Skip -> string ppf ";"
-
-   | Profile (name, ls) -> pp_profile ppf (pp_stmt_list, name, ls)
-
-   | Decl {decl_adtype; decl_id; decl_type; initialize; _} ->
-       pp_decl ppf (decl_id, decl_type, decl_adtype, initialize) *)
+let pp_statement ppf s =
+  Fmt.(list ~sep:cut Cpp.Printing.pp_stmt) ppf (lower_statement s)
 
 module Testing = struct
   let%expect_test "set size mat array" =

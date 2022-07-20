@@ -116,6 +116,7 @@ type stmt =
   | Throw of expr
   | Break
   | Continue
+  | Semicolon
   | Using of string * string option
   | Comment of string
 [@@deriving sexp]
@@ -168,13 +169,16 @@ type fun_defn =
   ; body: stmt list option }
 [@@deriving make, sexp]
 
-type defn =
+type directive = Include of string | IfNDef of string * defn
+
+and defn =
   | FunDef of fun_defn
   | Struct of template_parameter option * identifier * defn list
   | TopVarDef of var_defn
   | TopComment of string
   | TopUsing of string * string option
   | Namespace of identifier * defn list
+  | Preprocessor of directive
 [@@deriving sexp]
 
 type program = defn list [@@deriving sexp]
@@ -301,6 +305,7 @@ module Printing = struct
     | Throw e -> pf ppf "throw %a;" pp_expr e
     | Break -> string ppf "break;"
     | Continue -> string ppf "continue;"
+    | Semicolon -> string ppf ";"
     | VarDef vd -> pf ppf "%a;" pp_var_defn vd
     | For (init, cond, incr, s) ->
         pf ppf "@[<v 2>for(@[<hov>%a; %a; %a@])@ @[%a@]@]" pp_var_defn init
