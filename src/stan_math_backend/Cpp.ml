@@ -156,32 +156,34 @@ type template_parameter =
   | Bool of string  (** A named boolean template type *)
 [@@deriving sexp]
 
-type return_ty =
-  {type_: type_; inline: bool [@default false]; const: bool [@default false]}
+type return_ty = {type_: type_; inline: bool [@default false]}
 [@@deriving sexp, make]
 
 type fun_defn =
-  { templates: template_parameter list [@default []]
+  { templates_init: template_parameter list * bool [@default [], false]
   ; name: identifier
   ; return_type: return_ty
-  ; args: type_ * string list
+  ; args: (type_ * string) list
   ; const: bool [@default false]
   ; body: stmt list option }
 [@@deriving make, sexp]
 
-type class_defn =
-  { name: identifier
-  ; final: bool [@default true]
+type directive = Include of string | IfNDef of string * defn list
+
+and class_defn =
+  { class_name: identifier
+  ; final: bool
   ; base: type_
   ; private_members: defn list
   ; public_members: defn list }
 
-and directive = Include of string | IfNDef of string * defn
+and struct_defn =
+  {param: template_parameter option; struct_name: identifier; body: defn list}
 
 and defn =
   | FunDef of fun_defn
-  | Class of identifier * type_ * defn list
-  | Struct of template_parameter option * identifier * defn list
+  | Class of class_defn
+  | Struct of struct_defn
   | TopVarDef of var_defn
   | TopComment of string
   | TopUsing of string * string option
@@ -192,15 +194,11 @@ and defn =
 (* can't be derivided since it is simultaneously declared with non-records *)
 let make_class_defn ~name ~base ?(final = true) ~private_members ~public_members
     () =
-  {name; base; final; private_members; public_members}
+  {class_name= name; base; final; private_members; public_members}
+
+let make_struct_defn ~param ~name ~body () = {param; struct_name= name; body}
 
 type program = defn list [@@deriving sexp]
-
-type found_functor =
-  { struct_template: template_parameter option
-  ; arg_templates: template_parameter list
-  ; signature: string
-  ; defn: string }
 
 module Printing = struct
   open Fmt
@@ -340,6 +338,56 @@ module Printing = struct
     | TryCatch (trys, exn, thn) ->
         pf ppf "@[<v>try@ %a@ catch(%a)@ %a@]" pp_stmt trys pp_var_defn exn
           pp_stmt thn
+
+  let pp_return_type ppf {type_; inline} =
+    pf ppf "%s%a" (if inline then "inline " else "") pp_type_ type_
+
+  let pp_fun_defn ppf
+      {templates_init= t, init; name; return_type; args; const; body} =
+    pf ppf "%a%a %a(%a)%s%a"
+      (pp_template ~default:init)
+      t pp_return_type return_type pp_identifier name
+      (list ~sep:comma (pair ~sep:Fmt.sp pp_type_ pp_identifier))
+      args
+      (if const then " const" else "")
+      (option ~none:Fmt.semi (fun ppf stmts ->
+           pf ppf "@,@[<v 2>{@,%a@]}" (list ~sep:cut pp_stmt) stmts ) )
+      body
+
+  let rec pp_directive ppf direct =
+    match direct with
+    | Include file -> pf ppf "#include <%s>" file
+    | IfNDef (name, defns) ->
+        pf ppf "@[<v>#ifndef %s@,%a@,#endif" name (list ~sep:cut pp_defn) defns
+
+  and pp_class_defn ppf
+      {class_name; final; base; private_members; public_members} =
+    pf ppf
+      "@[<v 2>class %s%s : %a{@,@[<v 2>private:@,%a@]@,@[<v 2>public:@,%a@]@]}"
+      class_name
+      (if final then " final" else "")
+      pp_type_ base (list ~sep:cut pp_defn) private_members
+      (list ~sep:cut pp_defn) public_members
+
+  and pp_struct_defn ppf {param; struct_name; body} =
+    pf ppf "%a@ @[<v 2>struct %s {@,%a@]}"
+      (option pp_template_parameter)
+      param struct_name (list ~sep:cut pp_defn) body
+
+  and pp_defn ppf d =
+    match d with
+    | FunDef fd -> pp_fun_defn ppf fd
+    | Class cd -> pp_class_defn ppf cd
+    | Struct sd -> pp_struct_defn ppf sd
+    | TopVarDef vd -> pp_var_defn ppf vd
+    | TopComment s -> pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
+    | TopUsing (s, init) ->
+        pf ppf "using %s%a;" s
+          (option (fun ppf defn -> pf ppf "= %s" defn))
+          init
+    | Namespace (id, defns) ->
+        pf ppf "@[<v 2>namespace %s {@,%a@]}" id (list ~sep:cut pp_defn) defns
+    | Preprocessor d -> pp_directive ppf d
 end
 
 module Tests = struct
@@ -397,4 +445,45 @@ module Tests = struct
            finished () ())
 
           (Eigen::Matrix<double,1,-1>(3) << 1, a, 3).finished() |}]
+
+  let%expect_test "function defn" =
+    let funs =
+      [ make_fun_defn
+          ~templates_init:
+            ([Typename "T0__"; Require ("stan::is_foobar", "T0__")], true)
+          ~name:"foobar"
+          ~return_type:{inline= true; type_= Void}
+          ()
+      ; (let s =
+           [ Comment "A potentially \n long comment"
+           ; Expression (Assign (Var "foo", Literal "3")) ] in
+         let rethrow = Stmts.rethrow_located s in
+         make_fun_defn
+           ~templates_init:
+             ([Typename "T0__"; Require ("stan::is_foobar", "T0__")], false)
+           ~name:"foobar"
+           ~return_type:{inline= true; type_= Void}
+           ~body:[rethrow] () ) ] in
+    let open Fmt in
+    pf stdout "@[<v>%a@]" (list ~sep:cut Printing.pp_fun_defn) funs ;
+    [%expect
+      {|
+              template <typename T0__,
+                        stan::require_all_t<stan::is_foobar<T0__>>* = nullptr>
+              inline void foobar();
+
+              template <typename T0__, stan::require_all_t<stan::is_foobar<T0__>>*>
+              inline void foobar()
+              {
+                try
+                {
+                  /* A potentially
+                     long comment
+                   */
+                  foo = 3;
+                }
+                catch(const std::exception& e)
+                {
+                  stan::lang::rethrow_located(e, locations_array__[current_statement__]);
+                }} |}]
 end
