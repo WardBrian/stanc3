@@ -5,10 +5,18 @@ open! Lower_expr
 open! Lower_stmt
 open Cpp
 
+let add_functor_decl functors (name : string)
+    (param : template_parameter option) (f : fun_defn) =
+  let f existing =
+    match existing with
+    | None -> make_struct_defn ~param ~name ~body:[FunDef f] ()
+    | Some sd -> {sd with body= sd.body @ [FunDef f]} in
+  Hashtbl.update functors name ~f
+
 (** This function produces the function and any functor definitions.
-    Functor declarations need to be collated, and are therefore stored in the
+    Functor {b declarations} need to be collated, and are therefore stored in the
     functors hashtable *)
-let lower_fun_def (functors : (string, fun_defn list) Hashtbl.t)
+let lower_fun_def (functors : (string, struct_defn) Hashtbl.t)
     (forward_decls : (string * template_parameter list) Hash_set.t)
     (funs_used_in_reduce_sum : String.Set.t)
     (funs_used_in_variadic_ode : String.Set.t)
@@ -50,7 +58,7 @@ let is_fun_used_with_variadic_fn (variadic_fn_test : string -> bool)
     then the actual functor definitions
   *)
 let collect_functors_functions (p : Program.Numbered.t) : defn list =
-  let (functors : (string, Cpp.fun_defn list) Hashtbl.t) =
+  let (functors : (string, Cpp.struct_defn) Hashtbl.t) =
     String.Table.create () in
   let forward_decls = Hash_set.Poly.create () in
   let reduce_sum_fns =
@@ -59,18 +67,13 @@ let collect_functors_functions (p : Program.Numbered.t) : defn list =
     is_fun_used_with_variadic_fn Stan_math_signatures.is_variadic_ode_fn p in
   let variadic_dae_fns =
     is_fun_used_with_variadic_fn Stan_math_signatures.is_variadic_dae_fn p in
-  let to_defns funs = List.map ~f:(fun f -> FunDef f) funs in
   let fun_and_functor_defs =
     p.functions_block
     |> List.concat_map
          ~f:
            (lower_fun_def functors forward_decls reduce_sum_fns variadic_ode_fns
               variadic_dae_fns )
-    |> to_defns in
+    |> List.map ~f:(fun f -> FunDef f) in
   let functor_struct_decls =
-    functors |> Hashtbl.to_alist
-    |> List.map ~f:(fun (name, fun_defns) ->
-           Struct
-             (make_struct_defn ~param:(*TODO*) None ~name
-                ~body:(to_defns fun_defns) () ) ) in
+    functors |> Hashtbl.data |> List.map ~f:(fun s -> Struct s) in
   functor_struct_decls @ fun_and_functor_defs
