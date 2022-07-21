@@ -108,6 +108,10 @@ let minus_one e =
   let open Expression_syntax in
   Parens (e - Literal "1")
 
+let plus_one e =
+  let open Expression_syntax in
+  Parens (e + Literal "1")
+
 let to_var s = Var s
 let to_mir_var s = Expr.{Fixed.pattern= Var s; meta= Typed.Meta.empty}
 

@@ -96,12 +96,15 @@ module Expression_syntax = struct
   let ( / ) a b = BinOp (a, Divide, b)
 end
 
+type init = Assignment of expr | Construction of expr list | Uninitialized
+[@@deriving sexp]
+
 type var_defn =
   { static: bool [@default false]
   ; constexpr: bool [@default false]
   ; type_: type_
   ; name: identifier
-  ; init: expr option [@default None] }
+  ; init: init [@default Uninitialized] }
 [@@deriving make, sexp]
 
 type stmt =
@@ -117,18 +120,20 @@ type stmt =
   | Break
   | Continue
   | Semicolon
-  | Using of string * string option
+  | Using of string * type_ option
   | Comment of string
 [@@deriving sexp]
 
 module Stmts = struct
+  let block stmts = match stmts with [(Block _ as b)] -> b | _ -> Block stmts
+
   let rethrow_located stmts =
     let exn =
       make_var_defn
         ~type_:(Types.const_ref (Typename "std::exception"))
         ~name:"e" () in
     TryCatch
-      ( Block stmts
+      ( block stmts
       , exn
       , Block
           [ Expression
@@ -140,13 +145,14 @@ module Stmts = struct
                    ] ) ) ] )
 
   let fori loopvar lower upper body =
-    let init = make_var_defn ~type_:Int ~name:loopvar ~init:(Some lower) () in
+    let init =
+      make_var_defn ~type_:Int ~name:loopvar ~init:(Assignment lower) () in
     let stop = BinOp (Var loopvar, LEq, upper) in
     let incr = Unary (Incr, Var loopvar) in
     For (init, stop, incr, body)
 
-  let block stmts = match stmts with [(Block _ as b)] -> b | _ -> Block stmts
   let if_block cond stmts = IfElse (cond, block stmts, None)
+  let unused s = Expression (Cast (Void, Var s))
 end
 
 type template_parameter =
@@ -160,7 +166,7 @@ type return_ty = {type_: type_; inline: bool [@default false]}
 [@@deriving sexp, make]
 
 type fun_defn =
-  { templates_init: template_parameter list * bool [@default [], false]
+  { templates_init: template_parameter list list * bool [@default [[]], false]
   ; name: identifier
   ; return_type: return_ty
   ; args: (type_ * string) list
@@ -186,7 +192,7 @@ and defn =
   | Struct of struct_defn
   | TopVarDef of var_defn
   | TopComment of string
-  | TopUsing of string * string option
+  | TopUsing of string * type_ option
   | Namespace of identifier * defn list
   | Preprocessor of directive
 [@@deriving sexp]
@@ -221,13 +227,6 @@ module Printing = struct
     | Ref t -> pf ppf "%a&" pp_type_ t
     | Pointer t -> pf ppf "%a*" pp_type_ t
     | TypeTrait (s, ts) -> pf ppf "%s<@[%a@]>" s (list ~sep:comma pp_type_) ts
-
-  let pp_template_parameter ppf template_parameter =
-    match template_parameter with
-    | Typename param_name -> pf ppf "typename %s" param_name
-    | Require (requirement, param_name) ->
-        pf ppf "stan::require_t<%s<%s>>*" requirement param_name
-    | Bool param_name -> pf ppf "bool %s" param_name
 
   let pp_requires ~default ppf requires =
     match requires with
@@ -281,7 +280,7 @@ module Printing = struct
     | Constructor (t, es) ->
         pf ppf "@[<hov 2>%a(%a)@]" pp_type_ t (list ~sep:comma pp_expr) es
     | InitalizerExpr (t, es) ->
-        pf ppf "%a{@[%a@]}" pp_type_ t (list ~sep:comma pp_expr) es
+        pf ppf "%a{%a}" pp_type_ t (list ~sep:comma pp_expr) es
     | StreamInsertion (e, es) ->
         pf ppf "%a <<@[@ %a@]" pp_expr e (list ~sep:comma pp_expr) es
     | FunCall (fn, tys, es) ->
@@ -302,12 +301,16 @@ module Printing = struct
         pf ppf "@[<hov 2>%a %a@ %a@]" pp_expr e1 pp_operator op pp_expr e2
 
   let pp_var_defn ppf {static; constexpr; type_; name; init} =
+    let pp_init ppf init =
+      match init with
+      | Uninitialized -> ()
+      | Assignment e -> pf ppf "@[<hov>@ =@ %a@]" pp_expr e
+      | Construction es -> pf ppf "(@[<hov 1>%a@])" (list ~sep:comma pp_expr) es
+    in
     let static = if static then "static " else "" in
     let constexpr = if constexpr then "constexpr " else "" in
     (* ordering? *)
-    pf ppf "@[%s%s%a %s%a@]" static constexpr pp_type_ type_ name
-      (option (fun ppf e -> pf ppf "@[<hov>@ =@ %a@]" pp_expr e))
-      init
+    pf ppf "@[%s%s%a %s%a@]" static constexpr pp_type_ type_ name pp_init init
 
   let rec pp_stmt ppf s =
     match s with
@@ -332,26 +335,26 @@ module Printing = struct
         pf ppf "@[<v>@[<v 2>{@,%a@]@,}@]" (list ~sep:cut pp_stmt) stmts
     | Using (s, init) ->
         pf ppf "using %s%a;" s
-          (option (fun ppf defn -> pf ppf "= %s" defn))
+          (option (fun ppf defn -> pf ppf "= %a" pp_type_ defn))
           init
     | Comment s -> pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
     | TryCatch (trys, exn, thn) ->
-        pf ppf "@[<v>try@ %a@ catch(%a)@ %a@]" pp_stmt trys pp_var_defn exn
-          pp_stmt thn
+        pf ppf "@[<v>@[<hov>try@ %a@]@,@[<hov>catch(%a)@ %a@]@]" pp_stmt trys
+          pp_var_defn exn pp_stmt thn
 
   let pp_return_type ppf {type_; inline} =
     pf ppf "%s%a" (if inline then "inline " else "") pp_type_ type_
 
   let pp_fun_defn ppf
       {templates_init= t, init; name; return_type; args; const; body} =
-    pf ppf "%a%a %a(%a)%s%a"
-      (pp_template ~default:init)
+    pf ppf "%a%a@ %a(@[<hov>%a@])%s%a"
+      (list (pp_template ~default:init))
       t pp_return_type return_type pp_identifier name
       (list ~sep:comma (pair ~sep:Fmt.sp pp_type_ pp_identifier))
       args
       (if const then " const" else "")
       (option ~none:Fmt.semi (fun ppf stmts ->
-           pf ppf "@,@[<v 2>{@,%a@]}" (list ~sep:cut pp_stmt) stmts ) )
+           pf ppf "@,@[<v 2>{@,%a@]@,}" (list ~sep:cut pp_stmt) stmts ) )
       body
 
   let rec pp_directive ppf direct =
@@ -370,8 +373,8 @@ module Printing = struct
       (list ~sep:cut pp_defn) public_members
 
   and pp_struct_defn ppf {param; struct_name; body} =
-    pf ppf "%a@ @[<v 2>struct %s {@,%a@]}"
-      (option pp_template_parameter)
+    pf ppf "%a@[<v 2>struct %s {@,%a@]};"
+      (option (fun ppf p -> (pp_template ~default:false) ppf [p]))
       param struct_name (list ~sep:cut pp_defn) body
 
   and pp_defn ppf d =
@@ -383,7 +386,7 @@ module Printing = struct
     | TopComment s -> pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
     | TopUsing (s, init) ->
         pf ppf "using %s%a;" s
-          (option (fun ppf defn -> pf ppf "= %s" defn))
+          (option (fun ppf defn -> pf ppf "= %a" pp_type_ defn))
           init
     | Namespace (id, defns) ->
         pf ppf "@[<v 2>namespace %s {@,%a@]}" id (list ~sep:cut pp_defn) defns
@@ -399,13 +402,12 @@ module Tests = struct
     Printing.pp_stmt Fmt.stdout rethrow ;
     [%expect
       {|
-      try
-      {
-        /* A potentially
-           long comment
-         */
-        foo = 3;
-      }
+      try {
+            /* A potentially
+               long comment
+             */
+            foo = 3;
+          }
       catch(const std::exception& e)
       {
         stan::lang::rethrow_located(e, locations_array__[current_statement__]);
@@ -450,7 +452,7 @@ module Tests = struct
     let funs =
       [ make_fun_defn
           ~templates_init:
-            ([Typename "T0__"; Require ("stan::is_foobar", "T0__")], true)
+            ([[Typename "T0__"; Require ("stan::is_foobar", "T0__")]], true)
           ~name:"foobar"
           ~return_type:{inline= true; type_= Void}
           ()
@@ -460,7 +462,7 @@ module Tests = struct
          let rethrow = Stmts.rethrow_located s in
          make_fun_defn
            ~templates_init:
-             ([Typename "T0__"; Require ("stan::is_foobar", "T0__")], false)
+             ([[Typename "T0__"; Require ("stan::is_foobar", "T0__")]], false)
            ~name:"foobar"
            ~return_type:{inline= true; type_= Void}
            ~body:[rethrow] () ) ] in
@@ -470,20 +472,22 @@ module Tests = struct
       {|
               template <typename T0__,
                         stan::require_all_t<stan::is_foobar<T0__>>* = nullptr>
-              inline void foobar();
+              inline void
+              foobar();
 
               template <typename T0__, stan::require_all_t<stan::is_foobar<T0__>>*>
-              inline void foobar()
+              inline void
+              foobar()
               {
-                try
-                {
-                  /* A potentially
-                     long comment
-                   */
-                  foo = 3;
-                }
+                try {
+                      /* A potentially
+                         long comment
+                       */
+                      foo = 3;
+                    }
                 catch(const std::exception& e)
                 {
                   stan::lang::rethrow_located(e, locations_array__[current_statement__]);
-                }} |}]
+                }
+              } |}]
 end

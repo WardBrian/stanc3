@@ -4,8 +4,6 @@ open! Middle
 open Cpp
 open! Lower_expr
 
-let unused s = Cast (Void, Var s)
-
 let lower_st st adtype =
   lower_unsizedtype_local adtype (SizedType.to_unsized st)
 
@@ -132,7 +130,9 @@ let lower_possibly_opencl_decl name st adtype =
 
 let lower_sized_decl name st adtype initialize =
   let type_ = lower_possibly_opencl_decl name st adtype in
-  let init = lower_assign_sized st adtype initialize in
+  let init =
+    lower_assign_sized st adtype initialize
+    |> Option.value_map ~default:Uninitialized ~f:(fun i -> Assignment i) in
   VarDef (make_var_defn ~type_ ~name ~init ())
 
 let lower_decl vident pst adtype initialize =
@@ -142,14 +142,16 @@ let lower_decl vident pst adtype initialize =
 
 let lower_profile name body =
   let profile =
-    Expression
-      (Constructor
-         (* HACKY - not really a constructor in the same way*)
-         ( Typename "stan::math::profile<local_scalar_t__> profile__"
-         , [ Var name
-           ; Exprs.templated_fun_call "const_cast"
-               [Ref (Typename "stan::math::profile_map")]
-               [Var "profiles__"] ] ) ) in
+    VarDef
+      (make_var_defn ~type_:(Typename "stan::math::profile<local_scalar_t__>")
+         ~name:"profile__"
+         ~init:
+           (Construction
+              [ Var name
+              ; Exprs.templated_fun_call "const_cast"
+                  [Ref (Typename "stan::math::profile_map")]
+                  [Var "profiles__"] ] )
+         () ) in
   Stmts.block (profile :: body)
 
 let lower_bool_expr expr =
