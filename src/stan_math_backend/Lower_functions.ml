@@ -147,15 +147,16 @@ let lower_fun_body fdargs fdsuffix fdbody =
     match fdsuffix with
     | Fun_kind.FnLpdf _ | FnTarget -> []
     | FnPlain | FnRng ->
-        [ VarDef
-            (make_var_defn ~static:true ~constexpr:true ~type_:(Typename "bool")
-               ~name:"propto__" ~init:(Assignment (Literal "true")) () )
-        ; Stmts.unused "propto__" ] in
+        VarDef
+          (make_var_defn ~static:true ~constexpr:true ~type_:(Typename "bool")
+             ~name:"propto__" ~init:(Assignment (Literal "true")) () )
+        :: Stmts.unused "propto__" in
   let dummy =
-    [ VarDef
-        (make_var_defn ~type_:(Typename "local_scalar_t__") ~name:"DUMMY_VAR__"
-           ~init:(Construction [Exprs.quiet_NaN])
-           () ); Stmts.unused "DUMMY_VAR__" ] in
+    VarDef
+      (make_var_defn ~type_:(Typename "local_scalar_t__") ~name:"DUMMY_VAR__"
+         ~init:(Construction [Exprs.quiet_NaN])
+         () )
+    :: Stmts.unused "DUMMY_VAR__" in
   let body = lower_statement fdbody in
   (local_scalar :: current_statement :: to_refs)
   @ propto @ dummy
@@ -339,6 +340,41 @@ let collect_functors_functions (p : Program.Numbered.t) : defn list =
     functors |> Hashtbl.data |> List.map ~f:(fun s -> Struct s) in
   functor_struct_decls @ fun_and_functor_defs
 
+(* let lower_standalone_fun_def namespace_fun ppf
+   Program.{fdname; fdsuffix; fdargs; fdbody; fdrt; _} =
+   let extra, extra_templates =
+   match fdsuffix with
+   | Fun_kind.FnTarget ->
+       (["lp__"; "lp_accum__"], ["double"; "stan::math::accumulator<double>"])
+   | FnRng -> (["base_rng__"], ["boost::ecuyer1988"])
+   | FnLpdf _ | FnPlain -> ([], []) in
+   let args =
+   List.map
+     ~f:(fun (_, name, ut) ->
+       str "const %a& %s" pp_unsizedtype_custom_scalar
+         (stantype_prim_str ut, ut)
+         name )
+     fdargs in
+   let pp_sig_standalone ppf _ =
+   let arg_strs =
+     args
+     @ mk_extra_args extra_templates extra
+     @ ["std::ostream* pstream__ = nullptr"] in
+   pf ppf "(@[<hov>%a@]) " (list ~sep:comma string) arg_strs in
+   let mark_function_comment = "// [[stan::function]]" in
+   let return_type = match fdrt with None -> "void" | _ -> "auto" in
+   let return_stmt = match fdrt with None -> "" | _ -> "return " in
+   match fdbody with
+   | None -> pf ppf ";@ "
+   | Some _ ->
+     pf ppf "@,%s@,%s %s%a @,{@, %s%s::%a;@,}@," mark_function_comment
+       return_type fdname pp_sig_standalone "" return_stmt namespace_fun
+       pp_call_str
+       ( ( match fdsuffix with
+         | FnLpdf _ | FnTarget -> fdname ^ "<false>"
+         | FnRng | FnPlain -> fdname )
+       , List.map ~f:(fun (_, name, _) -> name) fdargs @ extra @ ["pstream__"]
+       ) *)
 let pp_functions_functors ppf (p : Program.Numbered.t) =
   Fmt.(list ~sep:cut Cpp.Printing.pp_defn) ppf (collect_functors_functions p)
 
@@ -389,9 +425,11 @@ module Testing = struct
       const auto& x = stan::math::to_ref(x_arg__);
       const auto& y = stan::math::to_ref(y_arg__);
       static constexpr bool propto__ = true;
-      (void)propto__;
+      // supress unused var warning
+      (void) propto__;
       local_scalar_t__ DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());
-      (void)DUMMY_VAR__;
+      // supress unused var warning
+      (void) DUMMY_VAR__;
       try {
             return stan::math::add(x, 1);
           }
@@ -460,9 +498,11 @@ module Testing = struct
       const auto& y = stan::math::to_ref(y_arg__);
       const auto& z = stan::math::to_ref(z_arg__);
       static constexpr bool propto__ = true;
-      (void)propto__;
+      // supress unused var warning
+      (void) propto__;
       local_scalar_t__ DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());
-      (void)DUMMY_VAR__;
+      // supress unused var warning
+      (void) DUMMY_VAR__;
       try {
             return stan::math::add(x, 1);
           }

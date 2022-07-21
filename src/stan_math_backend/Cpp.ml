@@ -152,7 +152,9 @@ module Stmts = struct
     For (init, stop, incr, body)
 
   let if_block cond stmts = IfElse (cond, block stmts, None)
-  let unused s = Expression (Cast (Void, Var s))
+
+  let unused s =
+    [Comment "supress unused var warning"; Expression (Cast (Void, Var s))]
 end
 
 type template_parameter =
@@ -276,7 +278,7 @@ module Printing = struct
     | Literal s -> pf ppf "%a" text s
     | Var id -> string ppf id
     | Parens e -> (parens pp_expr) ppf e
-    | Cast (t, e) -> pf ppf "(%a)%a" pp_type_ t pp_expr e
+    | Cast (t, e) -> pf ppf "@[(%a)@ %a@]" pp_type_ t pp_expr e
     | Constructor (t, es) ->
         pf ppf "@[<hov 2>%a(%a)@]" pp_type_ t (list ~sep:comma pp_expr) es
     | InitalizerExpr (t, es) ->
@@ -337,7 +339,9 @@ module Printing = struct
         pf ppf "using %s%a;" s
           (option (fun ppf defn -> pf ppf "= %a" pp_type_ defn))
           init
-    | Comment s -> pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
+    | Comment s ->
+        if String.contains s '\n' then pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
+        else pf ppf "//@[<h> %s@]" s
     | TryCatch (trys, exn, thn) ->
         pf ppf "@[<v>@[<hov>try@ %a@]@,@[<hov>catch(%a)@ %a@]@]" pp_stmt trys
           pp_var_defn exn pp_stmt thn
@@ -383,7 +387,9 @@ module Printing = struct
     | Class cd -> pp_class_defn ppf cd
     | Struct sd -> pp_struct_defn ppf sd
     | TopVarDef vd -> pp_var_defn ppf vd
-    | TopComment s -> pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
+    | TopComment s ->
+        if String.contains s '\n' then pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
+        else pf ppf "//@[<h> %s@]" s
     | TopUsing (s, init) ->
         pf ppf "using %s%a;" s
           (option (fun ppf defn -> pf ppf "= %a" pp_type_ defn))
@@ -396,18 +402,22 @@ end
 module Tests = struct
   let%expect_test "rethrow_located" =
     let s =
-      [ Comment "A potentially \n long comment"
+      [ Comment
+          "A potentially very very very very very long comment which will be \
+           on one line"; Comment "A potentially \n multiline comment"
       ; Expression (Assign (Var "foo", Literal "3")) ] in
     let rethrow = Stmts.rethrow_located s in
     Printing.pp_stmt Fmt.stdout rethrow ;
     [%expect
       {|
-      try {
-            /* A potentially
-               long comment
-             */
-            foo = 3;
-          }
+      try
+      {
+        // A potentially very very very very very long comment which will be on one line
+        /* A potentially
+           multiline comment
+         */
+        foo = 3;
+      }
       catch(const std::exception& e)
       {
         stan::lang::rethrow_located(e, locations_array__[current_statement__]);
