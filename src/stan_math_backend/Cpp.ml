@@ -28,6 +28,7 @@ module Types = struct
   let row_vector s = Matrix (s, 1, -1)
   let matrix s = Matrix (s, -1, -1)
   let string = Type_literal "std::string"
+  let size_t = Type_literal "size_t"
   let const_ref t = Const (Ref t)
   let str_array i = Array (Const (Pointer (Type_literal "char")), i)
 end
@@ -159,15 +160,15 @@ type template_parameter =
   | Bool of string  (** A named boolean template type *)
 [@@deriving sexp]
 
-type return_ty = {type_: type_; inline: bool [@default false]}
-[@@deriving sexp, make]
+type cv_qualifiers = Const | Final | NoExcept [@@deriving sexp]
 
 type fun_defn =
   { templates_init: template_parameter list list * bool [@default [[]], false]
   ; name: identifier
-  ; return_type: return_ty
+  ; inline: bool [@default false]
+  ; return_type: type_
   ; args: (type_ * string) list
-  ; const: bool [@default false]
+  ; cv_qualifiers: cv_qualifiers list [@default []]
   ; body: stmt list option }
 [@@deriving make, sexp]
 
@@ -178,7 +179,8 @@ and class_defn =
   ; final: bool
   ; base: type_
   ; private_members: defn list
-  ; public_members: defn list }
+  ; public_members: defn list
+  ; destructor_body: stmt list [@default []] }
 
 and struct_defn =
   {param: template_parameter option; struct_name: identifier; body: defn list}
@@ -196,8 +198,13 @@ and defn =
 
 (* can't be derivided since it is simultaneously declared with non-records *)
 let make_class_defn ~name ~base ?(final = true) ~private_members ~public_members
-    () =
-  {class_name= name; base; final; private_members; public_members}
+    ?(destructor_body = []) () =
+  { class_name= name
+  ; base
+  ; final
+  ; private_members
+  ; public_members
+  ; destructor_body }
 
 let make_struct_defn ~param ~name ~body () = {param; struct_name= name; body}
 
@@ -342,20 +349,33 @@ module Printing = struct
         pf ppf "@[<v>@[<hov>try@ %a@]@,@[<hov>catch(%a %a)@ %a@]@]" pp_stmt trys
           pp_type_ exn_ty pp_identifier exn_name pp_stmt thn
 
-  let pp_return_type ppf {type_; inline} =
-    pf ppf "%s%a" (if inline then "inline " else "") pp_type_ type_
+  let pp_cv ppf q =
+    match q with
+    | Const -> string ppf "const"
+    | Final -> string ppf "final"
+    | NoExcept -> string ppf "noexcept"
 
   let pp_fun_defn ppf
-      {templates_init= t, init; name; return_type; args; const; body} =
-    pf ppf "@[%a%a@ %a(@[<hov>%a@])%s@]%a"
+      { templates_init= t, init
+      ; name
+      ; inline
+      ; return_type
+      ; args
+      ; cv_qualifiers
+      ; body } =
+    pf ppf "@[%a%s%a@ %a(@[<hov>%a@])%a@]%a"
       (list (pp_template ~default:init))
-      t pp_return_type return_type pp_identifier name
+      t
+      (if inline then "inline " else "")
+      pp_type_ return_type pp_identifier name
       (list ~sep:comma (pair ~sep:Fmt.sp pp_type_ pp_identifier))
-      args
-      (if const then " const" else "")
+      args (list ~sep:sp pp_cv) cv_qualifiers
       (option ~none:Fmt.semi (fun ppf stmts ->
            pf ppf "@,@[<v 2>{@,%a@]@,}" (list ~sep:cut pp_stmt) stmts ) )
       body
+
+  let pp_destructor ppf (name, body) =
+    pf ppf "@[~%s() {%a}@]" name (list ~sep:cut pp_stmt) body
 
   let rec pp_directive ppf direct =
     match direct with
@@ -364,12 +384,19 @@ module Printing = struct
         pf ppf "@[<v>#ifndef %s@,%a@,#endif" name (list ~sep:cut pp_defn) defns
 
   and pp_class_defn ppf
-      {class_name; final; base; private_members; public_members} =
+      {class_name; final; base; private_members; destructor_body; public_members}
+      =
     pf ppf
-      "@[<v 2>class %s%s : %a{@,@[<v 2>private:@,%a@]@,@[<v 2>public:@,%a@]@]}"
+      "@[<v 2>class %s%s : %a{@,\
+       @[<v 2>private:@,\
+       %a@]@,\
+       @[<v 2>public:@,\
+       %a@,\
+       %a@]@]}"
       class_name
       (if final then " final" else "")
-      pp_type_ base (list ~sep:cut pp_defn) private_members
+      pp_type_ base (list ~sep:cut pp_defn) private_members pp_destructor
+      (class_name, destructor_body)
       (list ~sep:cut pp_defn) public_members
 
   and pp_struct_defn ppf {param; struct_name; body} =
@@ -459,9 +486,7 @@ module Tests = struct
       [ make_fun_defn
           ~templates_init:
             ([[Typename "T0__"; Require ("stan::is_foobar", "T0__")]], true)
-          ~name:"foobar"
-          ~return_type:{inline= true; type_= Void}
-          ()
+          ~name:"foobar" ~return_type:Void ~inline:true ()
       ; (let s =
            [ Comment "A potentially \n long comment"
            ; Expression (Assign (Var "foo", Literal "3")) ] in
@@ -469,9 +494,8 @@ module Tests = struct
          make_fun_defn
            ~templates_init:
              ([[Typename "T0__"; Require ("stan::is_foobar", "T0__")]], false)
-           ~name:"foobar"
-           ~return_type:{inline= true; type_= Void}
-           ~body:[rethrow] () ) ] in
+           ~name:"foobar" ~return_type:Void ~inline:true ~body:[rethrow] () ) ]
+    in
     let open Fmt in
     pf stdout "@[<v>%a@]" (list ~sep:cut Printing.pp_fun_defn) funs ;
     [%expect

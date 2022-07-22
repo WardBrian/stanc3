@@ -228,7 +228,7 @@ let lower_fun_def (functors : (string, struct_defn) Hashtbl.t)
     make_fun_defn
       ~templates_init:([template_params], init_template_requires)
       ~name:fdname
-      ~return_type:(make_return_ty ~type_:(lower_returntype fdargs fdrt) ())
+      ~return_type:(lower_returntype fdargs fdrt)
       ~args:cpp_args in
   match fdbody with
   | None ->
@@ -255,9 +255,8 @@ let lower_fun_def (functors : (string, struct_defn) Hashtbl.t)
           make_fun_defn
             ~templates_init:([arg_templates], true)
             ~name:"operator()"
-            ~return_type:
-              (make_return_ty ~type_:(lower_returntype fdargs fdrt) ())
-            ~args:cpp_args ~const:true () in
+            ~return_type:(lower_returntype fdargs fdrt)
+            ~args:cpp_args ~cv_qualifiers:[Const] () in
         (* Side Effect: *)
         add_functor_decl functors functor_name struct_template functor_decl ;
         let defn_template =
@@ -284,8 +283,8 @@ let lower_fun_def (functors : (string, struct_defn) Hashtbl.t)
             ( functor_name
             ^ (if struct_template <> None then "<propto__>" else "")
             ^ "::operator()" )
-          ~return_type:(make_return_ty ~type_:(lower_returntype fdargs fdrt) ())
-          ~args:cpp_args ~const:true ~body:defn_body () in
+          ~return_type:(lower_returntype fdargs fdrt)
+          ~args:cpp_args ~cv_qualifiers:[Const] ~body:defn_body () in
       let out_body = lower_fun_body fdargs fdsuffix fdbody in
       [almost_fn ~body:out_body (); register_functor `None]
       @ ( if String.Set.mem funs_used_in_reduce_sum fdname then
@@ -364,10 +363,7 @@ let lower_standalone_fun_def namespace_fun
     match fdrt with
     | None -> (Void, fun e -> Expression e)
     | _ -> (Auto, fun e -> Return (Some e)) in
-  let fn_sig =
-    make_fun_defn ~name:fdname
-      ~return_type:(make_return_ty ~type_:return_type ())
-      ~args:all_args in
+  let fn_sig = make_fun_defn ~name:fdname ~return_type ~args:all_args in
   match fdbody with
   | None -> [FunDef (fn_sig ())]
   | Some _ ->
@@ -458,7 +454,7 @@ module Testing = struct
                                   stan::is_vt_not_complex<T1__>>*>
     void
     sars_functor__::operator()(const T0__& x, const T1__& y, std::ostream*
-                               pstream__) const
+                               pstream__)const
     {
       return sars(x, y, pstream__);
     } |}]
@@ -534,7 +530,7 @@ module Testing = struct
                     stan::base_type_t<T1__>, stan::base_type_t<T2__>, T3__>,-1,-1>
     sars_functor__::operator()(const T0__& x, const T1__& y, const T2__& z,
                                const std::vector<Eigen::Matrix<T3__,-1,-1>>& w,
-                               std::ostream* pstream__) const
+                               std::ostream* pstream__)const
     {
       return sars(x, y, z, w, pstream__);
     } |}]
