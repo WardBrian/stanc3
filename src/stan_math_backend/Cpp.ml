@@ -11,7 +11,7 @@ type type_ =
   | TemplateType of identifier
   | Vector of type_
   | Array of type_ * int
-  | Typename of identifier
+  | Type_literal of identifier
   | Matrix of type_ * int * int
   | Ref of type_
   | Const of type_
@@ -21,15 +21,15 @@ type type_ =
 [@@deriving sexp]
 
 module Types = struct
-  let local_scalar = Typename "local_scalar_t__"
+  let local_scalar = Type_literal "local_scalar_t__"
   let std_vector t = Vector t
   let complex s = Complex s
   let vector s = Matrix (s, -1, 1)
   let row_vector s = Matrix (s, 1, -1)
   let matrix s = Matrix (s, -1, -1)
-  let string = Typename "std::string"
+  let string = Type_literal "std::string"
   let const_ref t = Const (Ref t)
-  let str_array i = Array (Const (Pointer (Typename "char")), i)
+  let str_array i = Array (Const (Pointer (Type_literal "char")), i)
 end
 
 type operator = Multiply | Divide | Add | Subtract | Eq | LEq | GEq | And | Or
@@ -63,6 +63,7 @@ module Exprs = struct
     | Var _ -> MethodCall (obj, name, templates, args)
     | _ -> MethodCall (Parens obj, name, templates, args)
 
+  let to_var s = Var s
   let literal_string s = Literal ("\"" ^ s ^ "\"")
   let std_vector_expr t es = InitalizerExpr (Vector t, es)
   let fun_call s es = FunCall (s, [], es)
@@ -92,8 +93,6 @@ module Expression_syntax = struct
 
   let ( + ) a b = BinOp (a, Add, b)
   let ( - ) a b = BinOp (a, Subtract, b)
-  let ( * ) a b = BinOp (a, Multiply, b)
-  let ( / ) a b = BinOp (a, Divide, b)
 end
 
 type init = Assignment of expr | Construction of expr list | Uninitialized
@@ -113,7 +112,7 @@ type stmt =
   | For of var_defn * expr * expr * stmt
   | While of expr * stmt
   | IfElse of expr * stmt * stmt option
-  | TryCatch of stmt * var_defn * stmt
+  | TryCatch of stmt * (type_ * identifier) * stmt
   | Block of stmt list
   | Return of expr option
   | Throw of expr
@@ -128,13 +127,9 @@ module Stmts = struct
   let block stmts = match stmts with [(Block _ as b)] -> b | _ -> Block stmts
 
   let rethrow_located stmts =
-    let exn =
-      make_var_defn
-        ~type_:(Types.const_ref (Typename "std::exception"))
-        ~name:"e" () in
     TryCatch
       ( block stmts
-      , exn
+      , (Types.const_ref (Type_literal "std::exception"), "e")
       , Block
           [ Expression
               (FunCall
@@ -221,14 +216,15 @@ module Printing = struct
     | Double -> string ppf "double"
     | Complex t -> pf ppf "std::complex<%a>" pp_type_ t
     | TemplateType id -> pp_identifier ppf id
-    | Vector t -> pf ppf "std::vector<@[@,%a@]>" pp_type_ t
-    | Array (t, i) -> pf ppf "std::array<@[@,%a,@ %i@]>" pp_type_ t i
-    | Typename id -> pp_identifier ppf id
-    | Matrix (t, i, j) -> pf ppf "Eigen::Matrix<@[%a,%i,%i@]>" pp_type_ t i j
+    | Vector t -> pf ppf "@[<2>std::vector<@,%a>@]" pp_type_ t
+    | Array (t, i) -> pf ppf "@[<2>std::array<@,%a,@ %i>@]" pp_type_ t i
+    | Type_literal id -> pp_identifier ppf id
+    | Matrix (t, i, j) -> pf ppf "Eigen::Matrix<%a,%i,%i>" pp_type_ t i j
     | Const t -> pf ppf "const %a" pp_type_ t
     | Ref t -> pf ppf "%a&" pp_type_ t
     | Pointer t -> pf ppf "%a*" pp_type_ t
-    | TypeTrait (s, ts) -> pf ppf "%s<@[%a@]>" s (list ~sep:comma pp_type_) ts
+    | TypeTrait (s, ts) ->
+        pf ppf "@[<2>%s<%a>@]" s (list ~sep:comma pp_type_) ts
 
   let pp_requires ~default ppf requires =
     match requires with
@@ -289,11 +285,11 @@ module Printing = struct
         pf ppf "@[<hov 2>%s%a(@,%a@])" fn maybe_templates tys
           (list ~sep:comma pp_expr) es
     | MethodCall (e, fn, tys, es) ->
-        pf ppf "@[<hov 2>%a.%s%a(@[@,%a@])@]" pp_expr e fn maybe_templates tys
+        pf ppf "@[<hov 2>%a.%s%a(%a)@]" pp_expr e fn maybe_templates tys
           (list ~sep:comma pp_expr) es
     | StaticMethodCall (ty, fn, tys, es) ->
-        pf ppf "@[<hov 2>%a::%s%a(@[@,%a@])@]" pp_type_ ty fn maybe_templates
-          tys (list ~sep:comma pp_expr) es
+        pf ppf "@[<hov 2>%a::%s%a(%a)@]" pp_type_ ty fn maybe_templates tys
+          (list ~sep:comma pp_expr) es
     | TernaryIf (e1, e2, e3) ->
         pf ppf "%a ? %a : %a" pp_expr e1 pp_expr e2 pp_expr e3
     | Index (e1, e2) -> pf ppf "%a[%a]" pp_expr e1 pp_expr e2
@@ -342,16 +338,16 @@ module Printing = struct
     | Comment s ->
         if String.contains s '\n' then pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
         else pf ppf "//@[<h> %s@]" s
-    | TryCatch (trys, exn, thn) ->
-        pf ppf "@[<v>@[<hov>try@ %a@]@,@[<hov>catch(%a)@ %a@]@]" pp_stmt trys
-          pp_var_defn exn pp_stmt thn
+    | TryCatch (trys, (exn_ty, exn_name), thn) ->
+        pf ppf "@[<v>@[<hov>try@ %a@]@,@[<hov>catch(%a %a)@ %a@]@]" pp_stmt trys
+          pp_type_ exn_ty pp_identifier exn_name pp_stmt thn
 
   let pp_return_type ppf {type_; inline} =
     pf ppf "%s%a" (if inline then "inline " else "") pp_type_ type_
 
   let pp_fun_defn ppf
       {templates_init= t, init; name; return_type; args; const; body} =
-    pf ppf "%a%a@ %a(@[<hov>%a@])%s%a"
+    pf ppf "@[%a%a@ %a(@[<hov>%a@])%s@]%a"
       (list (pp_template ~default:init))
       t pp_return_type return_type pp_identifier name
       (list ~sep:comma (pair ~sep:Fmt.sp pp_type_ pp_identifier))
@@ -482,12 +478,10 @@ module Tests = struct
       {|
               template <typename T0__,
                         stan::require_all_t<stan::is_foobar<T0__>>* = nullptr>
-              inline void
-              foobar();
+              inline void foobar();
 
               template <typename T0__, stan::require_all_t<stan::is_foobar<T0__>>*>
-              inline void
-              foobar()
+              inline void foobar()
               {
                 try {
                       /* A potentially

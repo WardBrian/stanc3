@@ -22,11 +22,11 @@ open Middle
 open Fmt
 open Expression_gen
 open Statement_gen
-open Function_gen
 
 let pp_expr = Lower_expr.pp_expr
 let pp_statement = Lower_stmt.pp_statement
 let pp_functions_functors = Lower_functions.pp_functions_functors
+let pp_standalone_fun_def = Lower_functions.pp_standalone_fun_def
 let standalone_functions = ref false
 
 let stanc_args_to_print =

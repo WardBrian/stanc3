@@ -115,8 +115,8 @@ let lower_unsized_decl name ut adtype =
     match (Transform_Mir.is_opencl_var name, ut) with
     | _, UnsizedType.(UInt | UReal) | false, _ ->
         lower_unsizedtype_local adtype ut
-    | true, UArray UInt -> Typename "matrix_cl<int>"
-    | true, _ -> Typename "matrix_cl<double>" in
+    | true, UArray UInt -> Type_literal "matrix_cl<int>"
+    | true, _ -> Type_literal "matrix_cl<double>" in
   VarDef (make_var_defn ~type_ ~name ())
 
 let lower_possibly_opencl_decl name st adtype =
@@ -125,8 +125,8 @@ let lower_possibly_opencl_decl name st adtype =
   match (Transform_Mir.is_opencl_var name, ut) with
   | _, UnsizedType.(UInt | UReal) | false, _ ->
       lower_possibly_var_decl adtype ut mem_pattern
-  | true, UArray UInt -> Typename "matrix_cl<int>"
-  | true, _ -> Typename "matrix_cl<double>"
+  | true, UArray UInt -> Type_literal "matrix_cl<int>"
+  | true, _ -> Type_literal "matrix_cl<double>"
 
 let lower_sized_decl name st adtype initialize =
   let type_ = lower_possibly_opencl_decl name st adtype in
@@ -143,13 +143,14 @@ let lower_decl vident pst adtype initialize =
 let lower_profile name body =
   let profile =
     VarDef
-      (make_var_defn ~type_:(Typename "stan::math::profile<local_scalar_t__>")
+      (make_var_defn
+         ~type_:(Type_literal "stan::math::profile<local_scalar_t__>")
          ~name:"profile__"
          ~init:
            (Construction
               [ Var name
               ; Exprs.templated_fun_call "const_cast"
-                  [Ref (Typename "stan::math::profile_map")]
+                  [Ref (Type_literal "stan::math::profile_map")]
                   [Var "profiles__"] ] )
          () ) in
   Stmts.block (profile :: body)
@@ -225,7 +226,7 @@ let rec lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
       let err_strm_name = "errmsg_stream__" in
       let stream_decl =
         VarDef
-          (make_var_defn ~type_:(Typename "std::stringstream")
+          (make_var_defn ~type_:(Type_literal "std::stringstream")
              ~name:err_strm_name () ) in
       let throw =
         Throw
@@ -320,6 +321,5 @@ module Testing = struct
     std::vector<std::vector<Eigen::Matrix<double,-1,-1>>>(5,
       std::vector<Eigen::Matrix<double,-1,-1>>(4,
         Eigen::Matrix<double,-1,-1>::Constant(2, 3,
-                                              std::numeric_limits<double>::quiet_NaN(
-                                                )))) |}]
+          std::numeric_limits<double>::quiet_NaN()))) |}]
 end

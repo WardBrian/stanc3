@@ -84,9 +84,9 @@ let suffix_args = function
   | FnTarget -> ["lp__"; "lp_accum__"]
   | FnPlain | FnLpdf _ -> []
 
-let rec stantype_prim_str = function
+let rec stantype_prim = function
   | UnsizedType.UInt -> Int
-  | UArray t -> stantype_prim_str t
+  | UArray t -> stantype_prim t
   | _ -> Double
 
 let templates udf suffix =
@@ -101,8 +101,8 @@ let serializer_in = Var "in__"
 let rec local_scalar ut ad =
   match (ut, ad) with
   | UnsizedType.UArray t, _ -> local_scalar t ad
-  | _, UnsizedType.DataOnly | UInt, AutoDiffable -> stantype_prim_str ut
-  | _, AutoDiffable -> Typename "local_scalar_t__"
+  | _, UnsizedType.DataOnly | UInt, AutoDiffable -> stantype_prim ut
+  | _, AutoDiffable -> Types.local_scalar
 
 let minus_one e =
   let open Expression_syntax in
@@ -112,7 +112,6 @@ let plus_one e =
   let open Expression_syntax in
   Parens (e + Literal "1")
 
-let to_var s = Var s
 let to_mir_var s = Expr.{Fixed.pattern= Var s; meta= Typed.Meta.empty}
 
 let rec lower_type (t : UnsizedType.t) (scalar : type_) : type_ =
@@ -411,11 +410,12 @@ and lower_fun_app suffix fname es mem_pattern
   | None ->
       let fname = stan_namespace_qualify fname in
       let templates = templates false suffix in
-      let extras = suffix_args suffix |> List.map ~f:to_var in
+      let extras = suffix_args suffix |> List.map ~f:Exprs.to_var in
       Exprs.templated_fun_call fname templates (lower_exprs es @ extras)
 
 and lower_user_defined_fun f suffix es =
-  let extra_args = suffix_args suffix @ ["pstream__"] |> List.map ~f:to_var in
+  let extra_args =
+    suffix_args suffix @ ["pstream__"] |> List.map ~f:Exprs.to_var in
   Exprs.templated_fun_call f (templates true suffix)
     (lower_exprs es @ extra_args)
 

@@ -109,7 +109,7 @@ let lower_arg ~is_possibly_eigen_expr custom_scalar_opt (_, name, ut) =
   let scalar =
     match custom_scalar_opt with
     | Some scalar -> TemplateType scalar
-    | None -> stantype_prim_str ut in
+    | None -> stantype_prim ut in
   (* we add the _arg suffix for any Eigen types *)
   let opt_arg_suffix =
     if is_possibly_eigen_expr && UnsizedType.is_eigen_type ut then
@@ -148,12 +148,13 @@ let lower_fun_body fdargs fdsuffix fdbody =
     | Fun_kind.FnLpdf _ | FnTarget -> []
     | FnPlain | FnRng ->
         VarDef
-          (make_var_defn ~static:true ~constexpr:true ~type_:(Typename "bool")
-             ~name:"propto__" ~init:(Assignment (Literal "true")) () )
+          (make_var_defn ~static:true ~constexpr:true
+             ~type_:(Type_literal "bool") ~name:"propto__"
+             ~init:(Assignment (Literal "true")) () )
         :: Stmts.unused "propto__" in
   let dummy =
     VarDef
-      (make_var_defn ~type_:(Typename "local_scalar_t__") ~name:"DUMMY_VAR__"
+      (make_var_defn ~type_:Types.local_scalar ~name:"DUMMY_VAR__"
          ~init:(Construction [Exprs.quiet_NaN])
          () )
     :: Stmts.unused "DUMMY_VAR__" in
@@ -162,11 +163,12 @@ let lower_fun_body fdargs fdsuffix fdbody =
   @ propto @ dummy
   @ [Stmts.rethrow_located body]
 
+let mk_extra_args templates args =
+  List.map
+    ~f:(fun (t, v) -> (Ref (TemplateType t), v))
+    (List.zip_exn templates args)
+
 let lower_args extra_templates extra args variadic =
-  let mk_extra_args templates args =
-    List.map
-      ~f:(fun (t, v) -> (Ref (TemplateType t), v))
-      (List.zip_exn templates args) in
   let args, variadic_args =
     match variadic with
     | `ReduceSum -> List.split_n args 3
@@ -176,7 +178,7 @@ let lower_args extra_templates extra args variadic =
   let arg_strs =
     args
     @ mk_extra_args extra_templates extra
-    @ [(Pointer (Typename "std::ostream"), "pstream__")]
+    @ [(Pointer (Type_literal "std::ostream"), "pstream__")]
     @ variadic_args in
   arg_strs
 
@@ -263,7 +265,7 @@ let lower_fun_def (functors : (string, struct_defn) Hashtbl.t)
           | FnLpdf _ | FnTarget -> [TemplateType "propto__"]
           | _ -> [] in
         let defn_args =
-          List.map ~f:to_var
+          List.map ~f:Exprs.to_var
             (List.map ~f:snd templated_args @ extra_arg_names @ ["pstream__"])
         in
         let defn_args =
@@ -340,43 +342,55 @@ let collect_functors_functions (p : Program.Numbered.t) : defn list =
     functors |> Hashtbl.data |> List.map ~f:(fun s -> Struct s) in
   functor_struct_decls @ fun_and_functor_defs
 
-(* let lower_standalone_fun_def namespace_fun ppf
-   Program.{fdname; fdsuffix; fdargs; fdbody; fdrt; _} =
-   let extra, extra_templates =
-   match fdsuffix with
-   | Fun_kind.FnTarget ->
-       (["lp__"; "lp_accum__"], ["double"; "stan::math::accumulator<double>"])
-   | FnRng -> (["base_rng__"], ["boost::ecuyer1988"])
-   | FnLpdf _ | FnPlain -> ([], []) in
-   let args =
-   List.map
-     ~f:(fun (_, name, ut) ->
-       str "const %a& %s" pp_unsizedtype_custom_scalar
-         (stantype_prim_str ut, ut)
-         name )
-     fdargs in
-   let pp_sig_standalone ppf _ =
-   let arg_strs =
-     args
-     @ mk_extra_args extra_templates extra
-     @ ["std::ostream* pstream__ = nullptr"] in
-   pf ppf "(@[<hov>%a@]) " (list ~sep:comma string) arg_strs in
-   let mark_function_comment = "// [[stan::function]]" in
-   let return_type = match fdrt with None -> "void" | _ -> "auto" in
-   let return_stmt = match fdrt with None -> "" | _ -> "return " in
-   match fdbody with
-   | None -> pf ppf ";@ "
-   | Some _ ->
-     pf ppf "@,%s@,%s %s%a @,{@, %s%s::%a;@,}@," mark_function_comment
-       return_type fdname pp_sig_standalone "" return_stmt namespace_fun
-       pp_call_str
-       ( ( match fdsuffix with
-         | FnLpdf _ | FnTarget -> fdname ^ "<false>"
-         | FnRng | FnPlain -> fdname )
-       , List.map ~f:(fun (_, name, _) -> name) fdargs @ extra @ ["pstream__"]
-       ) *)
+let lower_standalone_fun_def namespace_fun
+    Program.{fdname; fdsuffix; fdargs; fdbody; fdrt; _} =
+  let extra, extra_templates =
+    match fdsuffix with
+    | Fun_kind.FnTarget ->
+        (["lp__"; "lp_accum__"], ["double"; "stan::math::accumulator<double>"])
+    | FnRng -> (["base_rng__"], ["boost::ecuyer1988"])
+    | FnLpdf _ | FnPlain -> ([], []) in
+  let args =
+    List.map
+      ~f:(fun (_, name, ut) ->
+        (Types.const_ref (lower_type ut (stantype_prim ut)), name) )
+      fdargs in
+  let all_args =
+    args
+    @ mk_extra_args extra_templates extra
+    @ [(Pointer (Type_literal "std::ostream"), "pstream__ = nullptr")] in
+  let mark_function_comment = TopComment "[[stan::function]]" in
+  let return_type, return_stmt =
+    match fdrt with
+    | None -> (Void, fun e -> Expression e)
+    | _ -> (Auto, fun e -> Return (Some e)) in
+  let fn_sig =
+    make_fun_defn ~name:fdname
+      ~return_type:(make_return_ty ~type_:return_type ())
+      ~args:all_args in
+  match fdbody with
+  | None -> [FunDef (fn_sig ())]
+  | Some _ ->
+      let internal_fname = namespace_fun ^ "::" ^ fdname in
+      let template =
+        match fdsuffix with
+        | FnLpdf _ | FnTarget -> [Type_literal "false"]
+        | FnRng | FnPlain -> [] in
+      let call_args =
+        List.map ~f:(fun (_, name, _) -> name) fdargs @ extra @ ["pstream__"]
+        |> List.map ~f:Exprs.to_var in
+      let ret =
+        return_stmt (Exprs.templated_fun_call internal_fname template call_args)
+      in
+      [mark_function_comment; FunDef (fn_sig ~body:[ret] ())]
+
 let pp_functions_functors ppf (p : Program.Numbered.t) =
   Fmt.(list ~sep:cut Cpp.Printing.pp_defn) ppf (collect_functors_functions p)
+
+let pp_standalone_fun_def namespace_fun ppf p =
+  Fmt.(list ~sep:cut Cpp.Printing.pp_defn)
+    ppf
+    (lower_standalone_fun_def namespace_fun p)
 
 module Testing = struct
   (* Testing code *)
@@ -416,11 +430,10 @@ module Testing = struct
                                   stan::is_vt_not_complex<T0__>,
                                   stan::is_row_vector<T1__>,
                                   stan::is_vt_not_complex<T1__>>* = nullptr>
-    void
-    sars(const T0__& x_arg__, const T1__& y_arg__, std::ostream* pstream__)
+    void sars(const T0__& x_arg__, const T1__& y_arg__, std::ostream* pstream__)
     {
       using local_scalar_t__= stan::promote_args_t<stan::base_type_t<T0__>,
-                                                   stan::base_type_t<T1__>>;
+                                stan::base_type_t<T1__>>;
       int current_statement__ = 0;
       const auto& x = stan::math::to_ref(x_arg__);
       const auto& y = stan::math::to_ref(y_arg__);
@@ -438,7 +451,6 @@ module Testing = struct
         stan::lang::rethrow_located(e, locations_array__[current_statement__]);
       }
     }
-
     template <typename T0__, typename T1__,
               stan::require_all_t<stan::is_eigen_matrix_dynamic<T0__>,
                                   stan::is_vt_not_complex<T0__>,
@@ -485,14 +497,13 @@ module Testing = struct
                                   stan::is_vt_not_complex<T2__>,
                                   stan::is_stan_scalar<T3__>>* = nullptr>
     Eigen::Matrix<stan::promote_args_t<stan::base_type_t<T0__>,
-                                       stan::base_type_t<T1__>,
-                                       stan::base_type_t<T2__>, T3__>,-1,-1>
+                    stan::base_type_t<T1__>, stan::base_type_t<T2__>, T3__>,-1,-1>
     sars(const T0__& x_arg__, const T1__& y_arg__, const T2__& z_arg__,
          const std::vector<Eigen::Matrix<T3__,-1,-1>>& w, std::ostream* pstream__)
     {
       using local_scalar_t__= stan::promote_args_t<stan::base_type_t<T0__>,
-                                                   stan::base_type_t<T1__>,
-                                                   stan::base_type_t<T2__>, T3__>;
+                                stan::base_type_t<T1__>, stan::base_type_t<T2__>,
+                                T3__>;
       int current_statement__ = 0;
       const auto& x = stan::math::to_ref(x_arg__);
       const auto& y = stan::math::to_ref(y_arg__);
@@ -511,7 +522,6 @@ module Testing = struct
         stan::lang::rethrow_located(e, locations_array__[current_statement__]);
       }
     }
-
     template <typename T0__, typename T1__, typename T2__, typename T3__,
               stan::require_all_t<stan::is_eigen_matrix_dynamic<T0__>,
                                   stan::is_vt_not_complex<T0__>,
@@ -521,8 +531,7 @@ module Testing = struct
                                   stan::is_vt_not_complex<T2__>,
                                   stan::is_stan_scalar<T3__>>*>
     Eigen::Matrix<stan::promote_args_t<stan::base_type_t<T0__>,
-                                       stan::base_type_t<T1__>,
-                                       stan::base_type_t<T2__>, T3__>,-1,-1>
+                    stan::base_type_t<T1__>, stan::base_type_t<T2__>, T3__>,-1,-1>
     sars_functor__::operator()(const T0__& x, const T1__& y, const T2__& z,
                                const std::vector<Eigen::Matrix<T3__,-1,-1>>& w,
                                std::ostream* pstream__) const

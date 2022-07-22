@@ -7,7 +7,6 @@
   cpp_Json
   cpp_str
   expression_gen
-  function_gen
   locations
   statement_gen)
  (inline_tests)
