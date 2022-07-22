@@ -117,7 +117,7 @@ let lower_unsized_decl name ut adtype =
         lower_unsizedtype_local adtype ut
     | true, UArray UInt -> Type_literal "matrix_cl<int>"
     | true, _ -> Type_literal "matrix_cl<double>" in
-  VarDef (make_var_defn ~type_ ~name ())
+  make_var_defn ~type_ ~name ()
 
 let lower_possibly_opencl_decl name st adtype =
   let ut = SizedType.to_unsized st in
@@ -133,12 +133,12 @@ let lower_sized_decl name st adtype initialize =
   let init =
     lower_assign_sized st adtype initialize
     |> Option.value_map ~default:Uninitialized ~f:(fun i -> Assignment i) in
-  VarDef (make_var_defn ~type_ ~name ~init ())
+  make_var_defn ~type_ ~name ~init ()
 
 let lower_decl vident pst adtype initialize =
   match pst with
-  | Type.Sized st -> lower_sized_decl vident st adtype initialize
-  | Unsized ut -> lower_unsized_decl vident ut adtype
+  | Type.Sized st -> VarDef (lower_sized_decl vident st adtype initialize)
+  | Unsized ut -> VarDef (lower_unsized_decl vident ut adtype)
 
 let lower_profile name body =
   let profile =

@@ -1,4 +1,4 @@
-open! Core_kernel
+open Core_kernel
 
 type identifier = string [@@deriving sexp]
 
@@ -96,7 +96,11 @@ module Expression_syntax = struct
   let ( - ) a b = BinOp (a, Subtract, b)
 end
 
-type init = Assignment of expr | Construction of expr list | Uninitialized
+type init =
+  | Assignment of expr
+  | Construction of expr list
+  | InitalizerList of expr list
+  | Uninitialized
 [@@deriving sexp]
 
 type var_defn =
@@ -172,7 +176,16 @@ type fun_defn =
   ; body: stmt list option }
 [@@deriving make, sexp]
 
-type directive = Include of string | IfNDef of string * defn list
+type constructor =
+  { args: (type_ * string) list
+  ; init_list: (identifier * expr list) list
+  ; body: stmt list }
+[@@deriving make, sexp]
+
+type directive =
+  | Include of string
+  | IfNDef of string * defn list
+  | MacroApply of string * string list
 
 and class_defn =
   { class_name: identifier
@@ -180,7 +193,8 @@ and class_defn =
   ; base: type_
   ; private_members: defn list
   ; public_members: defn list
-  ; destructor_body: stmt list [@default []] }
+  ; constructor: constructor
+  ; destructor_body: stmt list }
 
 and struct_defn =
   {param: template_parameter option; struct_name: identifier; body: defn list}
@@ -198,12 +212,13 @@ and defn =
 
 (* can't be derivided since it is simultaneously declared with non-records *)
 let make_class_defn ~name ~base ?(final = true) ~private_members ~public_members
-    ?(destructor_body = []) () =
+    ~constructor ?(destructor_body = []) () =
   { class_name= name
   ; base
   ; final
   ; private_members
   ; public_members
+  ; constructor
   ; destructor_body }
 
 let make_struct_defn ~param ~name ~body () = {param; struct_name= name; body}
@@ -278,7 +293,7 @@ module Printing = struct
       if List.length ts = 0 then nop ppf ()
       else pf ppf "<@,%a>" (list ~sep:comma pp_type_) ts in
     match e with
-    | Literal s -> pf ppf "%a" text s
+    | Literal s -> pf ppf "%s" s
     | Var id -> string ppf id
     | Parens e -> (parens pp_expr) ppf e
     | Cast (t, e) -> pf ppf "@[(%a)@ %a@]" pp_type_ t pp_expr e
@@ -311,7 +326,8 @@ module Printing = struct
       | Uninitialized -> ()
       | Assignment e -> pf ppf "@[<hov>@ =@ %a@]" pp_expr e
       | Construction es -> pf ppf "(@[<hov 1>%a@])" (list ~sep:comma pp_expr) es
-    in
+      | InitalizerList es ->
+          pf ppf "{@[<hov 1>%a@]}" (list ~sep:comma pp_expr) es in
     let static = if static then "static " else "" in
     let constexpr = if constexpr then "constexpr " else "" in
     (* ordering? *)
@@ -320,7 +336,7 @@ module Printing = struct
   let rec pp_stmt ppf s =
     match s with
     | Expression e -> pf ppf "%a;" pp_expr e
-    | Return e -> pf ppf "return %a;" (option pp_expr) e
+    | Return e -> pf ppf "return %a;" (option (box pp_expr)) e
     | Throw e -> pf ppf "throw %a;" pp_expr e
     | Break -> string ppf "break;"
     | Continue -> string ppf "continue;"
@@ -340,7 +356,7 @@ module Printing = struct
         pf ppf "@[<v>@[<v 2>{@,%a@]@,}@]" (list ~sep:cut pp_stmt) stmts
     | Using (s, init) ->
         pf ppf "using %s%a;" s
-          (option (fun ppf defn -> pf ppf "= %a" pp_type_ defn))
+          (option (fun ppf defn -> pf ppf " = %a" pp_type_ defn))
           init
     | Comment s ->
         if String.contains s '\n' then pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
@@ -377,30 +393,49 @@ module Printing = struct
   let pp_destructor ppf (name, body) =
     pf ppf "@[~%s() {%a}@]" name (list ~sep:cut pp_stmt) body
 
+  let pp_constructor ppf (name, {args; init_list; body}) =
+    let pp_init ppf (id, es) = pf ppf "%s(%a)" id (list ~sep:comma pp_expr) es in
+    let pp_inits =
+      if List.length init_list = 0 then Fmt.nop
+      else fun ppf inits -> pf ppf ": %a" (list ~sep:comma pp_init) inits in
+    pf ppf "@[%s(@[%a@])%a {%a}@]" name
+      (list ~sep:comma (pair ~sep:sp pp_type_ pp_identifier))
+      args pp_inits init_list (list ~sep:cut pp_stmt) body
+
   let rec pp_directive ppf direct =
     match direct with
     | Include file -> pf ppf "#include <%s>" file
     | IfNDef (name, defns) ->
         pf ppf "@[<v>#ifndef %s@,%a@,#endif" name (list ~sep:cut pp_defn) defns
+    | MacroApply (name, args) ->
+        pf ppf "@[<h>%s(%a)@]" name (list ~sep:(any ", ") string) args
 
   and pp_class_defn ppf
-      {class_name; final; base; private_members; destructor_body; public_members}
-      =
+      { class_name
+      ; final
+      ; base
+      ; private_members
+      ; constructor
+      ; destructor_body
+      ; public_members } =
     pf ppf
       "@[<v 2>class %s%s : %a{@,\
        @[<v 2>private:@,\
        %a@]@,\
        @[<v 2>public:@,\
        %a@,\
-       %a@]@]}"
+       %a@,\
+       %a@]@]@,\
+       }"
       class_name
       (if final then " final" else "")
       pp_type_ base (list ~sep:cut pp_defn) private_members pp_destructor
       (class_name, destructor_body)
-      (list ~sep:cut pp_defn) public_members
+      pp_constructor (class_name, constructor) (list ~sep:cut pp_defn)
+      public_members
 
   and pp_struct_defn ppf {param; struct_name; body} =
-    pf ppf "%a@[<v 2>struct %s {@,%a@]};"
+    pf ppf "%a@[<v 2>struct %s {@,%a@]@,};"
       (option (fun ppf p -> (pp_template ~default:false) ppf [p]))
       param struct_name (list ~sep:cut pp_defn) body
 
@@ -415,10 +450,10 @@ module Printing = struct
         else pf ppf "//@[<h> %s@]" s
     | TopUsing (s, init) ->
         pf ppf "using %s%a;" s
-          (option (fun ppf defn -> pf ppf "= %a" pp_type_ defn))
+          (option (fun ppf defn -> pf ppf " = %a" pp_type_ defn))
           init
     | Namespace (id, defns) ->
-        pf ppf "@[<v 2>namespace %s {@,%a@]}" id (list ~sep:cut pp_defn) defns
+        pf ppf "@[<v 2>namespace %s {@,%a@]@,}" id (list ~sep:cut pp_defn) defns
     | Preprocessor d -> pp_directive ppf d
 end
 
