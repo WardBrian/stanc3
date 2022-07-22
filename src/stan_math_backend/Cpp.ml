@@ -47,6 +47,7 @@ type expr =
   | StaticMethodCall of type_ * identifier * type_ list * expr list
   | Constructor of type_ * expr list
   | InitalizerExpr of type_ * expr list
+  | ArrayLiteral of expr list
   | TernaryIf of expr * expr * expr
   | Cast of type_ * expr
   | Index of expr * expr
@@ -299,6 +300,7 @@ module Printing = struct
     | Cast (t, e) -> pf ppf "@[(%a)@ %a@]" pp_type_ t pp_expr e
     | Constructor (t, es) ->
         pf ppf "@[<hov 2>%a(%a)@]" pp_type_ t (list ~sep:comma pp_expr) es
+    | ArrayLiteral es -> pf ppf "{%a}" (list ~sep:comma pp_expr) es
     | InitalizerExpr (t, es) ->
         pf ppf "%a{%a}" pp_type_ t (list ~sep:comma pp_expr) es
     | StreamInsertion (e, es) ->
@@ -324,14 +326,14 @@ module Printing = struct
     let pp_init ppf init =
       match init with
       | Uninitialized -> ()
-      | Assignment e -> pf ppf "@[<hov>@ =@ %a@]" pp_expr e
+      | Assignment e -> pf ppf "@ =@ %a" pp_expr e
       | Construction es -> pf ppf "(@[<hov 1>%a@])" (list ~sep:comma pp_expr) es
       | InitalizerList es ->
           pf ppf "{@[<hov 1>%a@]}" (list ~sep:comma pp_expr) es in
     let static = if static then "static " else "" in
     let constexpr = if constexpr then "constexpr " else "" in
-    (* ordering? *)
-    pf ppf "@[%s%s%a %s%a@]" static constexpr pp_type_ type_ name pp_init init
+    pf ppf "@[<2>%s%s%a %s%a@]" static constexpr pp_type_ type_ name pp_init
+      init
 
   let rec pp_stmt ppf s =
     match s with
@@ -367,9 +369,9 @@ module Printing = struct
 
   let pp_cv ppf q =
     match q with
-    | Const -> string ppf "const"
-    | Final -> string ppf "final"
-    | NoExcept -> string ppf "noexcept"
+    | Const -> string ppf " const"
+    | Final -> string ppf " final"
+    | NoExcept -> string ppf " noexcept"
 
   let pp_fun_defn ppf
       { templates_init= t, init
@@ -385,7 +387,7 @@ module Printing = struct
       (if inline then "inline " else "")
       pp_type_ return_type pp_identifier name
       (list ~sep:comma (pair ~sep:Fmt.sp pp_type_ pp_identifier))
-      args (list ~sep:sp pp_cv) cv_qualifiers
+      args (list ~sep:nop pp_cv) cv_qualifiers
       (option ~none:Fmt.semi (fun ppf stmts ->
            pf ppf "@,@[<v 2>{@,%a@]@,}" (list ~sep:cut pp_stmt) stmts ) )
       body

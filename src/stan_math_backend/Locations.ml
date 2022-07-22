@@ -63,8 +63,7 @@ let gen_globals location_list =
          ~name:"profiles__" () )
   ; TopVarDef
       (make_var_defn ~type_:arr_type ~name:"locations_array__"
-         ~init:(Assignment (Exprs.literal_string "todo"))
-         () ) ]
+         ~init:(Assignment (ArrayLiteral location_list)) () ) ]
 
 let create_loc_assignment location_num =
   let open Cpp in

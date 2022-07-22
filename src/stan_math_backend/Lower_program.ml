@@ -149,7 +149,7 @@ let usings =
 
 (** Model boilerplate. This abuses the Cpp "Literal" expression
         since we never use things like operator::new elsewhere *)
-let new_model_boilerplate Program.{prog_name; _} =
+let new_model_boilerplate prog_name =
   let new_model =
     let args =
       [ (Ref (Type_literal "stan::io::var_context"), "data_context")
@@ -195,6 +195,44 @@ let lower_program (p : Program.Typed.t) : Cpp.program =
         ~f:(lower_standalone_fun_def model_namespace_str)
         p.functions_block
     else
-      new_model_boilerplate p @ register_map_rect_functors model_namespace_str
-  in
+      new_model_boilerplate p.prog_name
+      @ register_map_rect_functors model_namespace_str in
   [version; includes; model_namespace] @ global_fns
+
+module Testing = struct
+  open Fmt
+
+  let%expect_test "model public basics" =
+    model_public_basics "foobar"
+    |> List.hd_exn
+    |> str "@[<v>%a" Cpp.Printing.pp_defn
+    |> print_endline ;
+    [%expect
+      {|
+      inline std::string model_name() const final
+      {
+        return "foobar";
+      } |}]
+
+  let%expect_test "boilerplate" =
+    new_model_boilerplate "foobar"
+    |> str "@[<v>%a" (list Cpp.Printing.pp_defn)
+    |> print_endline ;
+    [%expect
+      {|
+        using stan_model = foobar_namespace::foobar;
+        #ifndef USING_R
+        // Boilerplate
+        stan::model::model_base&
+        new_model(stan::io::var_context& data_context, unsigned int seed,
+                  std::ostream* msg_stream)
+        {
+          stan_model* m = new stan_model(data_context, seed, msg_stream);
+          return *m;
+        }
+        stan::math::profile_map& get_stan_profile_data()
+        {
+          return foobar_namespace::profiles__;
+        }
+        #endif |}]
+end

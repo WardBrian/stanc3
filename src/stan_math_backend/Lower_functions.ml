@@ -454,7 +454,7 @@ module Testing = struct
                                   stan::is_vt_not_complex<T1__>>*>
     void
     sars_functor__::operator()(const T0__& x, const T1__& y, std::ostream*
-                               pstream__)const
+                               pstream__) const
     {
       return sars(x, y, pstream__);
     } |}]
@@ -530,7 +530,7 @@ module Testing = struct
                     stan::base_type_t<T1__>, stan::base_type_t<T2__>, T3__>,-1,-1>
     sars_functor__::operator()(const T0__& x, const T1__& y, const T2__& z,
                                const std::vector<Eigen::Matrix<T3__,-1,-1>>& w,
-                               std::ostream* pstream__)const
+                               std::ostream* pstream__) const
     {
       return sars(x, y, z, w, pstream__);
     } |}]
