@@ -51,6 +51,7 @@ type expr =
   | TernaryIf of expr * expr * expr
   | Cast of type_ * expr
   | Index of expr * expr
+  | New of string option * type_ * expr list
   | Assign of expr * expr (* NB: Not all exprs are valid lvalues! *)
   | Unary of unary_op * expr
   | StreamInsertion of expr * expr list
@@ -95,6 +96,7 @@ module Expression_syntax = struct
 
   let ( + ) a b = BinOp (a, Add, b)
   let ( - ) a b = BinOp (a, Subtract, b)
+  let ( * ) a b = BinOp (a, Multiply, b)
 end
 
 type init =
@@ -229,6 +231,7 @@ type program = defn list [@@deriving sexp]
 module Printing = struct
   open Fmt
 
+  let trailing_space (t : 'a Fmt.t) : 'a Fmt.t = fun ppf -> pf ppf "%a@ " t
   let pp_identifier ppf = string ppf
 
   let rec pp_type_ ppf t =
@@ -300,6 +303,10 @@ module Printing = struct
     | Cast (t, e) -> pf ppf "@[(%a)@ %a@]" pp_type_ t pp_expr e
     | Constructor (t, es) ->
         pf ppf "@[<hov 2>%a(%a)@]" pp_type_ t (list ~sep:comma pp_expr) es
+    | New (ptr, t, es) ->
+        pf ppf "@[<hov 2>new %a%a(%a)@]"
+          (option (trailing_space (parens string)))
+          ptr pp_type_ t (list ~sep:comma pp_expr) es
     | ArrayLiteral es -> pf ppf "{%a}" (list ~sep:comma pp_expr) es
     | InitalizerExpr (t, es) ->
         pf ppf "%a{%a}" pp_type_ t (list ~sep:comma pp_expr) es
@@ -393,14 +400,14 @@ module Printing = struct
       body
 
   let pp_destructor ppf (name, body) =
-    pf ppf "@[~%s() {%a}@]" name (list ~sep:cut pp_stmt) body
+    pf ppf "@[~%s()@ {%a}@]" name (list ~sep:cut pp_stmt) body
 
   let pp_constructor ppf (name, {args; init_list; body}) =
     let pp_init ppf (id, es) = pf ppf "%s(%a)" id (list ~sep:comma pp_expr) es in
     let pp_inits =
       if List.length init_list = 0 then Fmt.nop
       else fun ppf inits -> pf ppf ": %a" (list ~sep:comma pp_init) inits in
-    pf ppf "@[%s(@[%a@])%a {%a}@]" name
+    pf ppf "@[%s(@[%a@])%a@ @[<v 2>{@,%a}@]@]" name
       (list ~sep:comma (pair ~sep:sp pp_type_ pp_identifier))
       args pp_inits init_list (list ~sep:cut pp_stmt) body
 

@@ -20,6 +20,31 @@ let stanc_args_to_print =
   |> List.filter ~f:sans_model_and_hpp_paths
   |> String.concat ~sep:" "
 
+let get_unconstrained_param_st lst =
+  match lst with
+  | _, {Program.out_block= Parameters; out_unconstrained_st= st; _} -> (
+    match SizedType.get_dims_io st with
+    | [] -> Some [Expr.Helpers.loop_bottom]
+    | ls -> Some ls )
+  | _ -> None
+
+let get_constrained_param_st lst =
+  match lst with
+  | _, {Program.out_block= Parameters; out_constrained_st= st; _} -> (
+    match SizedType.get_dims_io st with
+    | [] -> Some [Expr.Helpers.loop_bottom]
+    | ls -> Some ls )
+  | _ -> None
+
+let lower_num_param (dims : Expr.Typed.t list) =
+  match dims with
+  | [] -> Literal "0"
+  | [d] -> lower_expr d
+  | d1 :: dims ->
+      Parens
+        (List.fold ~init:(lower_expr d1) ~f:Expression_syntax.( * )
+           (lower_exprs dims) )
+
 (** Create a variable for the name of model function.
   @param prog_name Name of the Stan program.
   @param fname Name of the function.
@@ -97,7 +122,118 @@ let lower_model_private {Program.prepare_data; _} =
   List.map ~f:lower_data_decl data_decls
   @ List.map ~f:lower_map_decl eigen_map_decls
 
-let lower_constructor _ = make_constructor ()
+let gen_validate_data name st =
+  if String.is_suffix ~suffix:"__" name then []
+  else
+    let vector args =
+      let cast x =
+        Exprs.templated_fun_call "static_cast" [Types.size_t] [lower_expr x]
+      in
+      InitalizerExpr (Types.std_vector Types.size_t, List.map ~f:cast args)
+    in
+    let open Expression_syntax in
+    let context = Var "context__" in
+    let validate =
+      context.@?(( "validate_dims"
+                 , [ literal_string "data initialization"
+                   ; literal_string (Mangle.remove_prefix name)
+                   ; literal_string
+                       (Fmt.to_to_string Cpp.Printing.pp_type_
+                          (stantype_prim (SizedType.to_unsized st)) )
+                   ; vector (SizedType.get_dims_io st) ] )) in
+    [Expression validate]
+
+let gen_assign_data decl_id st =
+  let lower_placement_new decl_id st =
+    let open Expression_syntax in
+    match st with
+    | SizedType.SVector (_, d)
+     |SRowVector (_, d)
+     |SComplexVector d
+     |SComplexRowVector d ->
+        let data = Var (decl_id ^ "_data__") in
+        [ Expression
+            (New
+               ( Some ("&" ^ decl_id)
+               , TypeTrait ("Eigen::Map", [lower_st st DataOnly])
+               , [data.@!("data"); lower_expr d] ) ) ]
+    | SMatrix (_, d1, d2) | SComplexMatrix (d1, d2) ->
+        let data = Var (decl_id ^ "_data__") in
+        [ Expression
+            (New
+               ( Some ("&" ^ decl_id)
+               , TypeTrait ("Eigen::Map", [lower_st st DataOnly])
+               , [data.@!("data"); lower_expr d1; lower_expr d2] ) ) ]
+    | _ -> [] in
+  let underlying_var decl_id st =
+    match st with
+    | SizedType.SVector _ | SRowVector _ | SMatrix _ | SComplexVector _
+     |SComplexRowVector _ | SComplexMatrix _ ->
+        Var (decl_id ^ "_data__")
+    | SInt | SReal | SComplex | SArray _ -> Var decl_id in
+  Expression (Assign (underlying_var decl_id st, initialize_value st DataOnly))
+  :: lower_placement_new decl_id st
+
+let lower_constructor
+    {Program.prog_name; input_vars; prepare_data; output_vars; _} =
+  let args =
+    [ (Ref (Type_literal "stan::io::var_context"), "context__")
+    ; (Type_literal "unsigned int", "random_seed__ = 0")
+    ; (Pointer (Type_literal "std::ostream"), "pstream__ = nullptr") ] in
+  let preamble =
+    [ VarDef
+        (make_var_defn ~type_:Int ~name:"current_statement__"
+           ~init:(Assignment (Literal "0")) () )
+    ; Using ("local_scalar_t__", Some Double)
+    ; VarDef
+        (make_var_defn ~type_:(Type_literal "boost::ecuyer1988")
+           ~name:"base_rng__"
+           ~init:
+             (Assignment
+                (Exprs.fun_call "stan::services::util::create_rng"
+                   [Var "random_seed__"; Literal "0"] ) )
+           () ) ]
+    @ Stmts.unused "base_rng__"
+    @ gen_function__ prog_name prog_name
+    @ VarDef
+        (make_var_defn ~type_:Types.local_scalar ~name:"DUMMY_VAR__"
+           ~init:(Construction [Exprs.quiet_NaN])
+           () )
+      :: Stmts.unused "DUMMY_VAR__" in
+  let data_idents = List.map ~f:fst input_vars |> String.Set.of_list in
+  let lower_data (Stmt.Fixed.{pattern; meta} as s) =
+    match pattern with
+    | Decl {decl_id; decl_type; _} when decl_id <> "pos__" -> (
+      match decl_type with
+      | Sized st -> (
+          Locations.create_loc_assignment meta
+          @
+          match Set.mem data_idents decl_id with
+          | true -> gen_validate_data decl_id st @ gen_assign_data decl_id st
+          | false -> gen_assign_data decl_id st )
+      | Unsized _ -> [] )
+    | _ -> lower_statement s in
+  let data =
+    [Stmts.rethrow_located (List.concat_map ~f:lower_data prepare_data)] in
+  let set_num_params =
+    let output_params =
+      List.filter_map ~f:get_unconstrained_param_st output_vars in
+    let add_params par pars =
+      List.fold ~init:par ~f:Expression_syntax.( + ) pars in
+    match output_params with
+    | [] -> Expression (Assign (Var "num_params_r__", Literal "0U"))
+    | [par] -> Expression (Assign (Var "num_params_r__", lower_num_param par))
+    | par :: pars ->
+        Expression
+          (Assign
+             ( Var "num_params_r__"
+             , add_params (lower_num_param par)
+                 (List.map ~f:lower_num_param pars) ) ) in
+  make_constructor ~args
+    ~init_list:[("model_base_crtp", [Literal "0"])]
+    ~body:(preamble @ data @ [set_num_params])
+    ()
+
 let lower_model_public _ = []
 
 let model_public_basics name =
@@ -147,8 +283,7 @@ let usings =
   [ TopUsing ("stan::model::model_base_crtp", None)
   ; TopUsing ("namespace stan::math", None) ]
 
-(** Model boilerplate. This abuses the Cpp "Literal" expression
-        since we never use things like operator::new elsewhere *)
+(** Model boilerplate. *)
 let new_model_boilerplate prog_name =
   let new_model =
     let args =
@@ -160,7 +295,10 @@ let new_model_boilerplate prog_name =
           (make_var_defn ~type_:(Pointer (Type_literal "stan_model")) ~name:"m"
              ~init:
                (Assignment
-                  (Literal "new stan_model(data_context, seed, msg_stream)") )
+                  (New
+                     ( None
+                     , Type_literal "stan_model"
+                     , [Var "data_context"; Var "seed"; Var "msg_stream"] ) ) )
              () ); Return (Some (Literal "*m")) ] in
     FunDef
       (make_fun_defn ~name:"new_model"
