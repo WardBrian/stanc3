@@ -162,8 +162,10 @@ end
 
 type template_parameter =
   | Typename of string  (** The name of a template typename *)
-  | Require of string * string
-      (** A C++ type trait and the name which needs to satisfy that *)
+  | RequireIs of string * string
+      (** A C++ type trait (e.g. is_arithmetic) and the template
+          name which needs to satisfy that.
+          These are collated into one require_all_t<> *)
   | Bool of string  (** A named boolean template type *)
 [@@deriving sexp]
 
@@ -271,7 +273,7 @@ module Printing = struct
     | _ ->
         let templates, requires =
           List.partition_map template_parameters ~f:(function
-            | Require (trait, name) -> Second (trait, name)
+            | RequireIs (trait, name) -> Second (trait, name)
             | Typename name -> First ("typename " ^ name)
             | Bool name -> First ("bool " ^ name) ) in
         pf ppf "template <@[%a%a@]>@ " (list ~sep:comma string) templates
@@ -529,7 +531,7 @@ module Tests = struct
     let funs =
       [ make_fun_defn
           ~templates_init:
-            ([[Typename "T0__"; Require ("stan::is_foobar", "T0__")]], true)
+            ([[Typename "T0__"; RequireIs ("stan::is_foobar", "T0__")]], true)
           ~name:"foobar" ~return_type:Void ~inline:true ()
       ; (let s =
            [ Comment "A potentially \n long comment"
@@ -537,7 +539,7 @@ module Tests = struct
          let rethrow = Stmts.rethrow_located s in
          make_fun_defn
            ~templates_init:
-             ([[Typename "T0__"; Require ("stan::is_foobar", "T0__")]], false)
+             ([[Typename "T0__"; RequireIs ("stan::is_foobar", "T0__")]], false)
            ~name:"foobar" ~return_type:Void ~inline:true ~body:[rethrow] () ) ]
     in
     let open Fmt in

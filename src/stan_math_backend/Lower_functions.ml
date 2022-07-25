@@ -24,23 +24,25 @@ let template_parameter_names (args : Program.fun_arg_decl) =
 let requires (_, _, ut) t =
   match ut with
   | UnsizedType.URowVector ->
-      [ Require ("stan::is_row_vector", t)
-      ; Require ("stan::is_vt_not_complex", t) ]
+      [ RequireIs ("stan::is_row_vector", t)
+      ; RequireIs ("stan::is_vt_not_complex", t) ]
   | UComplexRowVector ->
-      [Require ("stan::is_row_vector", t); Require ("stan::is_vt_complex", t)]
+      [ RequireIs ("stan::is_row_vector", t)
+      ; RequireIs ("stan::is_vt_complex", t) ]
   | UVector ->
-      [ Require ("stan::is_col_vector", t)
-      ; Require ("stan::is_vt_not_complex", t) ]
+      [ RequireIs ("stan::is_col_vector", t)
+      ; RequireIs ("stan::is_vt_not_complex", t) ]
   | UComplexVector ->
-      [Require ("stan::is_col_vector", t); Require ("stan::is_vt_complex", t)]
+      [ RequireIs ("stan::is_col_vector", t)
+      ; RequireIs ("stan::is_vt_complex", t) ]
   | UMatrix ->
-      [ Require ("stan::is_eigen_matrix_dynamic", t)
-      ; Require ("stan::is_vt_not_complex", t) ]
+      [ RequireIs ("stan::is_eigen_matrix_dynamic", t)
+      ; RequireIs ("stan::is_vt_not_complex", t) ]
   | UComplexMatrix ->
-      [ Require ("stan::is_eigen_matrix_dynamic", t)
-      ; Require ("stan::is_vt_complex", t) ]
+      [ RequireIs ("stan::is_eigen_matrix_dynamic", t)
+      ; RequireIs ("stan::is_vt_complex", t) ]
       (* NB: Not unwinding array types due to the way arrays of eigens are printed *)
-  | _ -> [Require ("stan::is_stan_scalar", t)]
+  | _ -> [RequireIs ("stan::is_stan_scalar", t)]
 
 let optional_require_templates (name_ops : string option list)
     (args : Program.fun_arg_decl) =

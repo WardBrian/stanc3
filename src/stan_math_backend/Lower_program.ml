@@ -234,7 +234,30 @@ let lower_constructor
     ~body:(preamble @ data @ [set_num_params])
     ()
 
-let lower_model_public _ = []
+let gen_log_prob _ = []
+let gen_write_array _ = []
+let gen_transform_inits_impl _ = []
+let gen_get_param_names _ = []
+let gen_get_dims _ = []
+let gen_constrained_param_names _ = []
+let gen_unconstrained_param_names _ = []
+let gen_constrained_types _ = []
+let gen_unconstrained_types _ = []
+let gen_overloads _ = []
+let gen_transform_inits _ = []
+
+let lower_model_public p =
+  gen_log_prob p @ gen_write_array p @ gen_transform_inits_impl p
+  (* Begin metadata methods *)
+  @ gen_get_param_names p
+  (* Post-data metadata methods *)
+  @ gen_get_dims p
+  @ gen_constrained_param_names p
+  @ gen_unconstrained_param_names p
+  @ gen_constrained_types p @ gen_unconstrained_types p
+  (* Boilerplate *)
+  @ gen_overloads p
+  @ gen_transform_inits p
 
 let model_public_basics name =
   [ FunDef

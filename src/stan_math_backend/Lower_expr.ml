@@ -274,10 +274,11 @@ and lower_misc_special_math_app (f : string) (mem_pattern : Mem_pattern.t)
             (fun es ->
               match List.exists ~f:is_autodiffable es with
               | true ->
-                  Exprs.templated_fun_call f
+                  Exprs.templated_fun_call (stan_namespace_qualify f)
                     [lower_possibly_var_decl AutoDiffable t mem_pattern]
                     (lower_exprs es)
-              | false -> Exprs.fun_call f (lower_exprs es) )
+              | false ->
+                  Exprs.fun_call (stan_namespace_qualify f) (lower_exprs es) )
       | Some Void -> None
       | None -> None )
   | _ -> None
