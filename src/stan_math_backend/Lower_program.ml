@@ -223,8 +223,8 @@ let gen_log_prob Program.{prog_name; log_prob; _} =
     ; Require ("stan::require_vector_like_vt", ["std::is_integral"; "VecI"]) ]
   in
   let args : (type_ * string) list =
-    [ (Const (TemplateType "VecR"), "params_r__")
-    ; (Const (TemplateType "VecI"), "params_i__")
+    [ (Ref (TemplateType "VecR"), "params_r__")
+    ; (Ref (TemplateType "VecI"), "params_i__")
     ; (Pointer (Type_literal "std::ostream"), "pstream__ = nullptr") ] in
   let intro =
     let t__ = Type_literal "T__" in
@@ -246,6 +246,7 @@ let gen_log_prob Program.{prog_name; log_prob; _} =
   FunDef
     (make_fun_defn
        ~templates_init:([templates], true)
+       ~inline:true
        ~return_type:(TypeTrait ("stan::scalar_type_t", [TemplateType "VecR"]))
        ~name:"log_prob_impl" ~args
        ~body:
@@ -253,22 +254,12 @@ let gen_log_prob Program.{prog_name; log_prob; _} =
        ~cv_qualifiers:[Const] () )
 
 let gen_write_array {Program.prog_name; generate_quantities; _} =
-  (*
-
-       pf ppf "%a@ %a@ %a" (list ~sep:cut string)
-
-         ; "local_scalar_t__ \
-            DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());"
-         ; "constexpr bool jacobian__ = false;" ]
-         pp_function__ (prog_name, "write_array") in
-     pp_method_b ppf "void" "write_array_impl" params intro generate_quantities *)
   let templates =
     [ Typename "RNG"; Typename "VecR"; Typename "VecI"; Typename "VecVar"
     ; Require
         ("stan::require_vector_like_vt", ["std::is_floating_point"; "VecR"])
     ; Require ("stan::require_vector_like_vt", ["std::is_integral"; "VecI"])
-    ; Require
-        ("stan::require_vector_like_vt", ["std::is_floating_point"; "VecVar"])
+    ; Require ("stan::require_vector_vt", ["std::is_floating_point"; "VecVar"])
     ] in
   let args =
     [ (Ref (TemplateType "RNG"), "base_rng__")
@@ -298,10 +289,10 @@ let gen_write_array {Program.prog_name; generate_quantities; _} =
   FunDef
     (make_fun_defn
        ~templates_init:([templates], true)
-       ~return_type:Void ~name:"write_array_impl" ~args
+       ~inline:true ~return_type:Void ~name:"write_array_impl" ~args
        ~body:
          (intro @ [Stmts.rethrow_located (lower_statements generate_quantities)])
-       () )
+       ~cv_qualifiers:[Const] () )
 
 let gen_transform_inits_impl {Program.transform_inits; _} =
   let templates =
@@ -321,7 +312,7 @@ let gen_transform_inits_impl {Program.transform_inits; _} =
   FunDef
     (make_fun_defn
        ~templates_init:([templates], true)
-       ~return_type:Void ~name:"transform_inits_impl" ~args
+       ~inline:true ~return_type:Void ~name:"transform_inits_impl" ~args
        ~body:(intro @ [Stmts.rethrow_located (lower_statements transform_inits)])
        ~cv_qualifiers:[Const] () )
 
@@ -338,23 +329,110 @@ let gen_get_param_names {Program.output_vars; _} =
     (make_fun_defn ~return_type:Void ~name:"get_param_names" ~args ~body
        ~cv_qualifiers:[Const] () )
 
-let gen_get_dims _ = []
+let gen_get_dims {Program.output_vars; _} =
+  let cast x =
+    Exprs.templated_fun_call "static_cast" [Types.size_t] [lower_expr x] in
+  let pack inner_dims =
+    Exprs.std_vector_expr Types.size_t
+      (List.map ~f:cast (SizedType.get_dims_io inner_dims)) in
+  let dim_list =
+    List.(
+      map ~f:(fun (_, {Program.out_constrained_st= st; _}) -> st) output_vars)
+  in
+  let result_vector =
+    Exprs.std_vector_expr
+      (Types.std_vector Types.size_t)
+      (List.map ~f:pack dim_list) in
+  FunDef
+    (make_fun_defn ~inline:true ~return_type:Void ~name:"get_dims"
+       ~args:
+         [(Ref (Types.std_vector (Types.std_vector Types.size_t)), "dimss__")]
+       ~body:[Expression (Assign (Var "dimss__", result_vector))]
+       ~cv_qualifiers:[Const] () )
+
+let emplace_name name idcs =
+  let name = Mangle.remove_prefix name in
+  let to_string e = Exprs.fun_call "std::to_string" [e] in
+  let param_names__ = Var "param_names__" in
+  let null_string = Constructor (Types.string, []) in
+  let dot = Literal "'.'" in
+  let open Expression_syntax in
+  [ Expression
+      param_names__.@?(( "emplace_back"
+                       , [ null_string
+                           + List.fold ~init:(literal_string name)
+                               ~f:(fun acc idx -> acc + dot + to_string idx)
+                               idcs ] )) ]
+
+let emplace_complex_name name idcs =
+  let name = Mangle.remove_prefix name in
+  let to_string e = Exprs.fun_call "std::to_string" [e] in
+  let param_names__ = Var "param_names__" in
+  let null_string = Constructor (Types.string, []) in
+  let dot = Literal "'.'" in
+  let open Expression_syntax in
+  [ Expression
+      param_names__.@?(( "emplace_back"
+                       , [ null_string + literal_string name
+                           + List.fold_left ~init:(literal_string "real")
+                               ~f:(fun acc idx -> to_string idx + dot + acc)
+                               idcs ] ))
+  ; Expression
+      param_names__.@?(( "emplace_back"
+                       , [ null_string + literal_string name
+                           + List.fold_left ~init:(literal_string "imag")
+                               ~f:(fun acc idx -> to_string idx + dot + acc)
+                               idcs ] )) ]
+
+(* pf ppf "@[param_names__.emplace_back(std::string() + %a);@]@,"
+     (list ~sep:(fun ppf () -> pf ppf " + '.' + ") string)
+     ((str "%S" name :: List.map ~f:(str "%a" to_string) idcs) @ ["\"real\""]) ;
+   pf ppf "param_names__.emplace_back(std::string() + %a);"
+     (list ~sep:(fun ppf () -> pf ppf " + '.' + ") string)
+     ((str "%S" name :: List.map ~f:(str "%a" to_string) idcs) @ ["\"imag\""]) *)
+
 let gen_constrained_param_names _ = []
 let gen_unconstrained_param_names _ = []
-let gen_constrained_types _ = []
-let gen_unconstrained_types _ = []
+
+(** Create constrained and unconstrained sizedtype methods
+ in the model class
+ @param name The name of the method to wrap the body in.
+ @param outvars The parameters to gather the sizes for.
+ *)
+let gen_outvar_metadata name outvars =
+  let json_str = Cpp_Json.out_var_interpolated_json_str outvars in
+  FunDef
+    (make_fun_defn ~inline:true ~return_type:Types.string ~name
+       ~body:
+         [ Return
+             (Some (Constructor (Types.string, [Exprs.literal_string json_str])))
+         ]
+       ~cv_qualifiers:[Const] () )
+
+(** Print the [get_unconstrained_sizedtypes] method of the model class *)
+let gen_unconstrained_types {Program.output_vars; _} =
+  let grab_unconstrained (name, {Program.out_unconstrained_st; out_block; _}) =
+    (name, out_unconstrained_st, out_block) in
+  let outvars = List.map ~f:grab_unconstrained output_vars in
+  gen_outvar_metadata "get_unconstrained_sizedtypes" outvars
+
+(** Print the [get_constrained_sizedtypes] method of the model class *)
+let gen_constrained_types {Program.output_vars; _} =
+  let grab_constrained (name, {Program.out_constrained_st; out_block; _}) =
+    (name, out_constrained_st, out_block) in
+  let outvars = List.map ~f:grab_constrained output_vars in
+  gen_outvar_metadata "get_constrained_sizedtypes" outvars
+
 let gen_overloads _ = []
 let gen_transform_inits _ = []
 
 let lower_model_public p =
-  gen_log_prob p :: gen_write_array p :: gen_transform_inits_impl p
-  :: (* Begin metadata methods *)
-     gen_get_param_names p
-  (* Post-data metadata methods *)
-  :: gen_get_dims p
+  [ gen_log_prob p; gen_write_array p; gen_transform_inits_impl p
+  ; (* Begin metadata methods *) gen_get_param_names p
+  ; (* Post-data metadata methods *) gen_get_dims p ]
   @ gen_constrained_param_names p
   @ gen_unconstrained_param_names p
-  @ gen_constrained_types p @ gen_unconstrained_types p
+  @ [gen_constrained_types p; gen_unconstrained_types p]
   (* Boilerplate *)
   @ gen_overloads p
   @ gen_transform_inits p
@@ -377,7 +455,7 @@ let model_public_basics name =
                          "stanc_version = %%NAME%%3 %%VERSION%%"
                      ; Exprs.literal_string
                          ("stancflags = " ^ !stanc_args_to_print) ] ) ) ]
-         () ) ]
+         ~cv_qualifiers:[Const; NoExcept] () ) ]
 
 let lower_model ({Program.prog_name; _} as p) =
   let private_members = lower_model_private p in
@@ -465,14 +543,18 @@ module Testing = struct
 
   let%expect_test "model public basics" =
     model_public_basics "foobar"
-    |> List.hd_exn
-    |> str "@[<v>%a" Cpp.Printing.pp_defn
+    |> str "@[<v>%a" (list ~sep:cut Cpp.Printing.pp_defn)
     |> print_endline ;
     [%expect
       {|
       inline std::string model_name() const final
       {
         return "foobar";
+      }
+      inline std::vector<std::string> model_compile_info() const noexcept
+      {
+        return std::vector<std::string>{"stanc_version = %%NAME%%3 %%VERSION%%",
+                 "stancflags = "};
       } |}]
 
   let%expect_test "boilerplate" =
@@ -496,4 +578,34 @@ module Testing = struct
           return foobar_namespace::profiles__;
         }
         #endif |}]
+
+  let%expect_test "emplace names" =
+    emplace_name "foo"
+      [ Exprs.literal_string "1"; Exprs.literal_string "2"
+      ; Exprs.literal_string "3" ]
+    |> str "@[<v>%a" (list ~sep:cut Cpp.Printing.pp_stmt)
+    |> print_endline ;
+    [%expect
+      {|
+      param_names__.emplace_back(std::string() +
+                                   "foo" + '.' + std::to_string("1") + '.' +
+                                     std::to_string("2") + '.' +
+                                     std::to_string("3")); |}]
+
+  let%expect_test "complex names" =
+    emplace_complex_name "foo"
+      [ Exprs.literal_string "1"; Exprs.literal_string "2"
+      ; Exprs.literal_string "3" ]
+    |> str "@[<v>%a" (list ~sep:cut Cpp.Printing.pp_stmt)
+    |> print_endline ;
+    [%expect
+      {|
+          param_names__.emplace_back(std::string() + "foo" +
+                                       std::to_string("3") + '.' +
+                                         std::to_string("2") + '.' +
+                                           std::to_string("1") + '.' + "real");
+          param_names__.emplace_back(std::string() + "foo" +
+                                       std::to_string("3") + '.' +
+                                         std::to_string("2") + '.' +
+                                           std::to_string("1") + '.' + "imag"); |}]
 end

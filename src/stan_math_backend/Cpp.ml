@@ -502,7 +502,7 @@ module Printing = struct
     | FunDef fd -> pp_fun_defn ppf fd
     | Class cd -> pp_class_defn ppf cd
     | Struct sd -> pp_struct_defn ppf sd
-    | TopVarDef vd -> pp_var_defn ppf vd
+    | TopVarDef vd -> pf ppf "%a;" pp_var_defn vd
     | TopComment s ->
         if String.contains s '\n' then pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
         else pf ppf "//@[<h> %s@]" s
