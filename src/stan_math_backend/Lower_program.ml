@@ -118,7 +118,7 @@ let gen_validate_data name st =
       let cast x =
         Exprs.templated_fun_call "static_cast" [Types.size_t] [lower_expr x]
       in
-      InitalizerExpr (Types.std_vector Types.size_t, List.map ~f:cast args)
+      InitializerExpr (Types.std_vector Types.size_t, List.map ~f:cast args)
     in
     let open Expression_syntax in
     let context = Var "context__" in
@@ -325,7 +325,19 @@ let gen_transform_inits_impl {Program.transform_inits; _} =
        ~body:(intro @ [Stmts.rethrow_located (lower_statements transform_inits)])
        ~cv_qualifiers:[Const] () )
 
-let gen_get_param_names _ = []
+let gen_get_param_names {Program.output_vars; _} =
+  let extract_name var = Exprs.literal_string (Mangle.remove_prefix (fst var)) in
+  let args = [(Ref (Types.std_vector Types.string), "names__")] in
+  let body =
+    [ Expression
+        (Assign
+           ( Var "names__"
+           , Exprs.std_vector_expr Types.string
+               (List.map ~f:extract_name output_vars) ) ) ] in
+  FunDef
+    (make_fun_defn ~return_type:Void ~name:"get_param_names" ~args ~body
+       ~cv_qualifiers:[Const] () )
+
 let gen_get_dims _ = []
 let gen_constrained_param_names _ = []
 let gen_unconstrained_param_names _ = []
@@ -339,7 +351,7 @@ let lower_model_public p =
   :: (* Begin metadata methods *)
      gen_get_param_names p
   (* Post-data metadata methods *)
-  @ gen_get_dims p
+  :: gen_get_dims p
   @ gen_constrained_param_names p
   @ gen_unconstrained_param_names p
   @ gen_constrained_types p @ gen_unconstrained_types p

@@ -47,7 +47,7 @@ type expr =
   | MethodCall of expr * identifier * type_ list * expr list
   | StaticMethodCall of type_ * identifier * type_ list * expr list
   | Constructor of type_ * expr list
-  | InitalizerExpr of type_ * expr list
+  | InitializerExpr of type_ * expr list
   | ArrayLiteral of expr list
   | TernaryIf of expr * expr * expr
   | Cast of type_ * expr
@@ -69,7 +69,7 @@ module Exprs = struct
 
   let to_var s = Var s
   let literal_string s = Literal ("\"" ^ s ^ "\"")
-  let std_vector_expr t es = InitalizerExpr (Vector t, es)
+  let std_vector_expr t es = InitializerExpr (Vector t, es)
   let fun_call s es = FunCall (s, [], es)
   let templated_fun_call s ts es = FunCall (s, ts, es)
   let quiet_NaN = fun_call "std::numeric_limits<double>::quiet_NaN" []
@@ -357,8 +357,8 @@ module Printing = struct
           (option (trailing_space (parens string)))
           ptr pp_type_ t (list ~sep:comma pp_expr) es
     | ArrayLiteral es -> pf ppf "{%a}" (list ~sep:comma pp_expr) es
-    | InitalizerExpr (t, es) ->
-        pf ppf "%a{%a}" pp_type_ t (list ~sep:comma pp_expr) es
+    | InitializerExpr (t, es) ->
+        pf ppf "@[<2>%a{%a}@]" pp_type_ t (list ~sep:comma pp_expr) es
     | StreamInsertion (e, es) ->
         pf ppf "%a <<@[@ %a@]" pp_expr e (list ~sep:comma pp_expr) es
     | FunCall (fn, tys, es) ->
