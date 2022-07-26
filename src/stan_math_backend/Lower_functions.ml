@@ -140,29 +140,18 @@ Prints boilerplate at start of function. Body of function wrapped in a `try` blo
 let lower_fun_body fdargs fdsuffix fdbody =
   let local_scalar =
     Using ("local_scalar_t__", Some (lower_promoted_scalar fdargs)) in
-  let current_statement =
-    VarDef
-      (make_var_defn ~type_:Int ~name:"current_statement__"
-         ~init:(Assignment (Literal "0")) () ) in
   let to_refs = lower_eigen_args_to_ref fdargs in
   let propto =
     match fdsuffix with
     | Fun_kind.FnLpdf _ | FnTarget -> []
     | FnPlain | FnRng ->
         VarDef
-          (make_var_defn ~static:true ~constexpr:true
-             ~type_:(Type_literal "bool") ~name:"propto__"
-             ~init:(Assignment (Literal "true")) () )
+          (make_var_defn ~static:true ~constexpr:true ~type_:Types.bool
+             ~name:"propto__" ~init:(Assignment (Literal "true")) () )
         :: Stmts.unused "propto__" in
-  let dummy =
-    VarDef
-      (make_var_defn ~type_:Types.local_scalar ~name:"DUMMY_VAR__"
-         ~init:(Construction [Exprs.quiet_NaN])
-         () )
-    :: Stmts.unused "DUMMY_VAR__" in
   let body = lower_statement fdbody in
-  (local_scalar :: current_statement :: to_refs)
-  @ propto @ dummy
+  (local_scalar :: Decls.current_statement :: to_refs)
+  @ propto @ Decls.dummy_var
   @ [Stmts.rethrow_located body]
 
 let mk_extra_args templates args =

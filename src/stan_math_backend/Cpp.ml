@@ -23,6 +23,7 @@ type type_ =
 module Types = struct
   let local_scalar = Type_literal "local_scalar_t__"
   let std_vector t = Vector t
+  let bool = Type_literal "bool"
   let complex s = Complex s
   let vector s = Matrix (s, -1, 1)
   let row_vector s = Matrix (s, 1, -1)
@@ -158,6 +159,34 @@ module Stmts = struct
 
   let unused s =
     [Comment "supress unused var warning"; Expression (Cast (Void, Var s))]
+end
+
+module Decls = struct
+  let current_statement =
+    VarDef
+      (make_var_defn ~type_:Int ~name:"current_statement__"
+         ~init:(Assignment (Literal "0")) () )
+
+  let dummy_var =
+    VarDef
+      (make_var_defn ~type_:Types.local_scalar ~name:"DUMMY_VAR__"
+         ~init:(Construction [Exprs.quiet_NaN])
+         () )
+    :: Stmts.unused "DUMMY_VAR__"
+
+  let serializer_in =
+    VarDef
+      (make_var_defn
+         ~type_:(TypeTrait ("stan::io::deserializer", [Types.local_scalar]))
+         ~name:"in__"
+         ~init:(Construction [Var "params_r__"; Var "params_i__"])
+         () )
+
+  let lp_accum t =
+    VarDef
+      (make_var_defn
+         ~type_:(TypeTrait ("stan::math::accumulator", [t]))
+         ~name:"lp_accum__" () )
 end
 
 type template_parameter =

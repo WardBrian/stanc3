@@ -7,18 +7,7 @@ open Lower_functions
 open Cpp
 
 let standalone_functions = ref false
-
-let stanc_args_to_print =
-  let sans_model_and_hpp_paths x =
-    not
-      String.(
-        is_suffix ~suffix:".stan" x
-        && not (is_prefix ~prefix:"--filename-in-msg" x)
-        || is_prefix ~prefix:"--o" x) in
-  (* Ignore the "--o" arg, the stan file and the binary name (bin/stanc). *)
-  Array.to_list Sys.argv |> List.tl_exn
-  |> List.filter ~f:sans_model_and_hpp_paths
-  |> String.concat ~sep:" "
+let stanc_args_to_print = ref ""
 
 let get_unconstrained_param_st lst =
   match lst with
@@ -181,10 +170,7 @@ let lower_constructor
     ; (Type_literal "unsigned int", "random_seed__ = 0")
     ; (Pointer (Type_literal "std::ostream"), "pstream__ = nullptr") ] in
   let preamble =
-    [ VarDef
-        (make_var_defn ~type_:Int ~name:"current_statement__"
-           ~init:(Assignment (Literal "0")) () )
-    ; Using ("local_scalar_t__", Some Double)
+    [ Decls.current_statement; Using ("local_scalar_t__", Some Double)
     ; VarDef
         (make_var_defn ~type_:(Type_literal "boost::ecuyer1988")
            ~name:"base_rng__"
@@ -195,11 +181,7 @@ let lower_constructor
            () ) ]
     @ Stmts.unused "base_rng__"
     @ gen_function__ prog_name prog_name
-    @ VarDef
-        (make_var_defn ~type_:Types.local_scalar ~name:"DUMMY_VAR__"
-           ~init:(Construction [Exprs.quiet_NaN])
-           () )
-      :: Stmts.unused "DUMMY_VAR__" in
+    @ Decls.dummy_var in
   let data_idents = List.map ~f:fst input_vars |> String.Set.of_list in
   let lower_data (Stmt.Fixed.{pattern; meta} as s) =
     match pattern with
@@ -237,7 +219,7 @@ let lower_constructor
 let gen_log_prob Program.{prog_name; log_prob; _} =
   let templates =
     [ Bool "propto__"; Bool "jacobian__"; Typename "VecR"; Typename "VecI"
-    ; Require ("stan::require_vector_like_vt", ["VecR"])
+    ; Require ("stan::require_vector_like_t", ["VecR"])
     ; Require ("stan::require_vector_like_vt", ["std::is_integral"; "VecI"]) ]
   in
   let args : (type_ * string) list =
@@ -252,25 +234,9 @@ let gen_log_prob Program.{prog_name; log_prob; _} =
     ; VarDef
         (make_var_defn ~type_:t__ ~name:"lp__"
            ~init:(Construction [Literal "0.0"])
-           () )
-    ; VarDef
-        (make_var_defn
-           ~type_:(TypeTrait ("stan::math::accumulator", [t__]))
-           ~name:"lp_accum__" () )
-    ; VarDef
-        (make_var_defn
-           ~type_:(TypeTrait ("stan::io::deserializer", [Types.local_scalar]))
-           ~name:"in__"
-           ~init:(Construction [Var "params_r__"; Var "params_i__"])
-           () )
-    ; VarDef
-        (make_var_defn ~type_:Int ~name:"current_statement__"
-           ~init:(Assignment (Literal "0")) () )
-    ; VarDef
-        (make_var_defn ~type_:Types.local_scalar ~name:"DUMMY_VAR__"
-           ~init:(Construction [Exprs.quiet_NaN])
-           () ) ]
-    @ Stmts.unused "DUMMY_VAR__"
+           () ); Decls.lp_accum t__; Decls.serializer_in
+    ; Decls.current_statement ]
+    @ Decls.dummy_var
     @ gen_function__ prog_name "log_prob" in
   let outro =
     let open Expression_syntax in
@@ -286,7 +252,62 @@ let gen_log_prob Program.{prog_name; log_prob; _} =
          (intro @ (Stmts.rethrow_located (lower_statements log_prob) :: outro))
        ~cv_qualifiers:[Const] () )
 
-let gen_write_array _ = []
+let gen_write_array {Program.prog_name; generate_quantities; _} =
+  (*
+
+       pf ppf "%a@ %a@ %a" (list ~sep:cut string)
+
+         ; "local_scalar_t__ \
+            DUMMY_VAR__(std::numeric_limits<double>::quiet_NaN());"
+         ; "constexpr bool jacobian__ = false;" ]
+         pp_function__ (prog_name, "write_array") in
+     pp_method_b ppf "void" "write_array_impl" params intro generate_quantities *)
+  let templates =
+    [ Typename "RNG"; Typename "VecR"; Typename "VecI"; Typename "VecVar"
+    ; Require
+        ("stan::require_vector_like_vt", ["std::is_floating_point"; "VecR"])
+    ; Require ("stan::require_vector_like_vt", ["std::is_integral"; "VecI"])
+    ; Require
+        ("stan::require_vector_like_vt", ["std::is_floating_point"; "VecVar"])
+    ] in
+  let args =
+    [ (Ref (TemplateType "RNG"), "base_rng__")
+    ; (Ref (TemplateType "VecR"), "params_r__")
+    ; (Ref (TemplateType "VecI"), "params_i__")
+    ; (Ref (TemplateType "VecVar"), "vars__")
+    ; (Const Types.bool, "emit_transformed_parameters__ = true")
+    ; (Const Types.bool, "emit_generated_quantities__ = true")
+    ; (Pointer (Type_literal "std::ostream"), "pstream__ = nullptr") ] in
+  let intro =
+    [ Using ("local_scalar_t__", Some Double); Decls.serializer_in
+    ; VarDef
+        (make_var_defn
+           ~type_:(TypeTrait ("stan::io::serializer", [Types.local_scalar]))
+           ~name:"out__"
+           ~init:(Construction [Var "vars__"])
+           () )
+    ; VarDef
+        (make_var_defn ~static:true ~constexpr:true ~type_:Types.bool
+           ~name:"propto__" ~init:(Assignment (Literal "true")) () ) ]
+    @ Stmts.unused "propto__"
+    @ VarDef
+        (make_var_defn ~type_:Double ~name:"lp__"
+           ~init:(Assignment (Literal "0.0")) () )
+      :: Stmts.unused "lp__"
+    @ [Decls.current_statement; Decls.lp_accum Double]
+    @ Decls.dummy_var
+    @ [ VarDef
+          (make_var_defn ~constexpr:true ~type_:Types.bool ~name:"jacobian__"
+             ~init:(Assignment (Literal "false")) () ) ]
+    @ gen_function__ prog_name "write_array" in
+  FunDef
+    (make_fun_defn
+       ~templates_init:([templates], true)
+       ~return_type:Void ~name:"write_array_impl" ~args
+       ~body:
+         (intro @ [Stmts.rethrow_located (lower_statements generate_quantities)])
+       () )
+
 let gen_transform_inits_impl _ = []
 let gen_get_param_names _ = []
 let gen_get_dims _ = []
@@ -298,8 +319,7 @@ let gen_overloads _ = []
 let gen_transform_inits _ = []
 
 let lower_model_public p =
-  (gen_log_prob p :: gen_write_array p)
-  @ gen_transform_inits_impl p
+  (gen_log_prob p :: gen_write_array p :: gen_transform_inits_impl p)
   (* Begin metadata methods *)
   @ gen_get_param_names p
   (* Post-data metadata methods *)
@@ -328,7 +348,7 @@ let model_public_basics name =
                      [ Exprs.literal_string
                          "stanc_version = %%NAME%%3 %%VERSION%%"
                      ; Exprs.literal_string
-                         ("stancflags = " ^ stanc_args_to_print) ] ) ) ]
+                         ("stancflags = " ^ !stanc_args_to_print) ] ) ) ]
          () ) ]
 
 let lower_model ({Program.prog_name; _} as p) =

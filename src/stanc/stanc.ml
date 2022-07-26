@@ -370,10 +370,10 @@ let main () =
     Array.to_list Sys.argv |> List.tl_exn
     |> List.filter ~f:sans_model_and_hpp_paths
     |> String.concat ~sep:" " in
-  Stan_math_code_gen.stanc_args_to_print := stanc_args_to_print ;
+  Lower_program.stanc_args_to_print := stanc_args_to_print ;
   (* if we only have functions, always compile as standalone *)
   if String.is_suffix !model_file ~suffix:".stanfunctions" then (
-    Stan_math_code_gen.standalone_functions := true ;
+    Lower_program.standalone_functions := true ;
     bare_functions := true ) ;
   (* Just translate a stan program *)
   if !Typechecker.model_name = "" then
