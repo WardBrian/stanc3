@@ -182,6 +182,14 @@ module Decls = struct
          ~init:(Construction [Var "params_r__"; Var "params_i__"])
          () )
 
+  let serializer_out =
+    VarDef
+      (make_var_defn
+         ~type_:(TypeTrait ("stan::io::serializer", [Types.local_scalar]))
+         ~name:"out__"
+         ~init:(Construction [Var "vars__"])
+         () )
+
   let lp_accum t =
     VarDef
       (make_var_defn

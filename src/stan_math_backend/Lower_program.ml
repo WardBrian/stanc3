@@ -280,12 +280,7 @@ let gen_write_array {Program.prog_name; generate_quantities; _} =
     ; (Pointer (Type_literal "std::ostream"), "pstream__ = nullptr") ] in
   let intro =
     [ Using ("local_scalar_t__", Some Double); Decls.serializer_in
-    ; VarDef
-        (make_var_defn
-           ~type_:(TypeTrait ("stan::io::serializer", [Types.local_scalar]))
-           ~name:"out__"
-           ~init:(Construction [Var "vars__"])
-           () )
+    ; Decls.serializer_out
     ; VarDef
         (make_var_defn ~static:true ~constexpr:true ~type_:Types.bool
            ~name:"propto__" ~init:(Assignment (Literal "true")) () ) ]
@@ -308,7 +303,28 @@ let gen_write_array {Program.prog_name; generate_quantities; _} =
          (intro @ [Stmts.rethrow_located (lower_statements generate_quantities)])
        () )
 
-let gen_transform_inits_impl _ = []
+let gen_transform_inits_impl {Program.transform_inits; _} =
+  let templates =
+    [ Typename "VecVar"; Typename "VecI"
+    ; Require ("stan::require_vector_t", ["VecVar"])
+    ; Require ("stan::require_vector_like_vt", ["std::is_integral"; "VecI"]) ]
+  in
+  let args =
+    [ (Ref (TemplateType "VecVar"), "params_r__")
+    ; (Ref (TemplateType "VecI"), "params_i__")
+    ; (Ref (TemplateType "VecVar"), "vars__")
+    ; (Pointer (Type_literal "std::ostream"), "pstream__ = nullptr") ] in
+  let intro =
+    [ Using ("local_scalar_t__", Some Double); Decls.serializer_in
+    ; Decls.serializer_out; Decls.current_statement ]
+    @ Decls.dummy_var in
+  FunDef
+    (make_fun_defn
+       ~templates_init:([templates], true)
+       ~return_type:Void ~name:"transform_inits_impl" ~args
+       ~body:(intro @ [Stmts.rethrow_located (lower_statements transform_inits)])
+       ~cv_qualifiers:[Const] () )
+
 let gen_get_param_names _ = []
 let gen_get_dims _ = []
 let gen_constrained_param_names _ = []
@@ -319,9 +335,9 @@ let gen_overloads _ = []
 let gen_transform_inits _ = []
 
 let lower_model_public p =
-  (gen_log_prob p :: gen_write_array p :: gen_transform_inits_impl p)
-  (* Begin metadata methods *)
-  @ gen_get_param_names p
+  gen_log_prob p :: gen_write_array p :: gen_transform_inits_impl p
+  :: (* Begin metadata methods *)
+     gen_get_param_names p
   (* Post-data metadata methods *)
   @ gen_get_dims p
   @ gen_constrained_param_names p
