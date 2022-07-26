@@ -166,6 +166,7 @@ type template_parameter =
       (** A C++ type trait (e.g. is_arithmetic) and the template
           name which needs to satisfy that.
           These are collated into one require_all_t<> *)
+  | Require of string * string list
   | Bool of string  (** A named boolean template type *)
 [@@deriving sexp]
 
@@ -268,16 +269,25 @@ module Printing = struct
    Pretty print a full C++ `template <parameter-list>`
   *)
   let pp_template ~default ppf template_parameters =
+    let pp_basic_template ppf = function
+      | `Typename name -> pf ppf "typename %s" name
+      | `Bool name -> pf ppf "bool %s" name
+      | `Require (requirement, args) ->
+          pf ppf "%s<%a>*%s" requirement (list ~sep:comma string) args
+            (if default then " = nullptr" else "") in
     match template_parameters with
     | [] -> ()
     | _ ->
         let templates, requires =
           List.partition_map template_parameters ~f:(function
             | RequireIs (trait, name) -> Second (trait, name)
-            | Typename name -> First ("typename " ^ name)
-            | Bool name -> First ("bool " ^ name) ) in
-        pf ppf "template <@[%a%a@]>@ " (list ~sep:comma string) templates
-          (pp_requires ~default) requires
+            | Typename name -> First (`Typename name)
+            | Bool name -> First (`Bool name)
+            | Require (requirement, args) -> First (`Require (requirement, args)) )
+        in
+        pf ppf "template <@[%a%a@]>@ "
+          (list ~sep:comma pp_basic_template)
+          templates (pp_requires ~default) requires
 
   let pp_operator ppf = function
     | Multiply -> string ppf "*"

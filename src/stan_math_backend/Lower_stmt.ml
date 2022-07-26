@@ -287,12 +287,13 @@ let rec lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
   | Break -> [Break]
   | Continue -> [Continue]
   | Return e -> [Return (Option.map ~f:lower_expr e)]
-  | Block ls -> [Stmts.block (List.concat_map ~f:lower_statement ls)]
-  | SList ls -> List.concat_map ~f:lower_statement ls
+  | Block ls -> [Stmts.block (lower_statements ls)]
+  | SList ls -> lower_statements ls
   | Decl {decl_adtype; decl_id; decl_type; initialize; _} ->
       [lower_decl decl_id decl_type decl_adtype initialize]
-  | Profile (name, ls) ->
-      [lower_profile name (List.concat_map ~f:lower_statement ls)]
+  | Profile (name, ls) -> [lower_profile name (lower_statements ls)]
+
+and lower_statements = List.concat_map ~f:lower_statement
 
 let pp_statement ppf s =
   Fmt.(list ~sep:cut Cpp.Printing.pp_stmt) ppf (lower_statement s)
