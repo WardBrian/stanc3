@@ -491,12 +491,13 @@ let gen_overloads {Program.output_vars; _} =
     let sizes =
       (* An expression for the number of individual parameters in a list of output variables *)
       let num_outvars (outvars : Expr.Typed.t Program.outvar list) =
-        Exprs.binop_list ~f:( + ) ~default:(Literal "0")
+        Expr.Helpers.binop_list
           (List.map
              ~f:(fun outvar ->
-               lower_expr
-               @@ SizedType.num_elems_expr outvar.Program.out_constrained_st )
-             outvars ) in
+               SizedType.num_elems_expr outvar.Program.out_constrained_st )
+             outvars )
+          Operator.Plus ~default:Expr.Helpers.zero
+        |> lower_expr in
       (* The list of output variables that came from a particular block *)
       let block_outvars (block : Program.io_block) =
         List.filter_map output_vars
@@ -511,12 +512,15 @@ let gen_overloads {Program.output_vars; _} =
       ; VarDef
           (make_var_defn ~type_:(Const Types.size_t) ~name:"num_transformed"
              ~init:
-               (Assignment (Var "emit_transformed_parameters" * num_transformed))
+               (Assignment
+                  (Var "emit_transformed_parameters" * Parens num_transformed)
+               )
              () )
       ; VarDef
           (make_var_defn ~type_:(Const Types.size_t) ~name:"num_gen_quantities"
              ~init:
-               (Assignment (Var "emit_generated_quantities" * num_gen_quantities)
+               (Assignment
+                  (Var "emit_generated_quantities" * Parens num_gen_quantities)
                )
              () )
       ; VarDef
@@ -797,11 +801,10 @@ module Testing = struct
     |> print_endline ;
     [%expect
       {|
-      for(int sym1__ = 1; sym1__ <= N; ++sym1__)
-        {
-          param_names__.emplace_back(std::string() + "foo" + '.' +
-            std::to_string(sym1__));
-        } |}]
+      for(int sym1__ = 1; sym1__ <= N; ++sym1__) {
+        param_names__.emplace_back(std::string() + "foo" + '.' +
+          std::to_string(sym1__));
+      } |}]
 
   let%expect_test "complex names" =
     gen_indexing_loop "foo" [Var "N"; Var "D"] emplace_complex_name
@@ -809,16 +812,12 @@ module Testing = struct
     |> print_endline ;
     [%expect
       {|
-          for(int sym1__ = 1; sym1__ <= N; ++sym1__)
-            {
-              for(int sym2__ = 1; sym2__ <= D; ++sym2__)
-                {
-                  param_names__.emplace_back(std::string() + "foo" +
-                    std::to_string(sym1__) + '.' + std::to_string(sym2__) + '.' +
-                    "real");
-                  param_names__.emplace_back(std::string() + "foo" +
-                    std::to_string(sym1__) + '.' + std::to_string(sym2__) + '.' +
-                    "imag");
-                }
-            } |}]
+          for(int sym1__ = 1; sym1__ <= N; ++sym1__) {
+            for(int sym2__ = 1; sym2__ <= D; ++sym2__) {
+              param_names__.emplace_back(std::string() + "foo" + std::to_string(sym1__)
+                + '.' + std::to_string(sym2__) + '.' + "real");
+              param_names__.emplace_back(std::string() + "foo" + std::to_string(sym1__)
+                + '.' + std::to_string(sym2__) + '.' + "imag");
+            }
+          } |}]
 end

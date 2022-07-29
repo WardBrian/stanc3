@@ -76,7 +76,9 @@ module Exprs = struct
   let int_min = fun_call "std::numeric_limits<int>::min" []
 
   let binop_list es ~f ~default : expr =
-    match es with [] -> default | head :: rest -> List.fold ~init:head ~f rest
+    match es with
+    | [] -> default
+    | head :: rest -> List.fold ~init:head ~f:(fun a b -> Parens (f a b)) rest
 end
 
 module Expression_syntax = struct
@@ -351,7 +353,7 @@ module Printing = struct
     match e with
     | Literal s -> pf ppf "%s" s
     | Var id -> string ppf id
-    | Parens e -> (parens pp_expr) ppf e
+    | Parens e -> pf ppf "(%a)" pp_expr e
     | Cast (t, e) -> pf ppf "@[(%a)@ %a@]" pp_type_ t pp_expr e
     | Constructor (t, es) ->
         pf ppf "@[<hov 2>%a(%a)@]" pp_type_ t (list ~sep:comma pp_expr) es
@@ -379,7 +381,7 @@ module Printing = struct
     | Assign (e1, e2) -> pf ppf "%a = %a" pp_expr e1 pp_expr e2
     | Unary (op, e) -> pf ppf "%a%a" pp_unary_op op pp_expr e
     | BinOp (e1, op, e2) ->
-        pf ppf "%a %a@ %a" pp_expr e1 pp_operator op pp_expr e2
+        pf ppf "%a@ %a@ %a" pp_expr e1 pp_operator op pp_expr e2
 
   let pp_var_defn ppf {static; constexpr; type_; name; init} =
     let pp_init ppf init =
@@ -396,13 +398,17 @@ module Printing = struct
 
   let rec pp_stmt ppf s =
     match s with
-    | Expression e -> pf ppf "%a;" pp_expr e
+    | Expression e -> pf ppf "@[<2>%a;@]" pp_expr e
     | Return e -> pf ppf "return %a;" (option (box pp_expr)) e
     | Throw e -> pf ppf "throw %a;" pp_expr e
     | Break -> string ppf "break;"
     | Continue -> string ppf "continue;"
     | Semicolon -> string ppf ";"
     | VarDef vd -> pf ppf "%a;" pp_var_defn vd
+    | For (init, cond, incr, Block stmts) ->
+        (* When we know a block is here, we can do better pretty-printing*)
+        pf ppf "@[<v 2>for(@[<hov>%a; %a; %a@]) {@ @[<v>%a@]@]@,}" pp_var_defn
+          init pp_expr cond pp_expr incr (list ~sep:cut pp_stmt) stmts
     | For (init, cond, incr, s) ->
         pf ppf "@[<v 2>for(@[<hov>%a; %a; %a@])@ @[%a@]@]" pp_var_defn init
           pp_expr cond pp_expr incr pp_stmt s
@@ -422,6 +428,11 @@ module Printing = struct
     | Comment s ->
         if String.contains s '\n' then pf ppf "/@[<v>*@[@ %a@]@,@]*/" text s
         else pf ppf "//@[<h> %s@]" s
+    | TryCatch (Block trys, (exn_ty, exn_name), Block thn) ->
+        (* When we know this contains blocks, we can do better pretty-printing*)
+        pf ppf "@[<v 2>try {@ %a@]@,@[<v 2>} catch(%a %a) {@ %a@]@,}"
+          (list ~sep:cut pp_stmt) trys pp_type_ exn_ty pp_identifier exn_name
+          (list ~sep:cut pp_stmt) thn
     | TryCatch (trys, (exn_ty, exn_name), thn) ->
         pf ppf "@[<v>@[<hov>try@ %a@]@,@[<hov>catch(%a %a)@ %a@]@]" pp_stmt trys
           pp_type_ exn_ty pp_identifier exn_name pp_stmt thn
@@ -529,16 +540,13 @@ module Tests = struct
     Printing.pp_stmt Fmt.stdout rethrow ;
     [%expect
       {|
-      try
-      {
+      try {
         // A potentially very very very very very long comment which will be on one line
         /* A potentially
            multiline comment
          */
         foo = 3;
-      }
-      catch(const std::exception& e)
-      {
+      } catch(const std::exception& e) {
         stan::lang::rethrow_located(e, locations_array__[current_statement__]);
       } |}]
 
@@ -604,13 +612,11 @@ module Tests = struct
               inline void foobar()
               {
                 try {
-                      /* A potentially
-                         long comment
-                       */
-                      foo = 3;
-                    }
-                catch(const std::exception& e)
-                {
+                  /* A potentially
+                     long comment
+                   */
+                  foo = 3;
+                } catch(const std::exception& e) {
                   stan::lang::rethrow_located(e, locations_array__[current_statement__]);
                 }
               } |}]

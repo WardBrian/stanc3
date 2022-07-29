@@ -431,10 +431,8 @@ module Testing = struct
       // supress unused var warning
       (void) DUMMY_VAR__;
       try {
-            return stan::math::add(x, 1);
-          }
-      catch(const std::exception& e)
-      {
+        return stan::math::add(x, 1);
+      } catch(const std::exception& e) {
         stan::lang::rethrow_located(e, locations_array__[current_statement__]);
       }
     }
@@ -502,10 +500,8 @@ module Testing = struct
       // supress unused var warning
       (void) DUMMY_VAR__;
       try {
-            return stan::math::add(x, 1);
-          }
-      catch(const std::exception& e)
-      {
+        return stan::math::add(x, 1);
+      } catch(const std::exception& e) {
         stan::lang::rethrow_located(e, locations_array__[current_statement__]);
       }
     }
