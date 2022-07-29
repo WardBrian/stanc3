@@ -62,7 +62,8 @@ let gen_globals location_list =
       (make_var_defn ~type_:(Type_literal "stan::math::profile_map")
          ~name:"profiles__" () )
   ; TopVarDef
-      (make_var_defn ~type_:arr_type ~name:"locations_array__"
+      (make_var_defn ~static:true ~constexpr:true ~type_:arr_type
+         ~name:"locations_array__"
          ~init:(Assignment (ArrayLiteral location_list)) () ) ]
 
 let create_loc_assignment location_num =

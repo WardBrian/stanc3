@@ -326,8 +326,8 @@ let gen_get_param_names {Program.output_vars; _} =
            , Exprs.std_vector_expr Types.string
                (List.map ~f:extract_name output_vars) ) ) ] in
   FunDef
-    (make_fun_defn ~return_type:Void ~name:"get_param_names" ~args ~body
-       ~cv_qualifiers:[Const] () )
+    (make_fun_defn ~inline:true ~return_type:Void ~name:"get_param_names" ~args
+       ~body ~cv_qualifiers:[Const] () )
 
 let gen_get_dims {Program.output_vars; _} =
   let cast x =
@@ -484,9 +484,10 @@ let gen_overloads {Program.output_vars; _} =
   let write_arrays =
     let open Expression_syntax in
     let templates_init = ([[Typename "RNG"]], false) in
-    let emit_flags =
-      [ (Types.bool, "emit_transformed_parameters__ = true")
-      ; (Types.bool, "emit_generated_quantities__ = true") ] in
+    let emit_flags const =
+      let t : type_ = if const then Const Types.bool else Types.bool in
+      [ (t, "emit_transformed_parameters__ = true")
+      ; (t, "emit_generated_quantities__ = true") ] in
     let sizes =
       (* An expression for the number of individual parameters in a list of output variables *)
       let num_outvars (outvars : Expr.Typed.t Program.outvar list) =
@@ -538,7 +539,7 @@ let gen_overloads {Program.output_vars; _} =
              ( [ (Ref (TemplateType "RNG"), "base_rng")
                ; (Ref (Types.vector Double), "params_r")
                ; (Ref (Types.vector Double), "vars") ]
-             @ emit_flags @ [pstream] )
+             @ emit_flags true @ [pstream] )
            ~body:
              ( sizes
              @ [ VarDef
@@ -557,9 +558,9 @@ let gen_overloads {Program.output_vars; _} =
            ~args:
              ( [ (Ref (TemplateType "RNG"), "base_rng")
                ; (Ref (Types.std_vector Double), "params_r")
-               ; (Ref (Types.std_vector Double), "params_i")
+               ; (Ref (Types.std_vector Int), "params_i")
                ; (Ref (Types.std_vector Double), "vars") ]
-             @ emit_flags @ [pstream] )
+             @ emit_flags false @ [pstream] )
            ~body:
              ( sizes
              @ [ Expression
@@ -582,7 +583,7 @@ let gen_overloads {Program.output_vars; _} =
     [ FunDef
         (make_fun_defn ~templates_init ~inline:true
            ~return_type:(TemplateType "T_") ~name:"log_prob"
-           ~args:[(Ref (Types.vector Double), "params_r"); pstream]
+           ~args:[(Ref (Types.vector (TemplateType "T_")), "params_r"); pstream]
            ~body:
              [ VarDef
                  (make_var_defn ~type_:(Types.vector Int) ~name:"params_i" ())
@@ -592,7 +593,7 @@ let gen_overloads {Program.output_vars; _} =
         (make_fun_defn ~templates_init ~inline:true
            ~return_type:(TemplateType "T_") ~name:"log_prob"
            ~args:
-             [ (Ref (Types.std_vector Double), "params_r")
+             [ (Ref (Types.std_vector (TemplateType "T_")), "params_r")
              ; (Ref (Types.std_vector Int), "params_i"); pstream ]
            ~body:[call_impl] ~cv_qualifiers:[Const] () ) ] in
   let transform_inits =
