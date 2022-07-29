@@ -352,7 +352,7 @@ let gen_get_dims {Program.output_vars; _} =
 
 let emplace_name name idcs =
   let name = Mangle.remove_prefix name in
-  let to_string e = Exprs.fun_call "std::to_string" [e] in
+  let to_string e = Exprs.fun_call "std::to_string" [Var e] in
   let param_names__ = Var "param_names__" in
   let null_string = Constructor (Types.string, []) in
   let dot = Literal "'.'" in
@@ -366,7 +366,7 @@ let emplace_name name idcs =
 
 let emplace_complex_name name idcs =
   let name = Mangle.remove_prefix name in
-  let to_string e = Exprs.fun_call "std::to_string" [e] in
+  let to_string e = Exprs.fun_call "std::to_string" [Var e] in
   let param_names__ = Var "param_names__" in
   let null_string = Constructor (Types.string, []) in
   let dot = Literal "'.'" in
@@ -384,15 +384,92 @@ let emplace_complex_name name idcs =
                                ~f:(fun acc idx -> to_string idx + dot + acc)
                                idcs ] )) ]
 
-(* pf ppf "@[param_names__.emplace_back(std::string() + %a);@]@,"
-     (list ~sep:(fun ppf () -> pf ppf " + '.' + ") string)
-     ((str "%S" name :: List.map ~f:(str "%a" to_string) idcs) @ ["\"real\""]) ;
-   pf ppf "param_names__.emplace_back(std::string() + %a);"
-     (list ~sep:(fun ppf () -> pf ppf " + '.' + ") string)
-     ((str "%S" name :: List.map ~f:(str "%a" to_string) idcs) @ ["\"imag\""]) *)
+let rec gen_indexing_loop ?(index_ids = []) iteratee dims gen_body =
+  let iter d gen_body =
+    let loopvar, gensym_exit = Common.Gensym.enter () in
+    let forloop =
+      Stmts.fori loopvar
+        (lower_expr Expr.Helpers.loop_bottom)
+        d
+        (Stmts.block @@ gen_body iteratee (loopvar :: index_ids)) in
+    gensym_exit () ; forloop in
+  match dims with
+  | [] -> gen_body iteratee index_ids
+  | dim :: dims ->
+      [ iter dim (fun i idcs ->
+            gen_indexing_loop ~index_ids:idcs i dims gen_body ) ]
 
-let gen_constrained_param_names _ = []
-let gen_unconstrained_param_names _ = []
+let gen_constrained_param_names {Program.output_vars; _} =
+  let args =
+    [ (Ref (Types.std_vector Types.string), "param_names__")
+    ; (Types.bool, "emit_transformed_parameters__ = true")
+    ; (Types.bool, "emit_generated_quantities__ = true") ] in
+  let paramvars, tparamvars, gqvars =
+    List.partition3_map
+      ~f:(function
+        | id, {Program.out_block= Parameters; out_constrained_st= st; _} ->
+            `Fst (id, st)
+        | id, {out_block= TransformedParameters; out_constrained_st= st; _} ->
+            `Snd (id, st)
+        | id, {out_block= GeneratedQuantities; out_constrained_st= st; _} ->
+            `Trd (id, st) )
+      output_vars in
+  let gen_param_names (decl_id, st) =
+    let gen_name =
+      if SizedType.contains_complex st then emplace_complex_name
+      else emplace_name in
+    let dims = lower_exprs (List.rev (SizedType.get_dims st)) in
+    gen_indexing_loop decl_id dims gen_name in
+  let body =
+    List.concat_map ~f:gen_param_names paramvars
+    @ [ IfElse
+          ( Var "emit_transformed_parameters__"
+          , Stmts.block (List.concat_map ~f:gen_param_names tparamvars)
+          , None )
+      ; IfElse
+          ( Var "emit_generated_quantities__"
+          , Stmts.block (List.concat_map ~f:gen_param_names gqvars)
+          , None ) ] in
+  FunDef
+    (make_fun_defn ~inline:true ~return_type:Void
+       ~name:"constrained_param_names" ~args ~body ~cv_qualifiers:[Const; Final]
+       () )
+
+let gen_unconstrained_param_names {Program.output_vars; _} =
+  let args =
+    [ (Ref (Types.std_vector Types.string), "param_names__")
+    ; (Types.bool, "emit_transformed_parameters__ = true")
+    ; (Types.bool, "emit_generated_quantities__ = true") ] in
+  let paramvars, tparamvars, gqvars =
+    List.partition3_map
+      ~f:(function
+        | id, {Program.out_block= Parameters; out_unconstrained_st= st; _} ->
+            `Fst (id, st)
+        | id, {out_block= TransformedParameters; out_unconstrained_st= st; _} ->
+            `Snd (id, st)
+        | id, {out_block= GeneratedQuantities; out_unconstrained_st= st; _} ->
+            `Trd (id, st) )
+      output_vars in
+  let gen_param_names (decl_id, st) =
+    let gen_name =
+      if SizedType.contains_complex st then emplace_complex_name
+      else emplace_name in
+    let dims = lower_exprs (List.rev (SizedType.get_dims st)) in
+    gen_indexing_loop decl_id dims gen_name in
+  let body =
+    List.concat_map ~f:gen_param_names paramvars
+    @ [ IfElse
+          ( Var "emit_transformed_parameters__"
+          , Stmts.block (List.concat_map ~f:gen_param_names tparamvars)
+          , None )
+      ; IfElse
+          ( Var "emit_generated_quantities__"
+          , Stmts.block (List.concat_map ~f:gen_param_names gqvars)
+          , None ) ] in
+  FunDef
+    (make_fun_defn ~inline:true ~return_type:Void
+       ~name:"unconstrained_param_names" ~args ~body
+       ~cv_qualifiers:[Const; Final] () )
 
 (** Create constrained and unconstrained sizedtype methods
  in the model class
@@ -429,10 +506,9 @@ let gen_transform_inits _ = []
 let lower_model_public p =
   [ gen_log_prob p; gen_write_array p; gen_transform_inits_impl p
   ; (* Begin metadata methods *) gen_get_param_names p
-  ; (* Post-data metadata methods *) gen_get_dims p ]
-  @ gen_constrained_param_names p
-  @ gen_unconstrained_param_names p
-  @ [gen_constrained_types p; gen_unconstrained_types p]
+  ; (* Post-data metadata methods *) gen_get_dims p
+  ; gen_constrained_param_names p; gen_unconstrained_param_names p
+  ; gen_constrained_types p; gen_unconstrained_types p ]
   (* Boilerplate *)
   @ gen_overloads p
   @ gen_transform_inits p
@@ -580,32 +656,33 @@ module Testing = struct
         #endif |}]
 
   let%expect_test "emplace names" =
-    emplace_name "foo"
-      [ Exprs.literal_string "1"; Exprs.literal_string "2"
-      ; Exprs.literal_string "3" ]
+    gen_indexing_loop "foo" [Var "N"] emplace_name
     |> str "@[<v>%a" (list ~sep:cut Cpp.Printing.pp_stmt)
     |> print_endline ;
     [%expect
       {|
-      param_names__.emplace_back(std::string() +
-                                   "foo" + '.' + std::to_string("1") + '.' +
-                                     std::to_string("2") + '.' +
-                                     std::to_string("3")); |}]
+      for(int sym1__ = 1; sym1__ <= N; ++sym1__)
+        {
+          param_names__.emplace_back(std::string() + "foo" + '.' +
+            std::to_string(sym1__));
+        } |}]
 
   let%expect_test "complex names" =
-    emplace_complex_name "foo"
-      [ Exprs.literal_string "1"; Exprs.literal_string "2"
-      ; Exprs.literal_string "3" ]
+    gen_indexing_loop "foo" [Var "N"; Var "D"] emplace_complex_name
     |> str "@[<v>%a" (list ~sep:cut Cpp.Printing.pp_stmt)
     |> print_endline ;
     [%expect
       {|
-          param_names__.emplace_back(std::string() + "foo" +
-                                       std::to_string("3") + '.' +
-                                         std::to_string("2") + '.' +
-                                           std::to_string("1") + '.' + "real");
-          param_names__.emplace_back(std::string() + "foo" +
-                                       std::to_string("3") + '.' +
-                                         std::to_string("2") + '.' +
-                                           std::to_string("1") + '.' + "imag"); |}]
+          for(int sym1__ = 1; sym1__ <= N; ++sym1__)
+            {
+              for(int sym2__ = 1; sym2__ <= D; ++sym2__)
+                {
+                  param_names__.emplace_back(std::string() + "foo" +
+                    std::to_string(sym1__) + '.' + std::to_string(sym2__) + '.' +
+                    "real");
+                  param_names__.emplace_back(std::string() + "foo" +
+                    std::to_string(sym1__) + '.' + std::to_string(sym2__) + '.' +
+                    "imag");
+                }
+            } |}]
 end

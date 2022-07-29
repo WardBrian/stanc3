@@ -376,7 +376,7 @@ module Printing = struct
     | Assign (e1, e2) -> pf ppf "%a = %a" pp_expr e1 pp_expr e2
     | Unary (op, e) -> pf ppf "%a%a" pp_unary_op op pp_expr e
     | BinOp (e1, op, e2) ->
-        pf ppf "@[<hov 2>%a %a@ %a@]" pp_expr e1 pp_operator op pp_expr e2
+        pf ppf "%a %a@ %a" pp_expr e1 pp_operator op pp_expr e2
 
   let pp_var_defn ppf {static; constexpr; type_; name; init} =
     let pp_init ppf init =
