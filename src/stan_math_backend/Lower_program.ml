@@ -399,21 +399,11 @@ let rec gen_indexing_loop ?(index_ids = []) iteratee dims gen_body =
       [ iter dim (fun i idcs ->
             gen_indexing_loop ~index_ids:idcs i dims gen_body ) ]
 
-let gen_constrained_param_names {Program.output_vars; _} =
+let gen_param_names_fn name (paramvars, tparamvars, gqvars) =
   let args =
     [ (Ref (Types.std_vector Types.string), "param_names__")
     ; (Types.bool, "emit_transformed_parameters__ = true")
     ; (Types.bool, "emit_generated_quantities__ = true") ] in
-  let paramvars, tparamvars, gqvars =
-    List.partition3_map
-      ~f:(function
-        | id, {Program.out_block= Parameters; out_constrained_st= st; _} ->
-            `Fst (id, st)
-        | id, {out_block= TransformedParameters; out_constrained_st= st; _} ->
-            `Snd (id, st)
-        | id, {out_block= GeneratedQuantities; out_constrained_st= st; _} ->
-            `Trd (id, st) )
-      output_vars in
   let gen_param_names (decl_id, st) =
     let gen_name =
       if SizedType.contains_complex st then emplace_complex_name
@@ -431,45 +421,33 @@ let gen_constrained_param_names {Program.output_vars; _} =
           , Stmts.block (List.concat_map ~f:gen_param_names gqvars)
           , None ) ] in
   FunDef
-    (make_fun_defn ~inline:true ~return_type:Void
-       ~name:"constrained_param_names" ~args ~body ~cv_qualifiers:[Const; Final]
-       () )
+    (make_fun_defn ~inline:true ~return_type:Void ~name ~args ~body
+       ~cv_qualifiers:[Const; Final] () )
+
+let gen_constrained_param_names {Program.output_vars; _} =
+  gen_param_names_fn "constrained_param_names"
+    (List.partition3_map
+       ~f:(function
+         | id, {Program.out_block= Parameters; out_constrained_st= st; _} ->
+             `Fst (id, st)
+         | id, {out_block= TransformedParameters; out_constrained_st= st; _} ->
+             `Snd (id, st)
+         | id, {out_block= GeneratedQuantities; out_constrained_st= st; _} ->
+             `Trd (id, st) )
+       output_vars )
 
 let gen_unconstrained_param_names {Program.output_vars; _} =
-  let args =
-    [ (Ref (Types.std_vector Types.string), "param_names__")
-    ; (Types.bool, "emit_transformed_parameters__ = true")
-    ; (Types.bool, "emit_generated_quantities__ = true") ] in
-  let paramvars, tparamvars, gqvars =
-    List.partition3_map
-      ~f:(function
-        | id, {Program.out_block= Parameters; out_unconstrained_st= st; _} ->
-            `Fst (id, st)
-        | id, {out_block= TransformedParameters; out_unconstrained_st= st; _} ->
-            `Snd (id, st)
-        | id, {out_block= GeneratedQuantities; out_unconstrained_st= st; _} ->
-            `Trd (id, st) )
-      output_vars in
-  let gen_param_names (decl_id, st) =
-    let gen_name =
-      if SizedType.contains_complex st then emplace_complex_name
-      else emplace_name in
-    let dims = lower_exprs (List.rev (SizedType.get_dims st)) in
-    gen_indexing_loop decl_id dims gen_name in
-  let body =
-    List.concat_map ~f:gen_param_names paramvars
-    @ [ IfElse
-          ( Var "emit_transformed_parameters__"
-          , Stmts.block (List.concat_map ~f:gen_param_names tparamvars)
-          , None )
-      ; IfElse
-          ( Var "emit_generated_quantities__"
-          , Stmts.block (List.concat_map ~f:gen_param_names gqvars)
-          , None ) ] in
-  FunDef
-    (make_fun_defn ~inline:true ~return_type:Void
-       ~name:"unconstrained_param_names" ~args ~body
-       ~cv_qualifiers:[Const; Final] () )
+  gen_param_names_fn "unconstrained_param_names"
+    (List.partition3_map
+       ~f:(function
+         | id, {Program.out_block= Parameters; out_unconstrained_st= st; _} ->
+             `Fst (id, st)
+         | id, {out_block= TransformedParameters; out_unconstrained_st= st; _}
+           ->
+             `Snd (id, st)
+         | id, {out_block= GeneratedQuantities; out_unconstrained_st= st; _} ->
+             `Trd (id, st) )
+       output_vars )
 
 (** Create constrained and unconstrained sizedtype methods
  in the model class
@@ -500,8 +478,165 @@ let gen_constrained_types {Program.output_vars; _} =
   let outvars = List.map ~f:grab_constrained output_vars in
   gen_outvar_metadata "get_constrained_sizedtypes" outvars
 
-let gen_overloads _ = []
-let gen_transform_inits _ = []
+(** The generic method overloads needed in the model class. *)
+let gen_overloads {Program.output_vars; _} =
+  let pstream = (Pointer (Type_literal "std::ostream"), "pstream = nullptr") in
+  let write_arrays =
+    let open Expression_syntax in
+    let templates_init = ([[Typename "RNG"]], false) in
+    let emit_flags =
+      [ (Types.bool, "emit_transformed_parameters__ = true")
+      ; (Types.bool, "emit_generated_quantities__ = true") ] in
+    let sizes =
+      (* An expression for the number of individual parameters in a list of output variables *)
+      let num_outvars (outvars : Expr.Typed.t Program.outvar list) =
+        Exprs.binop_list ~f:( + ) ~default:(Literal "0")
+          (List.map
+             ~f:(fun outvar ->
+               lower_expr
+               @@ SizedType.num_elems_expr outvar.Program.out_constrained_st )
+             outvars ) in
+      (* The list of output variables that came from a particular block *)
+      let block_outvars (block : Program.io_block) =
+        List.filter_map output_vars
+          ~f:(fun ((_ : string), (outvar : Expr.Typed.t Program.outvar)) ->
+            if outvar.out_block = block then Some outvar else None ) in
+      let num_params = num_outvars (block_outvars Parameters) in
+      let num_transformed = num_outvars (block_outvars TransformedParameters) in
+      let num_gen_quantities = num_outvars (block_outvars GeneratedQuantities) in
+      [ VarDef
+          (make_var_defn ~type_:(Const Types.size_t) ~name:"num_params__"
+             ~init:(Assignment num_params) () )
+      ; VarDef
+          (make_var_defn ~type_:(Const Types.size_t) ~name:"num_transformed"
+             ~init:
+               (Assignment (Var "emit_transformed_parameters" * num_transformed))
+             () )
+      ; VarDef
+          (make_var_defn ~type_:(Const Types.size_t) ~name:"num_gen_quantities"
+             ~init:
+               (Assignment (Var "emit_generated_quantities" * num_gen_quantities)
+               )
+             () )
+      ; VarDef
+          (make_var_defn ~type_:(Const Types.size_t) ~name:"num_to_write"
+             ~init:
+               (Assignment
+                  ( Var "num_params__" + Var "num_transformed"
+                  + Var "num_gen_quantities" ) )
+             () ) ] in
+    let call_impl =
+      Expression
+        (Exprs.fun_call "write_array_impl"
+           [ Var "base_rng"; Var "params_r"; Var "params_i"; Var "vars"
+           ; Var "emit_transformed_parameters"; Var "emit_generated_quantities"
+           ; Var "pstream" ] ) in
+    [ FunDef
+        (make_fun_defn ~templates_init ~inline:true ~return_type:Void
+           ~name:"write_array"
+           ~args:
+             ( [ (Ref (TemplateType "RNG"), "base_rng")
+               ; (Ref (Types.vector Double), "params_r")
+               ; (Ref (Types.vector Double), "vars") ]
+             @ emit_flags @ [pstream] )
+           ~body:
+             ( sizes
+             @ [ VarDef
+                   (make_var_defn ~type_:(Types.std_vector Int) ~name:"params_i"
+                      () )
+               ; Expression
+                   (Assign
+                      ( Var "vars"
+                      , Types.vector Double
+                        |::? ("Constant", [Var "num_to_write"; Exprs.quiet_NaN])
+                      ) ); call_impl ] )
+           ~cv_qualifiers:[Const] () )
+    ; FunDef
+        (make_fun_defn ~templates_init ~inline:true ~return_type:Void
+           ~name:"write_array"
+           ~args:
+             ( [ (Ref (TemplateType "RNG"), "base_rng")
+               ; (Ref (Types.std_vector Double), "params_r")
+               ; (Ref (Types.std_vector Double), "params_i")
+               ; (Ref (Types.std_vector Double), "vars") ]
+             @ emit_flags @ [pstream] )
+           ~body:
+             ( sizes
+             @ [ Expression
+                   (Assign
+                      ( Var "vars"
+                      , Constructor
+                          ( Types.std_vector Double
+                          , [Var "num_to_write"; Exprs.quiet_NaN] ) ) )
+               ; call_impl ] )
+           ~cv_qualifiers:[Const] () ) ] in
+  let log_probs =
+    let templates_init =
+      ([[Bool "propto__"; Bool "jacobian__"; Typename "T_"]], false) in
+    let call_impl =
+      Return
+        (Some
+           (Exprs.templated_fun_call "log_prob_impl"
+              [TemplateType "propto__"; TemplateType "jacobian__"]
+              [Var "params_r"; Var "params_i"; Var "pstream"] ) ) in
+    [ FunDef
+        (make_fun_defn ~templates_init ~inline:true
+           ~return_type:(TemplateType "T_") ~name:"log_prob"
+           ~args:[(Ref (Types.vector Double), "params_r"); pstream]
+           ~body:
+             [ VarDef
+                 (make_var_defn ~type_:(Types.vector Int) ~name:"params_i" ())
+             ; call_impl ]
+           ~cv_qualifiers:[Const] () )
+    ; FunDef
+        (make_fun_defn ~templates_init ~inline:true
+           ~return_type:(TemplateType "T_") ~name:"log_prob"
+           ~args:
+             [ (Ref (Types.std_vector Double), "params_r")
+             ; (Ref (Types.std_vector Int), "params_i"); pstream ]
+           ~body:[call_impl] ~cv_qualifiers:[Const] () ) ] in
+  let transform_inits =
+    [ FunDef
+        (make_fun_defn ~inline:true ~return_type:Void ~name:"transform_inits"
+           ~args:
+             [ ( Types.const_ref (Type_literal "stan::io::var_context")
+               , "context" ); (Ref (Types.vector Double), "params_r"); pstream
+             ]
+           ~body:
+             [ VarDef
+                 (make_var_defn ~type_:(Types.std_vector Double)
+                    ~name:"params_r_vec"
+                    ~init:
+                      (Construction
+                         [Exprs.method_call (Var "params_r") "size" [] []] )
+                    () )
+             ; VarDef
+                 (make_var_defn ~type_:(Types.std_vector Int) ~name:"params_i"
+                    () )
+             ; Expression
+                 (Exprs.fun_call "transform_inits"
+                    [ Var "context"; Var "params_i"; Var "params_r_vec"
+                    ; Var "pstream" ] )
+             ; Expression
+                 (Assign
+                    ( Var "params_r"
+                    , Constructor
+                        ( TypeTrait ("Eigen::Map", [Types.vector Double])
+                        , let params_r_vec = Var "params_r_vec" in
+                          let open Expression_syntax in
+                          [params_r_vec.@!("data"); params_r_vec.@!("size")] )
+                    ) ) ]
+           ~cv_qualifiers:[Const; Final] () ) ] in
+  (TopComment "Begin method overload boilerplate" :: write_arrays)
+  @ log_probs @ transform_inits
+
+let gen_transform_inits _ =
+  (* let args =
+     [ (Types.const_ref (Type_literal "stan::io::var_context"), "context")
+     ; (Ref (Types.std_vector Int), "params_i")
+     ; (Ref (Types.std_vector Double), "vars")
+     ; (Pointer (Type_literal "std::ostream"), "pstream = nullptr") ]*)
+  []
 
 let lower_model_public p =
   [ gen_log_prob p; gen_write_array p; gen_transform_inits_impl p

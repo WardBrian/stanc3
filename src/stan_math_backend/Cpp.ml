@@ -74,6 +74,9 @@ module Exprs = struct
   let templated_fun_call s ts es = FunCall (s, ts, es)
   let quiet_NaN = fun_call "std::numeric_limits<double>::quiet_NaN" []
   let int_min = fun_call "std::numeric_limits<int>::min" []
+
+  let binop_list es ~f ~default : expr =
+    match es with [] -> default | head :: rest -> List.fold ~init:head ~f rest
 end
 
 module Expression_syntax = struct
