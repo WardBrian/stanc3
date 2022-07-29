@@ -818,7 +818,7 @@ let new_model_boilerplate prog_name =
   ]
 
 let lower_program (p : Program.Typed.t) : Cpp.program =
-  Hashtbl.clear Expression_gen.map_rect_calls ;
+  Hashtbl.clear Lower_expr.map_rect_calls ;
   (* First, do some transformations on the MIR itself before we begin printing it.*)
   let p, s = Locations.prepare_prog p in
   let model_namespace_str = namespace p in

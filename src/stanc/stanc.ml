@@ -207,7 +207,7 @@ let options =
       , Arg.Set Transform_Mir.use_opencl
       , " If set, try to use matrix_cl signatures." )
     ; ( "--standalone-functions"
-      , Arg.Set Stan_math_code_gen.standalone_functions
+      , Arg.Set Lower_program.standalone_functions
       , " If set, the generated C++ will be the standalone functions C++ code."
       )
     ; ( "--filename-in-msg"
@@ -336,9 +336,10 @@ let use_file filename =
         [%sexp (opt_mir : Middle.Program.Typed.t)] ;
     if !dump_opt_mir_pretty then Program.Typed.pp Format.std_formatter opt_mir ;
     if !output_file = "" then output_file := remove_dotstan !model_file ^ ".hpp" ;
-    let cpp = Fmt.str "%a" Stan_math_code_gen.pp_prog opt_mir in
-    Out_channel.write_all !output_file ~data:cpp ;
-    if !print_model_cpp then print_endline cpp )
+    let cpp = Lower_program.lower_program opt_mir in
+    let cpp_str = Fmt.(to_to_string (list ~sep:cut Cpp.Printing.pp_defn)) cpp in
+    Out_channel.write_all !output_file ~data:cpp_str ;
+    if !print_model_cpp then print_endline cpp_str )
 
 let mangle =
   String.concat_map ~f:(fun c ->
