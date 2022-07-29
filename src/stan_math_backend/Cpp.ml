@@ -34,7 +34,18 @@ module Types = struct
   let str_array i = Array (Const (Pointer (Type_literal "char")), i)
 end
 
-type operator = Multiply | Divide | Add | Subtract | Eq | LEq | GEq | And | Or
+type operator =
+  | Multiply
+  | Divide
+  | Add
+  | Subtract
+  | Eq
+  | LEq
+  | GEq
+  | Lthn
+  | Gthn
+  | And
+  | Or
 [@@deriving sexp]
 
 type unary_op = PMinus | Incr [@@deriving sexp]
@@ -124,6 +135,7 @@ type stmt =
   | Expression of expr
   | VarDef of var_defn
   | For of var_defn * expr * expr * stmt
+  | ForEach of (type_ * identifier) * expr * stmt
   | While of expr * stmt
   | IfElse of expr * stmt * stmt option
   | TryCatch of stmt * (type_ * identifier) * stmt
@@ -339,6 +351,8 @@ module Printing = struct
     | Eq -> string ppf "=="
     | LEq -> string ppf "<="
     | GEq -> string ppf ">="
+    | Lthn -> string ppf "<"
+    | Gthn -> string ppf ">"
     | And -> string ppf "&&"
     | Or -> string ppf "||"
 
@@ -412,6 +426,13 @@ module Printing = struct
     | For (init, cond, incr, s) ->
         pf ppf "@[<v 2>for(@[<hov>%a; %a; %a@])@ @[%a@]@]" pp_var_defn init
           pp_expr cond pp_expr incr pp_stmt s
+    | ForEach ((ty, name), set, Block stmts) ->
+        (* When we know a block is here, we can do better pretty-printing*)
+        pf ppf "@[<v 2>for(@[<hov>%a %a: %a@]) {@ @[<v>%a@]@]@,}" pp_type_ ty
+          pp_identifier name pp_expr set (list ~sep:cut pp_stmt) stmts
+    | ForEach ((ty, name), set, s) ->
+        pf ppf "@[<v 2>for(@[<hov>%a %a: %a@])@ @[%a@]@]" pp_type_ ty
+          pp_identifier name pp_expr set pp_stmt s
     | While (e, s) ->
         pf ppf "@[<v 2>while(@[%a@])@ @[%a@]@]" pp_expr e pp_stmt s
     | IfElse (cond, thn, els) ->
@@ -498,7 +519,7 @@ module Printing = struct
        %a@,\
        %a@,\
        %a@]@]@,\
-       }"
+       };"
       class_name
       (if final then " final" else "")
       pp_type_ base (list ~sep:cut pp_defn) private_members pp_destructor
