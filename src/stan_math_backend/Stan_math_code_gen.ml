@@ -292,6 +292,14 @@ let emit_complex_name ppf (name, idcs) =
     (list ~sep:(fun ppf () -> pf ppf " + '.' + ") string)
     ((str "%S" name :: List.map ~f:(str "%a" to_string) idcs) @ ["\"imag\""])
 
+let%expect_test "model public basics" =
+  str "@[<v>%a" emit_complex_name ("foo", ["\"1\""; "\"2\""; "\"3\""])
+  |> print_endline ;
+  [%expect
+    {|
+          param_names__.emplace_back(std::string() + "foo" + '.' + std::to_string("1") + '.' + std::to_string("2") + '.' + std::to_string("3") + '.' + "real");
+          param_names__.emplace_back(std::string() + "foo" + '.' + std::to_string("1") + '.' + std::to_string("2") + '.' + std::to_string("3") + '.' + "imag"); |}]
+
 (** Print the [constrained_param_names] method of the model class. *)
 let pp_constrained_param_names ppf {Program.output_vars; _} =
   let params =
@@ -323,23 +331,7 @@ let pp_constrained_param_names ppf {Program.output_vars; _} =
         (list ~sep:cut pp_param_names, gqvars) )
     ~cv_attr:["const"; "final"]
 
-(** Print the [unconstrained_param_names] method of the model class.
-  This is just a copy of constrained, I need to figure out which one is wrong
-   and fix it eventually. From Bob,
-
-   Off the top of my head, I think the four that change sizes
-   from constrained to unconstrained are:
-
-   simplex:  K -> (K - 1)
-   covar_matrix:  K^2 -> (K choose 2) + K
-   corr_matrix:  K^2 -> (K choose 2)
-   cholesky_corr: (K choose 2) + K -> (K choose 2)
-
-   cholesky_cov does not change size (it's (K choose 2) + K).
-   Now that our unit vector uses the normal thing, that also doesn't
-   change size.  The ordered types and constrained types don't
-   change sizes either.
-*)
+(** Print the [unconstrained_param_names] method of the model class. *)
 let pp_unconstrained_param_names ppf {Program.output_vars; _} =
   let params =
     [ "std::vector<std::string>& param_names__"
@@ -527,7 +519,6 @@ let pp_overloads ppf {Program.output_vars; _} =
     pp_expr num_params pp_expr num_transformed pp_expr num_gen_quantities
     pp_expr num_params pp_expr num_transformed pp_expr num_gen_quantities
 
-(** Print the [get_constrained_sizedtypes] method of the model class *)
 let pp_transform_inits ppf {Program.output_vars; _} =
   let params =
     [ "const stan::io::var_context& context"; "std::vector<int>& params_i"
@@ -600,8 +591,6 @@ let pp_model_public ppf p =
   pf ppf "@ %a" pp_overloads p ;
   pf ppf "@ %a" pp_transform_inits p
 
-let model_prefix = "model_"
-
 (** Print the full model class. *)
 let pp_model ppf ({Program.prog_name; _} as p) =
   pf ppf "class %s final : public model_base_crtp<%s> {" prog_name prog_name ;
@@ -671,3 +660,9 @@ stan::math::profile_map& get_stan_profile_data() {
 |}
       p.prog_name ;
     pf ppf "@[<v>%a@]" pp_register_map_rect_functors p )
+
+let pp_prog ppf p =
+  Caml.ignore pp_prog ;
+  (vbox (list ~sep:cut Cpp.Printing.pp_defn))
+    ppf
+    (Lower_program.lower_program p)
