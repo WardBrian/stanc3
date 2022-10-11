@@ -45,3 +45,5 @@ val model_name : string ref
 
 val check_that_all_functions_have_definition : bool ref
 (** A switch to determine whether we check that all functions have a definition *)
+
+val skip_definitions_for : string list ref

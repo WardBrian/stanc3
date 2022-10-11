@@ -189,6 +189,14 @@ let options =
       , Arg.Clear Typechecker.check_that_all_functions_have_definition
       , " Deprecated. Same as --allow-undefined. Will be removed in Stan 2.32.0"
       )
+    ; ( "--external-functions"
+      , Arg.String
+          (fun str ->
+            let fns = String.split_on_chars ~on:[','] str in
+            Typechecker.skip_definitions_for := fns ;
+            Lower_functions.external_functions := fns )
+      , " Takes a comma-separated list of directories that may contain a file \
+         in an #include directive (default = \"\")" )
     ; ( "--include-paths"
       , Arg.String
           (fun str ->

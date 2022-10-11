@@ -33,6 +33,7 @@ let attach_warnings x = (x, List.rev !warnings)
 (* model name - don't love this here *)
 let model_name = ref ""
 let check_that_all_functions_have_definition = ref true
+let skip_definitions_for = ref []
 
 (* Record structure holding flags and other markers about context to be
    used for error reporting. *)
@@ -1728,14 +1729,16 @@ let verify_fun_def_body_in_block = function
   | _ -> ()
 
 let verify_functions_have_defn tenv function_block_stmts_opt =
-  let error_on_undefined funs =
-    List.iter funs ~f:(fun f ->
-        match f with
-        | Env.{kind= `UserDeclared loc; _} ->
-            Semantic_error.fn_decl_without_def loc |> error
-        | _ -> () ) in
+  let error_on_undefined name funs =
+    if List.mem !skip_definitions_for name ~equal:String.equal then ()
+    else
+      List.iter funs ~f:(fun f ->
+          match f with
+          | Env.{kind= `UserDeclared loc; _} ->
+              Semantic_error.fn_decl_without_def loc |> error
+          | _ -> () ) in
   if !check_that_all_functions_have_definition then
-    Env.iter tenv error_on_undefined ;
+    Env.iteri tenv error_on_undefined ;
   match function_block_stmts_opt with
   | Some {stmts= []; _} | None -> ()
   | Some {stmts= ls; _} -> List.iter ~f:verify_fun_def_body_in_block ls

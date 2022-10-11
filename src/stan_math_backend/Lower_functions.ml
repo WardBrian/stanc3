@@ -5,6 +5,8 @@ open Lower_expr
 open Lower_stmt
 open Cpp
 
+let external_functions = ref []
+
 (** Detect if argument requires C++ template *)
 let is_data_matrix_or_not_int_type = function
   | UnsizedType.DataOnly, _, ut -> UnsizedType.is_eigen_type ut
@@ -225,8 +227,10 @@ let lower_fun_def (functors : (string, struct_defn) Hashtbl.t)
   match fdbody with
   | None ->
       (* Side Effect: *)
-      Hash_set.add forward_decls (fdname, fdargs) ;
-      [almost_fn ()]
+      if List.mem !external_functions fdname ~equal:String.equal then []
+      else (
+        Hash_set.add forward_decls (fdname, fdargs) ;
+        [almost_fn ()] )
   | Some fdbody ->
       let register_functor variadic_fun_type =
         let suffix =
