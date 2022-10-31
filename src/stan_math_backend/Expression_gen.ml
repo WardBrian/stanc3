@@ -134,7 +134,7 @@ let fn_renames =
 
 let map_rect_calls = Int.Table.create ()
 let functor_suffix = "_functor__"
-let reduce_sum_functor_suffix = "_rsfunctor__"
+let reduce_sum_functor_suffix = "_functor__"
 let variadic_functor_suffix x = sprintf "_variadic%d_functor__" x
 
 let functor_suffix_select hof =

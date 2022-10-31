@@ -253,25 +253,24 @@ let pp_fun_def ppf
     ( Program.{fdrt; fdname; fdsuffix; fdargs; fdbody; _}
     , (functors : (string, found_functor list) Hashtbl.t)
     , (forward_decls : (string * template_parameter list) Hash_set.t)
-    , (funs_used_in_reduce_sum : String.Set.t)
+    , (_ : String.Set.t)
     , (variadic_fns : int list String.Map.t) ) =
   let extra, template_extra_params =
     match fdsuffix with
     | Fun_kind.FnTarget -> (["lp__"; "lp_accum__"], ["T_lp__"; "T_lp_accum__"])
     | FnRng -> (["base_rng__"], ["RNG"])
     | FnLpdf _ | FnPlain -> ([], []) in
-  let template_parameter_and_arg_names is_possibly_eigen_expr variadic_fun_type
-      =
+  let template_parameter_and_arg_names is_possibly_eigen_expr ~is_functor =
     let template_param_names, template_require_checks, args =
       templates_and_args is_possibly_eigen_expr fdargs in
     let template_params =
       List.(map ~f:typename (template_param_names @ template_extra_params))
       @ template_require_checks in
-    match (fdsuffix, variadic_fun_type) with
-    | (FnLpdf _ | FnTarget), `None -> (Bool "propto__" :: template_params, args)
+    match (fdsuffix, is_functor) with
+    | (FnLpdf _ | FnTarget), false -> (Bool "propto__" :: template_params, args)
     | _ -> (template_params, args) in
   let template_params, templated_args =
-    template_parameter_and_arg_names true `None in
+    template_parameter_and_arg_names true ~is_functor:false in
   let pp_fun_sig = gen_pp_sig fdargs fdrt template_extra_params extra in
   let signature = str "%a" pp_fun_sig (fdname, templated_args, `None) in
   (* We want to print the [* = nullptr] at most once, and preferrably on a forward decl *)
@@ -293,15 +292,13 @@ let pp_fun_def ppf
         let suffix =
           match variadic_fun_type with
           | `None -> functor_suffix
-          | `ReduceSum -> reduce_sum_functor_suffix
           | `VariadicHOF x -> variadic_functor_suffix x in
         let functor_name = fdname ^ suffix in
         let struct_template =
-          match (fdsuffix, variadic_fun_type) with
-          | FnLpdf _, `ReduceSum -> Some (Bool "propto__")
-          | _ -> None in
+          match fdsuffix with FnLpdf _ -> Some (Bool "propto__") | _ -> None
+        in
         let arg_templates, templated_args =
-          template_parameter_and_arg_names false variadic_fun_type in
+          template_parameter_and_arg_names false ~is_functor:true in
         let op_signature =
           str "%a" pp_fun_sig ("operator()", templated_args, variadic_fun_type)
         in
@@ -327,18 +324,7 @@ let pp_fun_def ppf
             ; signature= op_signature
             ; defn= operator_paren_sig } in
       register_functor ([], fdargs, `None) ;
-      if String.Set.mem funs_used_in_reduce_sum fdname then
-        (* Produces the reduce_sum functors that has the pstream argument
-           as the third and not last argument *)
-        match fdargs with
-        | (_, slice, _) :: (_, start, _) :: (_, end_, _) :: rest ->
-            register_functor
-              ([slice; start ^ " + 1"; end_ ^ " + 1"], rest, `ReduceSum)
-        | _ ->
-            Common.FatalError.fatal_error_msg
-              [%message
-                "Ill-formed reduce_sum call!" (fdargs : Program.fun_arg_decl)]
-      else if String.Map.mem variadic_fns fdname then
+      if String.Map.mem variadic_fns fdname then
         (* Produces the variadic functors that has the pstream argument
            as not the last argument. For DAEs this is the 4th, for ODEs the 3rd *)
         List.iter
