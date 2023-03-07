@@ -1,5 +1,5 @@
 all:
-	dune build src/stanc/stanc.exe
+	dune build
 
 .PHONY: doc test
 
@@ -18,10 +18,10 @@ format:
 	dune build @fmt
 
 cross:
-	dune build src/stanc/stanc.exe -x windows
+	dune build -x windows
 
 static:
-	dune build src/stanc/stanc.exe --profile static
+	dune build --profile static
 
 clean:
 	dune clean

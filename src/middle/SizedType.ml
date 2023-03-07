@@ -1,7 +1,5 @@
 (** Types which have a concrete size associated, e.g. [vector\[n\]] *)
 
-open Core_kernel
-
 type 'a t =
   | SInt
   | SReal
@@ -56,22 +54,6 @@ let rec contains_complex st =
   | SArray (t, _) -> contains_complex t
   | _ -> false
 
-(**
- Get the dimensions with respect to sizes needed for IO.
- {b Note}: The main difference from get_dims is complex,
- where this function treats the complex type as a dual number.
- *)
-let rec get_dims_io st =
-  let two = Expr.Helpers.int 2 in
-  match st with
-  | SInt | SReal -> []
-  | SComplex -> [two]
-  | SVector (_, d) | SRowVector (_, d) -> [d]
-  | SMatrix (_, dim1, dim2) -> [dim1; dim2]
-  | SComplexVector d | SComplexRowVector d -> [d; two]
-  | SComplexMatrix (dim1, dim2) -> [dim1; dim2; two]
-  | SArray (t, dim) -> dim :: get_dims_io t
-
 let rec get_dims st =
   match st with
   | SInt | SReal | SComplex -> []
@@ -105,24 +87,6 @@ let rec get_array_dims st =
   | SArray (st, dim) ->
       let st', dims = get_array_dims st in
       (st', dim :: dims)
-
-let num_elems_expr st =
-  Expr.Helpers.binop_list (get_dims_io st) Operator.Times
-    ~default:(Expr.Helpers.int 1)
-
-let%expect_test "dims" =
-  let open Fmt in
-  str "@[%a@]" (list ~sep:comma string)
-    (List.map
-       ~f:(fun Expr.Fixed.{pattern; _} ->
-         match pattern with Expr.Fixed.Pattern.Lit (_, x) -> x | _ -> "fail" )
-       (get_dims_io
-          (SArray
-             ( SMatrix
-                 (Mem_pattern.AoS, Expr.Helpers.str "x", Expr.Helpers.str "y")
-             , Expr.Helpers.str "z" ) ) ) )
-  |> print_endline ;
-  [%expect {| z, x, y |}]
 
 let is_complex_type st = UnsizedType.is_complex_type (to_unsized st)
 

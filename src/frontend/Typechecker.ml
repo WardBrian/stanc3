@@ -24,10 +24,7 @@ let error e = raise (Errors.SemanticError e)
 
 (* warnings are built up in a list *)
 let warnings : Warnings.t list ref = ref []
-
-let add_warning (span : Location_span.t) (message : string) =
-  warnings := (span, message) :: !warnings
-
+let add_warning (_span : Location_span.t) (_message : string) = ()
 let attach_warnings x = (x, List.rev !warnings)
 
 (* model name - don't love this here *)
