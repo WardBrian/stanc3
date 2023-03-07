@@ -1,0 +1,21 @@
+(executable
+ (name stanup)
+ (libraries frontend)
+ (instrumentation
+  (backend bisect_ppx))
+ (modules Stanup)
+ (public_name stanup)
+ (preprocess
+  (pps ppx_jane)))
+
+(env
+ (static
+  (flags
+   (-ccopt -static)))
+ (dev
+  (flags
+   (:standard -g))))
+
+(alias
+ (name default)
+ (deps stanup.exe))
