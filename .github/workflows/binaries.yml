@@ -48,13 +48,13 @@ jobs:
           opam exec -- dune subst
           opam exec -- dune build
 
-      - run: mv _build/default/src/stanc/stanc.exe ${{ matrix.os }}-stanc
+      - run: mv _build/default/src/stanup/stanup.exe ${{ matrix.os }}-stanup
 
-      - name: Upload ${{ matrix.os }} stanc
+      - name: Upload ${{ matrix.os }} stanup
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.os }}-stanc
-          path: ${{ matrix.os }}-stanc
+          name: ${{ matrix.os }}-stanup
+          path: ${{ matrix.os }}-stanup
 
   build-cross:
     runs-on: ubuntu-latest
@@ -82,22 +82,22 @@ jobs:
           opam exec -- dune subst
           opam exec -- dune build -x windows
 
-      - run: mv _build/default.windows/src/stanc/stanc.exe windows-stanc
+      - run: mv _build/default.windows/src/stanup/stanup.exe windows-stanup
 
-      - name: Upload Windows stanc
+      - name: Upload Windows stanup
         uses: actions/upload-artifact@v2
         with:
-          name: windows-stanc
-          path: windows-stanc
+          name: windows-stanup
+          path: windows-stanup
 
-      - run: bash -x scripts/install_js_deps.sh
+      # - run: bash -x scripts/install_js_deps.sh
 
-      - run: opam exec -- dune build --profile release src/stancjs
+      # - run: opam exec -- dune build --profile release src/stanupjs
 
-      - run: mv _build/default/src/stancjs/stancjs.bc.js stanc.js
+      # - run: mv _build/default/src/stanupjs/stanupjs.bc.js stanup.js
 
-      - name: Upload stanc.js
-        uses: actions/upload-artifact@v2
-        with:
-          name: stanc.js
-          path: stanc.js
+      # - name: Upload stanup.js
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: stanup.js
+      #     path: stanup.js
