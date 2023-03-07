@@ -4,8 +4,8 @@ open Core_kernel
 open Core_kernel.Poly
 open Frontend
 
-let version = "%%NAME%%3 %%VERSION%%"
-let name = "%%NAME%%"
+let version = "stanup %%VERSION%%"
+let name = "stanup"
 
 (** The usage message. *)
 let usage = "Usage: " ^ name ^ " [option] ... <model_file.stan[functions]>"
