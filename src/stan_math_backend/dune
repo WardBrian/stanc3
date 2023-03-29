@@ -4,6 +4,8 @@
  (libraries core fmt yojson middle)
  (instrumentation
   (backend bisect_ppx))
+ (instrumentation
+  (backend landmarks --auto))
  (private_modules
   mangle
   cpp_Json
