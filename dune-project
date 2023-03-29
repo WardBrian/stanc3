@@ -31,6 +31,7 @@
     :with-test
     (= 0.26.1)))
   (bisect_ppx :with-test)
+  (landmarks-ppx :with-test)
   (merlin :with-test)
   (utop :with-test)
   (ocp-indent :with-test)

@@ -4,6 +4,8 @@
  (libraries core fmt common)
  (instrumentation
   (backend bisect_ppx))
+ (instrumentation
+  (backend landmarks --auto))
  (inline_tests)
  (preprocess
   (pps
