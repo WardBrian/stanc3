@@ -5,4 +5,6 @@
  (preprocess
   (pps ppx_jane ppx_deriving.fold ppx_deriving.map))
  (instrumentation
-  (backend bisect_ppx)))
+ (backend bisect_ppx))
+ (instrumentation
+  (backend landmarks --auto)))

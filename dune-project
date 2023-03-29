@@ -32,6 +32,7 @@
     :with-test
     (= 0.28.1)))
   (bisect_ppx :with-test)
+  (landmarks-ppx :with-test)
   (merlin :with-test)
   (utop :with-test)
   (patdiff :with-test)))

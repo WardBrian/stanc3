@@ -5,6 +5,8 @@
  (instrumentation
   (backend bisect_ppx))
  (modules :standard \ parser_messages_add_type parser_strip_redundant_state)
+ (instrumentation
+  (backend landmarks --auto))
  (inline_tests)
  (preprocess
   (pps ppx_jane ppx_deriving.fold ppx_deriving.map)))
