@@ -20,6 +20,9 @@ testcoverage: clean
 format:
 	dune build @fmt
 
+profile:
+	dune build src/stanc/stanc.exe --instrument-with landmarks --force
+
 cross:
 	dune build src/stanc/stanc.exe -x windows
 

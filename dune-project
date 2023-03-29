@@ -36,6 +36,7 @@
    (menhirformat
     :with-dev-setup)
   (bisect_ppx :with-dev-setup)
+  (landmarks-ppx :with-test)
   (ocaml-lsp-server :with-dev-setup)
   (menhir-lsp :with-dev-setup)
   (odoc :with-doc)
