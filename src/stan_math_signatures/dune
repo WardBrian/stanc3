@@ -4,6 +4,8 @@
  (libraries core fmt common middle)
  (instrumentation
   (backend bisect_ppx))
+ (instrumentation
+  (backend landmarks --auto))
  (modules :standard \ generate)
  (private_modules generated_signatures)
  (inline_tests)

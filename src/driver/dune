@@ -10,6 +10,8 @@
   analysis_and_optimization)
  (instrumentation
   (backend bisect_ppx))
+ (instrumentation
+  (backend landmarks --auto))
  (inline_tests)
  (preprocess
   (pps ppx_jane)))

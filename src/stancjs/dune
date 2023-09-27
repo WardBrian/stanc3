@@ -2,8 +2,12 @@
  (name stancjs)
  (libraries core fmt js_of_ocaml driver stan_math_signatures)
  (modules Stancjs Conversion)
+ (js_of_ocaml
+  (javascript_files clock.js))
+ (instrumentation
+  (backend landmarks --auto))
  (preprocess
-  (pps ppx_jane js_of_ocaml-ppx))
+  (pps ppx_jane js_of_ocaml-ppx landmarks-ppx))
  (modes js))
 
 (env

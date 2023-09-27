@@ -23,6 +23,7 @@ let invoke_driver model_name model flags =
 
 (** Handle conversion of JS <-> OCaml values invoke driver *)
 let stan2cpp_wrapped name code flags includes : stancReturn Js.t =
+  Landmark.start_profiling ();
   let includes, include_reader_warnings = get_includes_lenient includes in
   let compilation_result =
     let open Common.Let_syntax.Result in
@@ -32,16 +33,21 @@ let stan2cpp_wrapped name code flags includes : stancReturn Js.t =
       Common.ICE.with_exn_message (fun () ->
           invoke_driver name code driver_flags) in
     (result, warnings, driver_flags.filename_in_msg, code, color_output) in
-  match compilation_result with
-  | Ok (result, warnings, printed_filename, code, color_output) ->
-      let warnings =
-        include_reader_warnings
-        @ List.map
-            ~f:(str_color ~color_output "%a" (Warnings.pp ?printed_filename))
-            warnings in
-      wrap_result ?printed_filename ~color_output ~code result ~warnings
-  | Error non_compilation_error (* either an ICE or malformed JS input *) ->
-      wrap_error ~warnings:include_reader_warnings non_compilation_error
+  let out =
+    match compilation_result with
+    | Ok (result, warnings, printed_filename, code, color_output) ->
+        let warnings =
+          include_reader_warnings
+          @ List.map
+              ~f:(str_color ~color_output "%a" (Warnings.pp ?printed_filename))
+              warnings in
+        wrap_result ?printed_filename ~color_output ~code result ~warnings
+    | Error non_compilation_error (* either an ICE or malformed JS input *) ->
+        wrap_error ~warnings:include_reader_warnings non_compilation_error in
+  Landmark.stop_profiling ();
+  let gc = Landmark.export_and_reset () in
+  Landmark.Graph.output Out_channel.stderr gc;
+  out
 
 let dump_stan_math_signatures () =
   Js.string @@ Fmt.str "%a" Stan_math_signatures.pretty_print_all_math_sigs ()
