@@ -6,8 +6,12 @@
   middle
   analysis_and_optimization
   stan_math_backend)
+ (js_of_ocaml
+  (javascript_files clock.js))
+ (instrumentation
+  (backend landmarks --auto))
  (preprocess
-  (pps ppx_jane))
+  (pps landmarks-ppx ppx_jane))
  (modes js))
 
 (alias

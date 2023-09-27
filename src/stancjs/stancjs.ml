@@ -191,6 +191,7 @@ let wrap_result ?printed_filename ~code ~warnings res =
       wrap_error ~warnings e
 
 let stan2cpp_wrapped name code (flags : Js.string_array Js.t Js.opt) =
+  Landmark.start_profiling ();
   let flags =
     let to_ocaml_str_array a =
       Js.(str_array a |> to_array |> Array.map ~f:to_string) in
@@ -221,17 +222,22 @@ let stan2cpp_wrapped name code (flags : Js.string_array Js.t Js.opt) =
     |> List.map ~f:(fun o -> "--" ^ o)
     |> String.concat ~sep:" " in
   Lower_program.stanc_args_to_print := stanc_args_to_print;
-  match
-    Common.ICE.with_exn_message (fun () ->
-        stan2cpp (Js.to_string name) (Js.to_string code) is_flag_set flag_val)
-  with
-  | Ok (result, warnings, pedantic_mode_warnings) ->
-      let warnings =
-        List.map
-          ~f:(Fmt.str "%a" (Warnings.pp ?printed_filename))
-          (warnings @ pedantic_mode_warnings) in
-      wrap_result ?printed_filename ~code result ~warnings
-  | Error internal_error -> wrap_error ~warnings:[] internal_error
+  let out =
+    match
+      Common.ICE.with_exn_message (fun () ->
+          stan2cpp (Js.to_string name) (Js.to_string code) is_flag_set flag_val)
+    with
+    | Ok (result, warnings, pedantic_mode_warnings) ->
+        let warnings =
+          List.map
+            ~f:(Fmt.str "%a" (Warnings.pp ?printed_filename))
+            (warnings @ pedantic_mode_warnings) in
+        wrap_result ?printed_filename ~code result ~warnings
+    | Error internal_error -> wrap_error ~warnings:[] internal_error in
+  Landmark.stop_profiling ();
+  let gc = Landmark.export_and_reset () in
+  Landmark.Graph.output Out_channel.stderr gc;
+  out
 
 let dump_stan_math_signatures () =
   Js.string @@ Fmt.str "%a" Stan_math_signatures.pretty_print_all_math_sigs ()
