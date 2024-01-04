@@ -1,0 +1,43 @@
+name: Build binaries (esperanto)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest]
+        ocaml-version: ["4.14.1"]
+    runs-on: ${{ matrix.operating-system }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: ${{ matrix.ocaml-version }}
+        opam-disable-sandboxing: true
+# See jart/cosmopolitan#3
+    - name: Fix binfmt and Cosmopolitan
+      run: sudo sh -c "echo ':APE:M::MZqFpD::/bin/sh:' >/proc/sys/fs/binfmt_misc/register"
+    - name: Pin & Install workflows
+      run: |
+        opam install ocamlfind opam-monorepo x86_64-esperanto aarch64-esperanto
+        opam repo add upstream git+https://github.com/ocaml/opam-repository.git
+        env OPAMVAR_monorepo='opam-monorepo' opam monorepo lock --require-cross-compile --build-only --ocaml-version ${{ matrix.ocaml-version }} com
+        env OPAMVAR_monorepo='opam-monorepo' opam monorepo pull
+    - name: Compilation
+      run: |
+        opam exec -- dune build -x x86_64_esperanto -p stanc src/stanc/stanc.exe
+        opam exec -- dune build -x aarch64_esperanto -p stanc src/stanc/stanc.exe
+        opam exec -- apelink \
+          -o stanc.com \
+          -l $(opam var bin)/ape-x86_64.elf \
+          -l $(opam var bin)/ape-aarch64.elf \
+          -M $(opam var bin)/ape-m1.c \
+          _build/default.x86_64_esperanto/src/stanc/stanc.exe.dbg \
+          _build/default.aarch64_esperanto/src/stanc/stanc.exe.dbg
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: stanc.com
+        path: stanc.com
