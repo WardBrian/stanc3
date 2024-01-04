@@ -2,19 +2,15 @@ name: Build binaries (esperanto)
 
 on:
   workflow_dispatch: {}
-
+  
 jobs:
   build:
-    strategy:
-      matrix:
-        operating-system: [ubuntu-latest]
-        ocaml-version: ["4.14.1"]
-    runs-on: ${{ matrix.operating-system }}
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: ocaml/setup-ocaml@v2
       with:
-        ocaml-compiler: ${{ matrix.ocaml-version }}
+        ocaml-compiler: "4.14.1"
         opam-disable-sandboxing: true
 # See jart/cosmopolitan#3
     - name: Fix binfmt and Cosmopolitan
@@ -26,8 +22,10 @@ jobs:
         opam repo add dune-universe git+https://github.com/dune-universe/opam-overlays.git
         env OPAMVAR_monorepo='opam-monorepo' opam monorepo lock --require-cross-compile --build-only --ocaml-version ${{ matrix.ocaml-version }} stanc
         env OPAMVAR_monorepo='opam-monorepo' opam monorepo pull
+        
     - name: Compilation
       run: |
+        opam exec -- dune subst
         opam exec -- dune build -x x86_64_esperanto -p stanc src/stanc/stanc.exe
         opam exec -- dune build -x aarch64_esperanto -p stanc src/stanc/stanc.exe
         opam exec -- apelink \
