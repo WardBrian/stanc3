@@ -23,6 +23,7 @@ jobs:
       run: |
         opam install ocamlfind opam-monorepo x86_64-esperanto aarch64-esperanto
         opam repo add upstream git+https://github.com/ocaml/opam-repository.git
+        opam repo add dune-universe git+https://github.com/dune-universe/opam-overlays.git
         env OPAMVAR_monorepo='opam-monorepo' opam monorepo lock --require-cross-compile --build-only --ocaml-version ${{ matrix.ocaml-version }} stanc
         env OPAMVAR_monorepo='opam-monorepo' opam monorepo pull
     - name: Compilation
