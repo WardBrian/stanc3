@@ -11,7 +11,7 @@ jobs:
         ocaml-version: ["4.14.1"]
     runs-on: ${{ matrix.operating-system }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: ocaml/setup-ocaml@v2
       with:
         ocaml-compiler: ${{ matrix.ocaml-version }}
@@ -29,6 +29,7 @@ jobs:
         env OPAMVAR_monorepo='opam-monorepo' opam monorepo pull
     - name: Compilation
       run: |
+        opam exec -- dune subst
         opam exec -- dune build -x x86_64_esperanto -p stanc src/stanc/stanc.exe
         opam exec -- dune build -x aarch64_esperanto -p stanc src/stanc/stanc.exe
         opam exec -- apelink \
