@@ -1,51 +1,60 @@
 /* $ stanc --auto-format ../good_annotations.stan : [exit 125] */
 warning: Unknown annotation 'foo' will be ignored by the compiler.
-    ┌─ ../good_annotations.stan:2:18
-  1 │  functions {
-  2 │    @foo @biz void bar(int x, int y, int z, int w, int a, int b, int d, int e, int f){
+    ┌─ ../good_annotations.stan:4:18
+  3 │  
+  4 │    @foo @biz void bar(int x, int y, int z, int w, int a, int b, int d, int e, int f){
     │                   ^^^ Unknown annotation 'foo' will be ignored by the compiler.
-  3 │      print(x);
+  5 │      print(x);
 warning: Unknown annotation 'biz' will be ignored by the compiler.
-    ┌─ ../good_annotations.stan:2:18
-  1 │  functions {
-  2 │    @foo @biz void bar(int x, int y, int z, int w, int a, int b, int d, int e, int f){
+    ┌─ ../good_annotations.stan:4:18
+  3 │  
+  4 │    @foo @biz void bar(int x, int y, int z, int w, int a, int b, int d, int e, int f){
     │                   ^^^ Unknown annotation 'biz' will be ignored by the compiler.
-  3 │      print(x);
+  5 │      print(x);
 warning: Unknown annotation 'baz' will be ignored by the compiler.
-    ┌─ ../good_annotations.stan:7:20
-  6 │  parameters {
-  7 │    @baz matrix[3,3] A;
+    ┌─ ../good_annotations.stan:9:20
+  8 │  parameters {
+  9 │    @baz matrix[3,3] A;
     │                     ^ Unknown annotation 'baz' will be ignored by the compiler.
-  8 │  }
+ 10 │  }
 warning: Unknown annotation 'bar' will be ignored by the compiler.
-    ┌─ ../good_annotations.stan:12:90
- 11 │  generated quantities {
- 12 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
+    ┌─ ../good_annotations.stan:14:90
+ 13 │  generated quantities {
+ 14 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
     │                                                                                           ^^^^^^^^^^^^^^ Unknown annotation 'bar' will be ignored by the compiler.
- 13 │  }
+ 15 │  }
 warning: Unknown annotation 'baz' will be ignored by the compiler.
-    ┌─ ../good_annotations.stan:12:90
- 11 │  generated quantities {
- 12 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
+    ┌─ ../good_annotations.stan:14:90
+ 13 │  generated quantities {
+ 14 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
     │                                                                                           ^^^^^^^^^^^^^^ Unknown annotation 'baz' will be ignored by the compiler.
- 13 │  }
+ 15 │  }
 warning: Unknown annotation 'flux' will be ignored by the compiler.
-    ┌─ ../good_annotations.stan:12:90
- 11 │  generated quantities {
- 12 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
+    ┌─ ../good_annotations.stan:14:90
+ 13 │  generated quantities {
+ 14 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
     │                                                                                           ^^^^^^^^^^^^^^ Unknown annotation 'flux' will be ignored by the compiler.
- 13 │  }
+ 15 │  }
 warning: Unknown annotation 'really_extra_long_now' will be ignored by the compiler.
-    ┌─ ../good_annotations.stan:12:90
- 11 │  generated quantities {
- 12 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
+    ┌─ ../good_annotations.stan:14:90
+ 13 │  generated quantities {
+ 14 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
     │                                                                                           ^^^^^^^^^^^^^^ Unknown annotation 'really_extra_long_now' will be ignored by the compiler.
- 13 │  }
+ 15 │  }
 Internal compiler error:
 Pretty-printed program does not match the original!
 ((functionblock
   (((stmts
      (((stmt
+        (FunDef (returntype (ReturnType UReal))
+         (funname ((name foo) (id_loc <opaque>)))
+         (arguments
+          ((AutoDiffable UInt ((name x) (id_loc <opaque>)))
+           (AutoDiffable UInt ((name y) (id_loc <opaque>)))))
+         (annotations (extern))
+         (body ((stmt Skip) (smeta ((loc <opaque>)))))))
+       (smeta ((loc <opaque>))))
+      ((stmt
         (FunDef (returntype Void) (funname ((name bar) (id_loc <opaque>)))
          (arguments
           ((AutoDiffable UInt ((name x) (id_loc <opaque>)))
@@ -108,6 +117,14 @@ Pretty-printed program does not match the original!
 ((functionblock
   (((stmts
      (((stmt
+        (FunDef (returntype (ReturnType UReal))
+         (funname ((name foo) (id_loc <opaque>)))
+         (arguments
+          ((AutoDiffable UInt ((name x) (id_loc <opaque>)))
+           (AutoDiffable UInt ((name y) (id_loc <opaque>)))))
+         (annotations ()) (body ((stmt Skip) (smeta ((loc <opaque>)))))))
+       (smeta ((loc <opaque>))))
+      ((stmt
         (FunDef (returntype Void) (funname ((name bar) (id_loc <opaque>)))
          (arguments
           ((AutoDiffable UInt ((name x) (id_loc <opaque>)))

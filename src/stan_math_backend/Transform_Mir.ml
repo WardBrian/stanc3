@@ -651,7 +651,7 @@ let map_prog_stmt_lists f (p : ('a, 'b, 'c) Program.t) =
   ; transform_inits= f p.transform_inits
   ; unconstrain_array= f p.unconstrain_array }
 
-let recognized_annotation _ = false
+let recognized_annotation a = a = "extern"
 
 let trans_prog ?(use_opencl = false) (p : Program.Typed.t) =
   (* name mangling of c++ keywords *)

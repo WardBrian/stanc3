@@ -291,14 +291,13 @@ let check_id cf tenv id =
       Semantic_error.non_data_variable_size_decl loc origin prev |> error
   | {kind= `Variable {origin; _}; type_; _} ->
       (calculate_autodifftype cf origin type_, type_)
-  | { kind= `UserDefined _ | `UserDeclared _
-    ; type_= UFun (args, rt, FnDist _, mem_pattern)
-    ; _ } ->
+  | { kind= `UserDefined _ | `UserExtern _ | `UserDeclared _
+    ; type_= UFun (args, rt, FnDist _, mem_pattern) } ->
       let type_ =
         UnsizedType.UFun
           (args, rt, Fun_kind.suffix_from_name id.name, mem_pattern) in
       (calculate_autodifftype cf Functions type_, type_)
-  | {kind= `UserDefined _ | `UserDeclared _; type_; _} ->
+  | {kind= `UserDefined _ | `UserExtern _ | `UserDeclared _; type_} ->
       (calculate_autodifftype cf Functions type_, type_)
 
 let check_variable cf loc tenv id =
@@ -1470,7 +1469,10 @@ let verify_assignable_id loc cf tenv assign_id =
     | {kind= `Variable {origin; global; readonly; location}; _} :: _ ->
         (origin, global, readonly, Some location)
     | {kind= `StanMath; _} :: _ -> (MathLibrary, true, false, None)
-    | {kind= `UserDefined location | `UserDeclared location; _} :: _ ->
+    | { kind=
+          `UserDefined location | `UserDeclared location | `UserExtern location
+      ; _ }
+      :: _ ->
         (Functions, true, false, Some location)
     | _ ->
         Semantic_error.ident_not_in_scope loc assign_id.name
@@ -2042,7 +2044,10 @@ and verify_unique_signature tenv loc id arg_tys rt =
         (UnsizedType.UFun (arg_tys, rt, Fun_kind.suffix_from_name id.name, AoS))
       |> error
   | { kind=
-        `UserDeclared prev | `UserDefined prev | `Variable {location= prev; _}
+        ( `UserExtern prev
+        | `UserDeclared prev
+        | `UserDefined prev
+        | `Variable {location= prev; _} )
     ; _ }
     :: _ ->
       Semantic_error.fn_decl_redefined loc id.name
@@ -2059,12 +2064,14 @@ and verify_fundef_overloaded loc tenv id arg_tys rt =
     verify_unique_signature tenv loc id arg_tys rt;
   verify_name_fresh tenv id ~is_udf:true
 
-and get_fn_decl_or_defn loc tenv id arg_tys rt body =
+and get_fn_decl_or_defn loc tenv id arg_tys rt body annotations =
   match body with
   | {stmt= Skip; _} -> (
       match exists_matching_fn_declared tenv id arg_tys rt with
       | Some prev -> Semantic_error.fn_decl_exists loc id.name prev |> error
-      | None -> `UserDeclared id.id_loc)
+      | None ->
+          if List.mem ~set:annotations "extern" then `UserExtern id.id_loc
+          else `UserDeclared id.id_loc)
   | _ -> `UserDefined id.id_loc
 
 and verify_fundef_dist_rt loc id return_ty =
@@ -2214,13 +2221,13 @@ let add_userdefined_functions tenv stmts_opt =
   | Some {stmts; _} ->
       let f tenv (s : Ast.untyped_statement) =
         match s with
-        | { stmt= FunDef {returntype; funname; arguments; body; annotations= _}
+        | { stmt= FunDef {returntype; funname; arguments; body; annotations}
           ; smeta= {loc} } ->
             let arg_types = Ast.type_of_arguments arguments in
             verify_fundef_overloaded loc tenv funname arg_types returntype;
             let defined =
               get_fn_decl_or_defn loc tenv funname arg_types returntype body
-            in
+                annotations in
             add_function tenv funname
               (UFun
                  ( arg_types
