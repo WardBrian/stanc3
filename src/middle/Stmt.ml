@@ -22,7 +22,8 @@ module Pattern = struct
         { decl_adtype: UnsizedType.autodifftype
         ; decl_id: string
         ; decl_type: 'a Type.t
-        ; initialize: 'a decl_init }
+        ; initialize: 'a decl_init
+        ; decl_annotations: string list }
   [@@deriving sexp_of, map, fold]
 
   and 'e lvalue = 'e lbase * 'e Index.t list [@@deriving sexp_of, map, fold]
@@ -176,7 +177,8 @@ module Helpers = struct
                   { decl_adtype= Expr.Typed.adlevel_of e
                   ; decl_id= sym
                   ; decl_type= Unsized (Expr.Typed.type_of e)
-                  ; initialize= Default }
+                  ; initialize= Default
+                  ; decl_annotations= [] }
             ; meta= e.meta.loc } in
           let assign =
             { decl with

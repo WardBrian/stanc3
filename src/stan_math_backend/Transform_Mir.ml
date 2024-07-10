@@ -514,7 +514,9 @@ let var_context_unconstrain_transform (decl_id, smeta, outvar) =
                 (SizedType.to_unsized st)
           ; decl_id
           ; decl_type= Type.Sized st
-          ; initialize= Default }
+          ; initialize= Default
+          ; decl_annotations=
+              outvar.out_annotations (* TODO annotations: correct? *) }
     ; meta= smeta }
   :: var_context_read_internal (Stmt.Helpers.lvariable decl_id, smeta, st)
   @ param_serializer_write ~unconstrain:true (decl_id, outvar)
@@ -531,7 +533,9 @@ let array_unconstrain_transform (decl_id, smeta, outvar) =
                   (SizedType.to_unsized outvar.Program.out_constrained_st)
             ; decl_id
             ; decl_type= Type.Sized outvar.Program.out_constrained_st
-            ; initialize= Default }
+            ; initialize= Default
+            ; decl_annotations=
+                outvar.out_annotations (* TODO annotations: correct? *) }
       ; meta= smeta } in
   let rec read (lval, st) =
     match st with
@@ -673,7 +677,8 @@ let trans_prog ?(use_opencl = false) (p : Program.Typed.t) =
         { decl_adtype= DataOnly
         ; decl_id= pos
         ; decl_type= Sized SInt
-        ; initialize= Default }
+        ; initialize= Default
+        ; decl_annotations= [] }
     ; Assignment (Stmt.Helpers.lvariable pos, UInt, Expr.Helpers.loop_bottom) ]
     |> List.map ~f:(fun pattern -> Stmt.{pattern; meta= Location_span.empty})
   in
@@ -789,7 +794,9 @@ let trans_prog ?(use_opencl = false) (p : Program.Typed.t) =
                   { decl_adtype= DataOnly
                   ; decl_id= vident
                   ; decl_type= Type.Unsized type_of_input_var
-                  ; initialize= Default }
+                  ; initialize= Default
+                  ; decl_annotations= [] (* TODO improve/rethink opencl pass *)
+                  }
             ; meta= Location_span.empty }
         ; { pattern=
               Assignment

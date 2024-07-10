@@ -671,6 +671,7 @@ let rec modify_stmt_pattern
       { decl_id
       ; decl_adtype
       ; decl_type= Type.Sized sized_type
+      ; decl_annotations
       ; initialize=
           Assign
             ({ pattern= FunApp (CompilerInternal (FnReadParam read_param), args)
@@ -682,6 +683,7 @@ let rec modify_stmt_pattern
           ; decl_adtype
           ; decl_type=
               Type.Sized (SizedType.modify_sizedtype_mem AoS sized_type)
+          ; decl_annotations
           ; initialize=
               Assign
                 { assigner with
@@ -696,6 +698,7 @@ let rec modify_stmt_pattern
           ; decl_adtype
           ; decl_type=
               Type.Sized (SizedType.modify_sizedtype_mem SoA sized_type)
+          ; decl_annotations
           ; initialize=
               Assign
                 { assigner with

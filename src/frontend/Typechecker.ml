@@ -1984,7 +1984,7 @@ and check_transformation cf tenv ut trans =
       TupleTransformation tes
 
 and check_var_decl loc cf tenv sized_ty trans
-    (variables : untyped_expression Ast.variable list) is_global =
+    (variables : untyped_expression Ast.variable list) annotations is_global =
   let checked_type =
     check_sizedtype {cf with in_toplevel_decl= is_global} tenv sized_ty in
   let unsized_type = SizedType.to_unsized checked_type in
@@ -2011,6 +2011,7 @@ and check_var_decl loc cf tenv sized_ty trans
       { decl_type= checked_type
       ; transformation= checked_trans
       ; variables= tvariables
+      ; annotations
       ; is_global } in
   (tenv, mk_typed_statement ~stmt ~loc ~flow_type:incomplete)
 
@@ -2120,7 +2121,7 @@ and add_function tenv id type_ defined =
       Env.set_raw tenv id.name (new_fn :: defns)
   | _ -> Env.add tenv id.name type_ defined
 
-and check_fundef loc cf tenv return_ty id args body =
+and check_fundef loc cf tenv return_ty id args annotations body =
   List.iter args ~f:(fun (_, _, id) -> verify_identifier id);
   verify_identifier id;
   let arg_types = List.map ~f:(fun (w, y, _) -> (w, y)) args in
@@ -2163,8 +2164,11 @@ and check_fundef loc cf tenv return_ty id args body =
   verify_fundef_return_tys loc return_ty checked_body;
   let stmt =
     FunDef
-      {returntype= return_ty; funname= id; arguments= args; body= checked_body}
-  in
+      { returntype= return_ty
+      ; funname= id
+      ; arguments= args
+      ; annotations
+      ; body= checked_body } in
   (* NB: **not** tenv_body, so args don't leak out *)
   (tenv, mk_typed_statement ~flow_type:incomplete ~loc ~stmt)
 
@@ -2198,10 +2202,11 @@ and check_statement (cf : context_flags_record) (tenv : Env.t)
   | Profile (name, vdsl) -> (tenv, check_profile loc cf tenv name vdsl)
   (* these two are special in that they're allowed to change the type
      environment *)
-  | VarDecl {decl_type; transformation; variables; is_global} ->
-      check_var_decl loc cf tenv decl_type transformation variables is_global
-  | FunDef {returntype; funname; arguments; body} ->
-      check_fundef loc cf tenv returntype funname arguments body
+  | VarDecl {decl_type; transformation; variables; is_global; annotations} ->
+      check_var_decl loc cf tenv decl_type transformation variables annotations
+        is_global
+  | FunDef {returntype; funname; arguments; body; annotations} ->
+      check_fundef loc cf tenv returntype funname arguments annotations body
 
 let add_userdefined_functions tenv stmts_opt =
   match stmts_opt with
@@ -2209,7 +2214,8 @@ let add_userdefined_functions tenv stmts_opt =
   | Some {stmts; _} ->
       let f tenv (s : Ast.untyped_statement) =
         match s with
-        | {stmt= FunDef {returntype; funname; arguments; body}; smeta= {loc}} ->
+        | { stmt= FunDef {returntype; funname; arguments; body; annotations= _}
+          ; smeta= {loc} } ->
             let arg_types = Ast.type_of_arguments arguments in
             verify_fundef_overloaded loc tenv funname arg_types returntype;
             let defined =
