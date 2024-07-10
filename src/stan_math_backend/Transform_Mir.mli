@@ -5,3 +5,4 @@ open Middle
 
 val trans_prog : ?use_opencl:bool -> Program.Typed.t -> Program.Typed.t
 val is_opencl_var : string -> bool
+val recognized_annotation : string -> bool

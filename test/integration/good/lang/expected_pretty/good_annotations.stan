@@ -1,4 +1,46 @@
 /* $ stanc --auto-format ../good_annotations.stan : [exit 125] */
+warning: Unknown annotation 'foo' will be ignored by the compiler.
+    ┌─ ../good_annotations.stan:2:18
+  1 │  functions {
+  2 │    @foo @biz void bar(int x, int y, int z, int w, int a, int b, int d, int e, int f){
+    │                   ^^^ Unknown annotation 'foo' will be ignored by the compiler.
+  3 │      print(x);
+warning: Unknown annotation 'biz' will be ignored by the compiler.
+    ┌─ ../good_annotations.stan:2:18
+  1 │  functions {
+  2 │    @foo @biz void bar(int x, int y, int z, int w, int a, int b, int d, int e, int f){
+    │                   ^^^ Unknown annotation 'biz' will be ignored by the compiler.
+  3 │      print(x);
+warning: Unknown annotation 'baz' will be ignored by the compiler.
+    ┌─ ../good_annotations.stan:7:20
+  6 │  parameters {
+  7 │    @baz matrix[3,3] A;
+    │                     ^ Unknown annotation 'baz' will be ignored by the compiler.
+  8 │  }
+warning: Unknown annotation 'bar' will be ignored by the compiler.
+    ┌─ ../good_annotations.stan:12:90
+ 11 │  generated quantities {
+ 12 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
+    │                                                                                           ^^^^^^^^^^^^^^ Unknown annotation 'bar' will be ignored by the compiler.
+ 13 │  }
+warning: Unknown annotation 'baz' will be ignored by the compiler.
+    ┌─ ../good_annotations.stan:12:90
+ 11 │  generated quantities {
+ 12 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
+    │                                                                                           ^^^^^^^^^^^^^^ Unknown annotation 'baz' will be ignored by the compiler.
+ 13 │  }
+warning: Unknown annotation 'flux' will be ignored by the compiler.
+    ┌─ ../good_annotations.stan:12:90
+ 11 │  generated quantities {
+ 12 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
+    │                                                                                           ^^^^^^^^^^^^^^ Unknown annotation 'flux' will be ignored by the compiler.
+ 13 │  }
+warning: Unknown annotation 'really_extra_long_now' will be ignored by the compiler.
+    ┌─ ../good_annotations.stan:12:90
+ 11 │  generated quantities {
+ 12 │    @bar @baz @flux /* comment in an odd place */ @really_extra_long_now matrix[34, 10000] a_bit_too_long = rep_matrix(1, 34, 10000);
+    │                                                                                           ^^^^^^^^^^^^^^ Unknown annotation 'really_extra_long_now' will be ignored by the compiler.
+ 13 │  }
 Internal compiler error:
 Pretty-printed program does not match the original!
 ((functionblock
@@ -127,8 +169,8 @@ Pretty-printed program does not match the original!
  (comments <opaque>))
 Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
 Called from Frontend__Pretty_print_prog.pretty_print_program in file "src/frontend/Pretty_print_prog.ml", line 76, characters 2-44
-Called from Driver__Entry.stan2mir in file "src/driver/Entry.ml", lines 78-83, characters 9-45
-Called from Driver__Entry.stan2cpp in file "src/driver/Entry.ml", line 148, characters 17-55
+Called from Driver__Entry.stan2mir in file "src/driver/Entry.ml", lines 82-87, characters 9-45
+Called from Driver__Entry.stan2cpp in file "src/driver/Entry.ml", lines 153-154, characters 4-24
 Called from Dune__exe__Stanc.stanc.(fun) in file "src/stanc/stanc.ml", lines 70-73, characters 4-64
 Called from Std__Return.with_return in file "src/std/Return.ml", line 9, characters 14-22
 Re-raised at Std__Return.with_return in file "src/std/Return.ml", line 14, characters 38-45
