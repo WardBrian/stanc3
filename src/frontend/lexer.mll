@@ -88,6 +88,10 @@ rule token = parse
       ( space+ )
       "parameters"            { lexer_logger "transformed parameters" ;
                                 Parser.TRANSFORMEDPARAMETERSBLOCK }
+  | "generated"
+      ( space+ )
+      "data"                  { lexer_logger "generated data" ;
+                                Parser.GENERATEDDATABLOCK }
   | "model"                   { lexer_logger "model" ; Parser.MODELBLOCK }
   | "generated"
       ( space+ )

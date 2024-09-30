@@ -117,5 +117,5 @@ let%expect_test "good include" =
           (end_loc
            ((filename string) (line_num 5) (col_num 1) (included_from ()))))))))
      (transformeddatablock ()) (parametersblock ())
-     (transformedparametersblock ()) (modelblock ())
+     (transformedparametersblock ()) (generateddatablock ()) (modelblock ())
      (generatedquantitiesblock ()) (comments <opaque>)) |}]

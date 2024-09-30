@@ -158,7 +158,7 @@ program: DATABLOCK LBRACE RBRACE WHILE
 ##
 ## Ends in an error in state: 633.
 ##
-## program -> option(function_block) option(data_block) . option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block) option(generated_quantities_block) EOF [ # ]
+## program -> option(function_block) option(data_block) . option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(generated_data_block) option(model_block) option(generated_quantities_block) EOF [ # ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(function_block) option(data_block)
@@ -752,7 +752,7 @@ program: DATABLOCK LBRACE IDENTIFIER
 ##
 ## Ends in an error in state: 414.
 ##
-## data_block -> DATABLOCK LBRACE . list(top_var_decl_no_assign) RBRACE [ TRANSFORMEDPARAMETERSBLOCK TRANSFORMEDDATABLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+## data_block -> DATABLOCK LBRACE . list(top_var_decl_no_assign) RBRACE [ TRANSFORMEDPARAMETERSBLOCK TRANSFORMEDDATABLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF ]
 ##
 ## The known suffix of the stack is as follows:
 ## DATABLOCK LBRACE
@@ -771,7 +771,7 @@ program: DATABLOCK WHILE
 ##
 ## Ends in an error in state: 413.
 ##
-## data_block -> DATABLOCK . LBRACE list(top_var_decl_no_assign) RBRACE [ TRANSFORMEDPARAMETERSBLOCK TRANSFORMEDDATABLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+## data_block -> DATABLOCK . LBRACE list(top_var_decl_no_assign) RBRACE [ TRANSFORMEDPARAMETERSBLOCK TRANSFORMEDDATABLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF ]
 ##
 ## The known suffix of the stack is as follows:
 ## DATABLOCK
@@ -785,7 +785,7 @@ program: FUNCTIONBLOCK LBRACE RBRACE COVMATRIX
 ##
 ## Ends in an error in state: 412.
 ##
-## program -> option(function_block) . option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block) option(generated_quantities_block) EOF [ # ]
+## program -> option(function_block) . option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(generated_data_block) option(model_block) option(generated_quantities_block) EOF [ # ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(function_block)
@@ -906,7 +906,7 @@ program: FUNCTIONBLOCK LBRACE WHILE
 ##
 ## Ends in an error in state: 408.
 ##
-## function_block -> FUNCTIONBLOCK LBRACE . list(function_def) RBRACE [ TRANSFORMEDPARAMETERSBLOCK TRANSFORMEDDATABLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK EOF DATABLOCK ]
+## function_block -> FUNCTIONBLOCK LBRACE . list(function_def) RBRACE [ TRANSFORMEDPARAMETERSBLOCK TRANSFORMEDDATABLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF DATABLOCK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTIONBLOCK LBRACE
@@ -920,7 +920,7 @@ program: FUNCTIONBLOCK WHILE
 ##
 ## Ends in an error in state: 407.
 ##
-## function_block -> FUNCTIONBLOCK . LBRACE list(function_def) RBRACE [ TRANSFORMEDPARAMETERSBLOCK TRANSFORMEDDATABLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK EOF DATABLOCK ]
+## function_block -> FUNCTIONBLOCK . LBRACE list(function_def) RBRACE [ TRANSFORMEDPARAMETERSBLOCK TRANSFORMEDDATABLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF DATABLOCK ]
 ##
 ## The known suffix of the stack is as follows:
 ## FUNCTIONBLOCK
@@ -932,12 +932,12 @@ program: GENERATEDQUANTITIESBLOCK LBRACE RBRACE ELTTIMESASSIGN
 ##
 ## Concrete syntax: generated quantities { } .*=
 ##
-## Ends in an error in state: 682.
+## Ends in an error in state: 687.
 ##
-## program -> option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block) option(generated_quantities_block) . EOF [ # ]
+## program -> option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(generated_data_block) option(model_block) option(generated_quantities_block) . EOF [ # ]
 ##
 ## The known suffix of the stack is as follows:
-## option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block) option(generated_quantities_block)
+## option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(generated_data_block) option(model_block) option(generated_quantities_block)
 ##
 
 Expected end of file after end of generated quantities block.
@@ -946,7 +946,7 @@ program: GENERATEDQUANTITIESBLOCK LBRACE VOID
 ##
 ## Concrete syntax: generated quantities { void
 ##
-## Ends in an error in state: 679.
+## Ends in an error in state: 684.
 ##
 ## generated_quantities_block -> GENERATEDQUANTITIESBLOCK LBRACE . list(top_vardecl_or_statement) RBRACE [ EOF ]
 ##
@@ -960,7 +960,7 @@ program: GENERATEDQUANTITIESBLOCK WHILE
 ##
 ## Concrete syntax: generated quantities while
 ##
-## Ends in an error in state: 678.
+## Ends in an error in state: 683.
 ##
 ## generated_quantities_block -> GENERATEDQUANTITIESBLOCK . LBRACE list(top_vardecl_or_statement) RBRACE [ EOF ]
 ##
@@ -1030,12 +1030,12 @@ program: MODELBLOCK LBRACE RBRACE ELTTIMESASSIGN
 ##
 ## Concrete syntax: model { } .*=
 ##
-## Ends in an error in state: 677.
+## Ends in an error in state: 682.
 ##
-## program -> option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block) . option(generated_quantities_block) EOF [ # ]
+## program -> option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(generated_data_block) option(model_block) . option(generated_quantities_block) EOF [ # ]
 ##
 ## The known suffix of the stack is as follows:
-## option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block)
+## option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(generated_data_block) option(model_block)
 ##
 
 Expected "generated quantities {" or end of file after end of model block.
@@ -1167,7 +1167,7 @@ program: MODELBLOCK LBRACE VOID
 ##
 ## Concrete syntax: model { void
 ##
-## Ends in an error in state: 674.
+## Ends in an error in state: 679.
 ##
 ## model_block -> MODELBLOCK LBRACE . list(vardecl_or_statement) RBRACE [ GENERATEDQUANTITIESBLOCK EOF ]
 ##
@@ -1181,7 +1181,7 @@ program: MODELBLOCK WHILE
 ##
 ## Concrete syntax: model while
 ##
-## Ends in an error in state: 673.
+## Ends in an error in state: 678.
 ##
 ## model_block -> MODELBLOCK . LBRACE list(vardecl_or_statement) RBRACE [ GENERATEDQUANTITIESBLOCK EOF ]
 ##
@@ -1197,7 +1197,7 @@ program: PARAMETERSBLOCK LBRACE RBRACE ELTTIMESASSIGN
 ##
 ## Ends in an error in state: 666.
 ##
-## program -> option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) . option(transformed_parameters_block) option(model_block) option(generated_quantities_block) EOF [ # ]
+## program -> option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) . option(transformed_parameters_block) option(generated_data_block) option(model_block) option(generated_quantities_block) EOF [ # ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(function_block) option(data_block) option(transformed_data_block) option(parameters_block)
@@ -1211,7 +1211,7 @@ program: PARAMETERSBLOCK LBRACE WHILE
 ##
 ## Ends in an error in state: 662.
 ##
-## parameters_block -> PARAMETERSBLOCK LBRACE . list(top_var_decl_no_assign) RBRACE [ TRANSFORMEDPARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+## parameters_block -> PARAMETERSBLOCK LBRACE . list(top_var_decl_no_assign) RBRACE [ TRANSFORMEDPARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF ]
 ##
 ## The known suffix of the stack is as follows:
 ## PARAMETERSBLOCK LBRACE
@@ -1225,7 +1225,7 @@ program: PARAMETERSBLOCK WHILE
 ##
 ## Ends in an error in state: 661.
 ##
-## parameters_block -> PARAMETERSBLOCK . LBRACE list(top_var_decl_no_assign) RBRACE [ TRANSFORMEDPARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+## parameters_block -> PARAMETERSBLOCK . LBRACE list(top_var_decl_no_assign) RBRACE [ TRANSFORMEDPARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF ]
 ##
 ## The known suffix of the stack is as follows:
 ## PARAMETERSBLOCK
@@ -1736,7 +1736,7 @@ program: TRANSFORMEDDATABLOCK LBRACE RBRACE ELTTIMESASSIGN
 ##
 ## Ends in an error in state: 660.
 ##
-## program -> option(function_block) option(data_block) option(transformed_data_block) . option(parameters_block) option(transformed_parameters_block) option(model_block) option(generated_quantities_block) EOF [ # ]
+## program -> option(function_block) option(data_block) option(transformed_data_block) . option(parameters_block) option(transformed_parameters_block) option(generated_data_block) option(model_block) option(generated_quantities_block) EOF [ # ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(function_block) option(data_block) option(transformed_data_block)
@@ -2642,7 +2642,7 @@ program: TRANSFORMEDDATABLOCK LBRACE VOID
 ##
 ## Ends in an error in state: 635.
 ##
-## transformed_data_block -> TRANSFORMEDDATABLOCK LBRACE . list(top_vardecl_or_statement) RBRACE [ TRANSFORMEDPARAMETERSBLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+## transformed_data_block -> TRANSFORMEDDATABLOCK LBRACE . list(top_vardecl_or_statement) RBRACE [ TRANSFORMEDPARAMETERSBLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF ]
 ##
 ## The known suffix of the stack is as follows:
 ## TRANSFORMEDDATABLOCK LBRACE
@@ -2700,7 +2700,7 @@ program: TRANSFORMEDDATABLOCK WHILE
 ##
 ## Ends in an error in state: 634.
 ##
-## transformed_data_block -> TRANSFORMEDDATABLOCK . LBRACE list(top_vardecl_or_statement) RBRACE [ TRANSFORMEDPARAMETERSBLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+## transformed_data_block -> TRANSFORMEDDATABLOCK . LBRACE list(top_vardecl_or_statement) RBRACE [ TRANSFORMEDPARAMETERSBLOCK PARAMETERSBLOCK MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF ]
 ##
 ## The known suffix of the stack is as follows:
 ## TRANSFORMEDDATABLOCK
@@ -2714,7 +2714,7 @@ program: TRANSFORMEDPARAMETERSBLOCK LBRACE RBRACE ELTTIMESASSIGN
 ##
 ## Ends in an error in state: 672.
 ##
-## program -> option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) . option(model_block) option(generated_quantities_block) EOF [ # ]
+## program -> option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) . option(generated_data_block) option(model_block) option(generated_quantities_block) EOF [ # ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block)
@@ -2728,7 +2728,7 @@ program: TRANSFORMEDPARAMETERSBLOCK LBRACE VOID
 ##
 ## Ends in an error in state: 668.
 ##
-## transformed_parameters_block -> TRANSFORMEDPARAMETERSBLOCK LBRACE . list(top_vardecl_or_statement) RBRACE [ MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+## transformed_parameters_block -> TRANSFORMEDPARAMETERSBLOCK LBRACE . list(top_vardecl_or_statement) RBRACE [ MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF ]
 ##
 ## The known suffix of the stack is as follows:
 ## TRANSFORMEDPARAMETERSBLOCK LBRACE
@@ -2742,7 +2742,7 @@ program: TRANSFORMEDPARAMETERSBLOCK WHILE
 ##
 ## Ends in an error in state: 667.
 ##
-## transformed_parameters_block -> TRANSFORMEDPARAMETERSBLOCK . LBRACE list(top_vardecl_or_statement) RBRACE [ MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+## transformed_parameters_block -> TRANSFORMEDPARAMETERSBLOCK . LBRACE list(top_vardecl_or_statement) RBRACE [ MODELBLOCK GENERATEDQUANTITIESBLOCK GENERATEDDATABLOCK EOF ]
 ##
 ## The known suffix of the stack is as follows:
 ## TRANSFORMEDPARAMETERSBLOCK
@@ -3582,3 +3582,46 @@ program: DATABLOCK LBRACE SUMTOZERO WHILE
 ##
 
 Expected "[" expression "]" for size of sum_to_zero_vector vector.
+
+
+program: GENERATEDDATABLOCK WHILE
+##
+## Concrete syntax: generated data while
+##
+## Ends in an error in state: 673.
+##
+## generated_data_block -> GENERATEDDATABLOCK . LBRACE list(top_vardecl_or_statement) RBRACE [ MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+##
+## The known suffix of the stack is as follows:
+## GENERATEDDATABLOCK
+##
+
+Expected "{" after block keyword.
+
+program: GENERATEDDATABLOCK LBRACE VOID
+##
+## Concrete syntax: generated data { void
+##
+## Ends in an error in state: 674.
+##
+## generated_data_block -> GENERATEDDATABLOCK LBRACE . list(top_vardecl_or_statement) RBRACE [ MODELBLOCK GENERATEDQUANTITIESBLOCK EOF ]
+##
+## The known suffix of the stack is as follows:
+## GENERATEDDATABLOCK LBRACE
+##
+
+Variable declaration or statement or "}" expected in generated data block.
+
+program: GENERATEDDATABLOCK LBRACE RBRACE WHILE
+##
+## Concrete syntax: generated data { } while
+##
+## Ends in an error in state: 677.
+##
+## program -> option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(generated_data_block) . option(model_block) option(generated_quantities_block) EOF [ # ]
+##
+## The known suffix of the stack is as follows:
+## option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(generated_data_block)
+##
+
+Expected "model {", "generated quantities {" or end-of-file after end of transformed data block.

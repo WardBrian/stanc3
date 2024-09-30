@@ -14,7 +14,7 @@ let%expect_test "parse conditional" =
   [%expect
     {|
     ((functionblock ()) (datablock ()) (transformeddatablock ())
-     (parametersblock ()) (transformedparametersblock ())
+     (parametersblock ()) (transformedparametersblock ()) (generateddatablock ())
      (modelblock
       (((stmts
          (((stmt
@@ -43,7 +43,7 @@ let%expect_test "parse dangling else problem" =
   [%expect
     {|
       ((functionblock ()) (datablock ()) (transformeddatablock ())
-       (parametersblock ()) (transformedparametersblock ())
+       (parametersblock ()) (transformedparametersblock ()) (generateddatablock ())
        (modelblock
         (((stmts
            (((stmt
@@ -78,7 +78,7 @@ let%expect_test "parse minus unary" =
   [%expect
     {|
       ((functionblock ()) (datablock ()) (transformeddatablock ())
-       (parametersblock ()) (transformedparametersblock ())
+       (parametersblock ()) (transformedparametersblock ()) (generateddatablock ())
        (modelblock
         (((stmts
            (((stmt
@@ -113,7 +113,7 @@ let%expect_test "parse unary over binary" =
   [%expect
     {|
     ((functionblock ()) (datablock ()) (transformeddatablock ())
-     (parametersblock ()) (transformedparametersblock ())
+     (parametersblock ()) (transformedparametersblock ()) (generateddatablock ())
      (modelblock
       (((stmts
          (((stmt
@@ -155,7 +155,7 @@ let%expect_test "parse indices, two different colons" =
   [%expect
     {|
 ((functionblock ()) (datablock ()) (transformeddatablock ())
- (parametersblock ()) (transformedparametersblock ())
+ (parametersblock ()) (transformedparametersblock ()) (generateddatablock ())
  (modelblock
   (((stmts
      (((stmt
@@ -201,7 +201,7 @@ let%expect_test "parse operator precedence" =
   [%expect
     {|
       ((functionblock ()) (datablock ()) (transformeddatablock ())
-       (parametersblock ()) (transformedparametersblock ())
+       (parametersblock ()) (transformedparametersblock ()) (generateddatablock ())
        (modelblock
         (((stmts
            (((stmt
@@ -383,7 +383,7 @@ let%expect_test "parse crazy truncation example" =
   [%expect
     {|
       ((functionblock ()) (datablock ()) (transformeddatablock ())
-       (parametersblock ()) (transformedparametersblock ())
+       (parametersblock ()) (transformedparametersblock ()) (generateddatablock ())
        (modelblock
         (((stmts
            (((stmt
@@ -449,7 +449,7 @@ let%expect_test "parse nested loop" =
   [%expect
     {|
     ((functionblock ()) (datablock ()) (transformeddatablock ())
-     (parametersblock ()) (transformedparametersblock ())
+     (parametersblock ()) (transformedparametersblock ()) (generateddatablock ())
      (modelblock
       (((stmts
          (((stmt

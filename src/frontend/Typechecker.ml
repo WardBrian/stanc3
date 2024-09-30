@@ -1950,6 +1950,7 @@ let check_program_exn
      ; transformeddatablock= tdb
      ; parametersblock= pb
      ; transformedparametersblock= tpb
+     ; generateddatablock= gdb
      ; modelblock= mb
      ; generatedquantitiesblock= gqb
      ; comments } as ast) =
@@ -1963,6 +1964,7 @@ let check_program_exn
   let tenv, typed_tdb = check_toplevel_block TData tenv tdb in
   let tenv, typed_pb = check_toplevel_block Param tenv pb in
   let tenv, typed_tpb = check_toplevel_block TParam tenv tpb in
+  let tenv, typed_gdb = check_toplevel_block GQuant tenv gdb in
   let _, typed_mb = check_toplevel_block Model tenv mb in
   let _, typed_gqb = check_toplevel_block GQuant tenv gqb in
   let prog =
@@ -1971,6 +1973,7 @@ let check_program_exn
     ; transformeddatablock= typed_tdb
     ; parametersblock= typed_pb
     ; transformedparametersblock= typed_tpb
+    ; generateddatablock= typed_gdb
     ; modelblock= typed_mb
     ; generatedquantitiesblock= typed_gqb
     ; comments } in

@@ -43,6 +43,7 @@ let%expect_test "ICE triggered" =
       ; transformeddatablock= None
       ; parametersblock= None
       ; transformedparametersblock= None
+      ; generateddatablock= None
       ; modelblock= None
       ; generatedquantitiesblock=
           Some

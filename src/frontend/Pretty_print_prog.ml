@@ -27,6 +27,7 @@ let pp_program ~bare_functions ~line_length ~inline_includes ~strip_comments ppf
     ; transformeddatablock= btd
     ; parametersblock= bp
     ; transformedparametersblock= btp
+    ; generateddatablock= gdb
     ; modelblock= bm
     ; generatedquantitiesblock= bgq
     ; comments } =
@@ -41,8 +42,9 @@ let pp_program ~bare_functions ~line_length ~inline_includes ~strip_comments ppf
         ~f:(fun (name, block_opt) ->
           Option.map ~f:(fun b -> (name, b)) block_opt)
         [ ("functions", bf); ("data", bd); ("transformed data", btd)
-        ; ("parameters", bp); ("transformed parameters", btp); ("model", bm)
-        ; ("generated quantities", bgq) ] in
+        ; ("parameters", bp); ("transformed parameters", btp)
+        ; ("generated data", gdb); ("model", bm); ("generated quantities", bgq)
+        ] in
     pp_block_list ppf blocks
 
 let check_correctness ?(bare_functions = false) prog pretty =

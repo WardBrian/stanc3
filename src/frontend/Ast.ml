@@ -243,6 +243,7 @@ and 's program =
   ; transformeddatablock: 's block option
   ; parametersblock: 's block option
   ; transformedparametersblock: 's block option
+  ; generateddatablock: 's block option
   ; modelblock: 's block option
   ; generatedquantitiesblock: 's block option
   ; comments: (comment_type list[@sexp.opaque] [@ignore]) }

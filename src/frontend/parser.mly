@@ -74,7 +74,7 @@ let nest_unsized_array basic_type n =
 %token FUNCTIONBLOCK "functions" DATABLOCK "data"
        TRANSFORMEDDATABLOCK "transformed data" PARAMETERSBLOCK "parameters"
        TRANSFORMEDPARAMETERSBLOCK "transformed parameters" MODELBLOCK "model"
-       GENERATEDQUANTITIESBLOCK "generated quantities"
+       GENERATEDQUANTITIESBLOCK "generated quantities" GENERATEDDATABLOCK "generated data"
 %token LBRACE "{" RBRACE "}" LPAREN "(" RPAREN ")" LBRACK "[" RBRACK "]"
        LABRACK "<" RABRACK ">" COMMA "," SEMICOLON ";" BAR "|"
 %token RETURN "return" IF "if" ELSE "else" WHILE "while" FOR "for" IN "in"
@@ -140,6 +140,7 @@ program:
     otdb=option(transformed_data_block)
     opb=option(parameters_block)
     otpb=option(transformed_parameters_block)
+    ogd=option(generated_data_block)
     omb=option(model_block)
     ogb=option(generated_quantities_block)
     EOF
@@ -147,8 +148,8 @@ program:
       grammar_logger "program" ;
       (* check for empty programs*)
       let () =
-        match (ofb, odb, otdb, opb, otpb, omb, ogb) with
-        | None, None, None, None, None, None, None ->
+        match (ofb, odb, otdb, opb, otpb, ogd, omb, ogb) with
+        | None, None, None, None, None, None, None, None ->
             Input_warnings.empty (location_of_position $startpos).filename
         | _ -> ()
       in
@@ -157,6 +158,7 @@ program:
       ; transformeddatablock= otdb
       ; parametersblock= opb
       ; transformedparametersblock= otpb
+      ; generateddatablock= ogd
       ; modelblock= omb
       ; generatedquantitiesblock= ogb
       ; comments= [] }
@@ -170,6 +172,7 @@ functions_only:
       ; transformeddatablock= None
       ; parametersblock= None
       ; transformedparametersblock= None
+      ; generateddatablock= None
       ; modelblock= None
       ; generatedquantitiesblock= None
       ; comments= [] }
@@ -205,6 +208,12 @@ model_block:
   | MODELBLOCK LBRACE vds=list(vardecl_or_statement) RBRACE
     { grammar_logger "model_block" ;
       {stmts= vds; xloc= location_span_of_positions $loc} }
+
+
+generated_data_block:
+  | GENERATEDDATABLOCK LBRACE tvds=list(top_vardecl_or_statement) RBRACE
+    { grammar_logger "generated_data_block" ;
+      {stmts= tvds; xloc= location_span_of_positions $loc} }
 
 generated_quantities_block:
   | GENERATEDQUANTITIESBLOCK LBRACE tvds=list(top_vardecl_or_statement) RBRACE
