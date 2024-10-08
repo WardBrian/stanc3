@@ -5,7 +5,7 @@
   (:stanfiles
    (glob_files *.stan*)))
  (action
-  (with-outputs-to
+  (with-stdout-to
    %{targets}
    (run %{bin:run_bin_on_args} "%{bin:stanc} --print-canonical" %{stanfiles}))))
 
@@ -16,7 +16,7 @@
   (:stanfiles
    (glob_files *.stan*)))
  (action
-  (with-outputs-to
+  (with-stdout-to
    %{targets}
    (run
     %{bin:run_bin_on_args}
@@ -30,7 +30,7 @@
   (:stanfiles
    (glob_files *.stan*)))
  (action
-  (with-outputs-to
+  (with-stdout-to
    %{targets}
    (run
     %{bin:run_bin_on_args}
@@ -44,7 +44,7 @@
   (:stanfiles
    (glob_files *.stan*)))
  (action
-  (with-outputs-to
+  (with-stdout-to
    %{targets}
    (run
     %{bin:run_bin_on_args}

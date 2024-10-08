@@ -18,7 +18,7 @@ mutaml-report.json:
 	@rm -rf _mutations
 	dune clean
 	dune build src/stanc --instrument-with mutaml --force
-	mutaml-runner "dune runtest test/integration --force"
+	mutaml-runner "./mutaml.sh"
 
 mutation-test: mutaml-report.json
 	mutaml-report
