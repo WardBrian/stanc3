@@ -4,6 +4,8 @@
  (libraries core str fmt common re)
  (instrumentation
   (backend bisect_ppx))
+ (instrumentation
+  (backend mutaml))
  (inline_tests)
  (preprocess
   (pps

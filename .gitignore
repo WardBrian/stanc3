@@ -40,3 +40,6 @@ test/**/*.hpp
 
 # .omir files in test folder
 test/**/*.omir
+
+_mutations/
+mutaml-report.json

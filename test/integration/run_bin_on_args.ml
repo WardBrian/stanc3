@@ -3,6 +3,13 @@ open Core
 
 let run_capturing_output cmd =
   let noflags = Array.create ~len:0 "" in
+  (* run cmd with same environment *)
+  let cmd =
+    match Sys.getenv "MUTAML_MUTANT" with
+    | None -> cmd
+    | Some metaml_mutant ->
+        eprintf "MUTAML_MUTANT=%s\n" metaml_mutant;
+        Printf.sprintf "MUTAML_MUTANT=%s %s" metaml_mutant cmd in
   let stdout, stdin, stderr = Caml_unix.open_process_full cmd noflags in
   let chns = [stdout; stderr] in
   let out = List.map ~f:In_channel.input_lines chns in
