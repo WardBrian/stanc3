@@ -18,6 +18,8 @@ mutaml-report.json:
 	@rm -rf _mutations
 	dune clean
 	dune build src/stanc --instrument-with mutaml --force
+	@rm -rf ./stanc.exe
+	cp _build/default/src/stanc/stanc.exe .
 	mutaml-runner "./mutaml.sh"
 
 mutation-test: mutaml-report.json

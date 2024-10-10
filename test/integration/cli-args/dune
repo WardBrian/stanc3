@@ -5,7 +5,10 @@
  (action
   (with-stdout-to
    %{targets}
-   (run %{bin:run_bin_on_args} "%{bin:stanc}" notfound.stan))))
+   (run
+    %{bin:run_bin_on_args}
+    "/home/brian/Dev/ml/stanc3/stanc.exe"
+    notfound.stan))))
 
 (rule
  (alias runtest)

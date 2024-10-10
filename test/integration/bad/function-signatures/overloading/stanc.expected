@@ -1,4 +1,4 @@
-  $ ../../../../../../install/default/bin/stanc no_minimum_dae.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe no_minimum_dae.stan
 Semantic error in 'no_minimum_dae.stan', line 38, column 12 to column 59:
    -------------------------------------------------
     36:    array[4] vector[3] y_hat;
@@ -16,7 +16,7 @@ This function has several:
 (real, vector, vector, array[] real, array[] real, int, real) => vector
 Consider defining a new signature for the exact types needed or
 re-thinking existing definitions.
-  $ ../../../../../../install/default/bin/stanc no_minimum_promotion.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe no_minimum_promotion.stan
 Semantic error in 'no_minimum_promotion.stan', line 12, column 9 to column 17:
    -------------------------------------------------
     10:  
@@ -33,7 +33,7 @@ For args (int, int), this function has several:
 (int, real) => real
 Consider defining a new signature for the exact types needed or
 re-thinking existing definitions.
-  $ ../../../../../../install/default/bin/stanc no_minimum_promotion2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe no_minimum_promotion2.stan
 Semantic error in 'no_minimum_promotion2.stan', line 12, column 9 to column 17:
    -------------------------------------------------
     10:  
@@ -50,7 +50,7 @@ For args (int, int), this function has several:
 (real, real) => real
 Consider defining a new signature for the exact types needed or
 re-thinking existing definitions.
-  $ ../../../../../../install/default/bin/stanc no_minimum_promotion3.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe no_minimum_promotion3.stan
 Semantic error in 'no_minimum_promotion3.stan', line 21, column 9 to column 20:
    -------------------------------------------------
     19:  
@@ -68,7 +68,7 @@ For args (int, int, int), this function has several:
 (int, real, int) => real
 Consider defining a new signature for the exact types needed or
 re-thinking existing definitions.
-  $ ../../../../../../install/default/bin/stanc no_minimum_reduce_sum.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe no_minimum_reduce_sum.stan
 Semantic error in 'no_minimum_reduce_sum.stan', line 11, column 11 to column 55:
    -------------------------------------------------
      9:  }
@@ -86,7 +86,7 @@ This function has several:
 (array[] real, int, int, real, int) => real
 Consider defining a new signature for the exact types needed or
 re-thinking existing definitions.
-  $ ../../../../../../install/default/bin/stanc no_minimum_tilde.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe no_minimum_tilde.stan
 Semantic error in 'no_minimum_tilde.stan', line 12, column 3 to column 16:
    -------------------------------------------------
     10:  
@@ -104,7 +104,7 @@ For args (int, int, int), this function has several:
 (real, int, real) => real
 Consider defining a new signature for the exact types needed or
 re-thinking existing definitions.
-  $ ../../../../../../install/default/bin/stanc no_minimum_tilde2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe no_minimum_tilde2.stan
 Semantic error in 'no_minimum_tilde2.stan', line 12, column 3 to column 16:
    -------------------------------------------------
     10:  
@@ -121,7 +121,7 @@ For args (int, int, int), this function has several:
 (int, int, real) => real
 Consider defining a new signature for the exact types needed or
 re-thinking existing definitions.
-  $ ../../../../../../install/default/bin/stanc no_minimum_variadic.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe no_minimum_variadic.stan
 Semantic error in 'no_minimum_variadic.stan', line 82, column 37 to line 84, column 81:
    -------------------------------------------------
     80:                                                   gamma, xi, delta);
@@ -139,7 +139,7 @@ This function has several:
 (real, vector, real, real, real, real, real, int, real) => vector
 Consider defining a new signature for the exact types needed or
 re-thinking existing definitions.
-  $ ../../../../../../install/default/bin/stanc overload_reduce_sum.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe overload_reduce_sum.stan
 Semantic error in 'overload_reduce_sum.stan', line 2, column 7 to column 17:
    -------------------------------------------------
      1:  functions {
@@ -150,7 +150,7 @@ Semantic error in 'overload_reduce_sum.stan', line 2, column 7 to column 17:
    -------------------------------------------------
 
 Identifier 'reduce_sum' clashes with a non-overloadable Stan Math library function.
-  $ ../../../../../../install/default/bin/stanc redefine-ccdf-same.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe redefine-ccdf-same.stan
 Semantic error in 'redefine-ccdf-same.stan', line 2, column 2 to line 4, column 3:
    -------------------------------------------------
      1:  functions {
@@ -162,7 +162,7 @@ Semantic error in 'redefine-ccdf-same.stan', line 2, column 2 to line 4, column 
 
 Function 'poisson_lccdf' is already declared in the Stan Math library with signature 
 (int, real) => real
-  $ ../../../../../../install/default/bin/stanc redefine-ccdf-same2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe redefine-ccdf-same2.stan
 Semantic error in 'redefine-ccdf-same2.stan', line 2, column 2 to line 4, column 3:
    -------------------------------------------------
      1:  functions {
@@ -174,7 +174,7 @@ Semantic error in 'redefine-ccdf-same2.stan', line 2, column 2 to line 4, column
 
 Function 'poisson_lccdf' is already declared in the Stan Math library with signature 
 (int, real) => real
-  $ ../../../../../../install/default/bin/stanc redefine-cdf-same.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe redefine-cdf-same.stan
 Semantic error in 'redefine-cdf-same.stan', line 2, column 2 to line 4, column 3:
    -------------------------------------------------
      1:  functions {
@@ -186,7 +186,7 @@ Semantic error in 'redefine-cdf-same.stan', line 2, column 2 to line 4, column 3
 
 Function 'poisson_lcdf' is already declared in the Stan Math library with signature 
 (int, real) => real
-  $ ../../../../../../install/default/bin/stanc redefine-cdf-same2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe redefine-cdf-same2.stan
 Semantic error in 'redefine-cdf-same2.stan', line 2, column 2 to line 4, column 3:
    -------------------------------------------------
      1:  functions {
@@ -198,7 +198,7 @@ Semantic error in 'redefine-cdf-same2.stan', line 2, column 2 to line 4, column 
 
 Function 'poisson_lcdf' is already declared in the Stan Math library with signature 
 (int, real) => real
-  $ ../../../../../../install/default/bin/stanc redefine-prob-same.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe redefine-prob-same.stan
 Semantic error in 'redefine-prob-same.stan', line 2, column 2 to line 4, column 3:
    -------------------------------------------------
      1:  functions {
@@ -210,7 +210,7 @@ Semantic error in 'redefine-prob-same.stan', line 2, column 2 to line 4, column 
 
 Function 'poisson_lpmf' is already declared in the Stan Math library with signature 
 (int, real) => real
-  $ ../../../../../../install/default/bin/stanc redefinition.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe redefinition.stan
 Semantic error in 'redefinition.stan', line 6, column 3 to line 8, column 4:
    -------------------------------------------------
      4:     }
@@ -222,7 +222,7 @@ Semantic error in 'redefinition.stan', line 6, column 3 to line 8, column 4:
    -------------------------------------------------
 
 Function 'foo' has already been declared for signature (real) => int
-  $ ../../../../../../install/default/bin/stanc returntype_issues.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe returntype_issues.stan
 Semantic error in 'returntype_issues.stan', line 6, column 3 to line 8, column 4:
    -------------------------------------------------
      4:     }

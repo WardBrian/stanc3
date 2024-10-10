@@ -1,11 +1,11 @@
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. a.stanfunctions
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. a.stanfunctions
 // line comment a
 /*weird block a*/
 void foo(real x) {
   return;
 }
 // another line comment a
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. b.stanfunctions
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. b.stanfunctions
 #include a.stanfunctions //include other functions
 
 // line comment b
@@ -14,7 +14,7 @@ void bar(real y) {
   return;
 }
 // another line comment b
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. c.stanfunctions
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. c.stanfunctions
 /**
   A documentation comment
 */
@@ -25,7 +25,7 @@ int baz(real z) {
     return 3;
   // trailing coment in c
 }
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. main.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. main.stan
 functions {
   #include b.stanfunctions
   #include c.stanfunctions
@@ -55,7 +55,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. tdata.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. tdata.stan
 // I'm in another file!
 
 transformed data {

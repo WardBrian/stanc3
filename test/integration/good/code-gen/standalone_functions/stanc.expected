@@ -1,4 +1,4 @@
-  $ ../../../../../../install/default/bin/stanc --standalone-functions --allow-undefined --auto-format basic.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --standalone-functions --allow-undefined --auto-format basic.stan
 functions {
   real my_log1p_exp(real x) {
     return log1p_exp(x);
@@ -52,7 +52,7 @@ functions {
   }
 }
 
-  $ ../../../../../../install/default/bin/stanc --standalone-functions --allow-undefined --auto-format basic.stanfunctions
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --standalone-functions --allow-undefined --auto-format basic.stanfunctions
 real my_log1p_exp(real x) {
   return log1p_exp(x);
 }
@@ -90,7 +90,7 @@ real test_rng(real a) {
 real test_lpdf(real a, real b) {
   return normal_lpdf(a | b, 1);
 }
-  $ ../../../../../../install/default/bin/stanc --standalone-functions --allow-undefined --auto-format integrate.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --standalone-functions --allow-undefined --auto-format integrate.stan
 functions {
   vector integrand(vector x) {
     return exp(-square(x));

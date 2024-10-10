@@ -4,8 +4,8 @@
  (libraries core re fmt middle yojson)
  (instrumentation
   (backend bisect_ppx))
- ; (instrumentation
- ;  (backend mutaml))
+ (instrumentation
+  (backend mutaml))
  (private_modules
   mangle
   cpp_Json

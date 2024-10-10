@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc assignment-wrong-way.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe assignment-wrong-way.stan
 Semantic error in 'assignment-wrong-way.stan', line 11, column 2 to column 3:
    -------------------------------------------------
      9:  
@@ -13,7 +13,7 @@ The left hand side has type
   array[] matrix
 and the right hand side has type
   array[] complex_matrix
-  $ ../../../../../install/default/bin/stanc bad_bounds1.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_bounds1.stan
 Semantic error in 'bad_bounds1.stan', line 5, column 2 to column 33:
    -------------------------------------------------
      3:  }
@@ -24,7 +24,7 @@ Semantic error in 'bad_bounds1.stan', line 5, column 2 to column 33:
    -------------------------------------------------
 
 Complex types do not support transformations.
-  $ ../../../../../install/default/bin/stanc bad_bounds2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_bounds2.stan
 Semantic error in 'bad_bounds2.stan', line 2, column 2 to column 31:
    -------------------------------------------------
      1:  data {
@@ -35,7 +35,7 @@ Semantic error in 'bad_bounds2.stan', line 2, column 2 to column 31:
    -------------------------------------------------
 
 Complex types do not support transformations.
-  $ ../../../../../install/default/bin/stanc bad_bounds3.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_bounds3.stan
 Semantic error in 'bad_bounds3.stan', line 2, column 1 to column 21:
    -------------------------------------------------
      1:  data {
@@ -46,7 +46,7 @@ Semantic error in 'bad_bounds3.stan', line 2, column 1 to column 21:
    -------------------------------------------------
 
 Complex types do not support transformations.
-  $ ../../../../../install/default/bin/stanc bad_bounds4.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_bounds4.stan
 Semantic error in 'bad_bounds4.stan', line 2, column 2 to column 30:
    -------------------------------------------------
      1:  data {

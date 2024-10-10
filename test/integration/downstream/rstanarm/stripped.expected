@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined bernoulli.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined bernoulli.stan
 functions {
   vector make_theta_L(int len_theta_L, array[] int p, real dispersion,
                       vector tau, vector scale, vector zeta, vector rho,
@@ -716,7 +716,7 @@ Warning in './/functions/bernoulli_likelihoods.stan', line 84, column 7, include
 'bernoulli.stan', line 7, column 2: Functions
     do not need to be declared before definition; all user defined function
     names are always in scope regardless of definition order.
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined binomial.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined binomial.stan
 functions {
   vector make_theta_L(int len_theta_L, array[] int p, real dispersion,
                       vector tau, vector scale, vector zeta, vector rho,
@@ -1311,7 +1311,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined continuous.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined continuous.stan
 functions {
   vector make_theta_L(int len_theta_L, array[] int p, real dispersion,
                       vector tau, vector scale, vector zeta, vector rho,
@@ -2538,7 +2538,7 @@ Warning in './/functions/SSfunctions.stan', line 10, column 7, included from
 'continuous.stan', line 9, column 2: Functions
     do not need to be declared before definition; all user defined function
     names are always in scope regardless of definition order.
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined count.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined count.stan
 functions {
   vector make_theta_L(int len_theta_L, array[] int p, real dispersion,
                       vector tau, vector scale, vector zeta, vector rho,
@@ -3194,7 +3194,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined jm.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined jm.stan
 functions {
   vector make_theta_L(int len_theta_L, array[] int p, real dispersion,
                       vector tau, vector scale, vector zeta, vector rho,
@@ -5364,7 +5364,7 @@ Warning in './/functions/bernoulli_likelihoods.stan', line 84, column 7, include
 'jm.stan', line 8, column 0: Functions
     do not need to be declared before definition; all user defined function
     names are always in scope regardless of definition order.
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined lm.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined lm.stan
 functions {
   real ll_mvn_ols_qr_lp(vector theta, vector b, real intercept, real ybar,
                         real SSR, real sigma, int N) {
@@ -5469,7 +5469,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined mvmer.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined mvmer.stan
 functions {
   vector make_theta_L(int len_theta_L, array[] int p, real dispersion,
                       vector tau, vector scale, vector zeta, vector rho,
@@ -6767,7 +6767,7 @@ Warning in './/functions/bernoulli_likelihoods.stan', line 84, column 7, include
 'mvmer.stan', line 8, column 0: Functions
     do not need to be declared before definition; all user defined function
     names are always in scope regardless of definition order.
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined polr.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=includes,strip-comments --allow-undefined polr.stan
 functions {
   real CDF_polr(real x, int link) {
     if (link == 1) 
@@ -7065,7 +7065,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined bernoulli.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined bernoulli.stan
 #include /pre/Columbia_copyright.stan
 #include /pre/license.stan
 
@@ -7260,7 +7260,7 @@ Warning in './/functions/bernoulli_likelihoods.stan', line 84, column 7, include
 'bernoulli.stan', line 7, column 2: Functions
     do not need to be declared before definition; all user defined function
     names are always in scope regardless of definition order.
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined binomial.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined binomial.stan
 #include /pre/Columbia_copyright.stan
 #include /pre/license.stan
 
@@ -7384,7 +7384,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined continuous.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined continuous.stan
 #include /pre/Columbia_copyright.stan
 #include /pre/license.stan
 
@@ -7775,7 +7775,7 @@ Warning in './/functions/SSfunctions.stan', line 10, column 7, included from
 'continuous.stan', line 9, column 2: Functions
     do not need to be declared before definition; all user defined function
     names are always in scope regardless of definition order.
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined count.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined count.stan
 #include /pre/Columbia_copyright.stan
 #include /pre/license.stan
 
@@ -7978,7 +7978,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined jm.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined jm.stan
 #include /pre/Columbia_copyright.stan
 #include /pre/Brilleman_copyright.stan
 #include /pre/license.stan
@@ -8093,7 +8093,7 @@ Warning in './/functions/bernoulli_likelihoods.stan', line 84, column 7, include
 'jm.stan', line 8, column 0: Functions
     do not need to be declared before definition; all user defined function
     names are always in scope regardless of definition order.
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined lm.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined lm.stan
 #include /pre/Columbia_copyright.stan
 #include /pre/license.stan
 
@@ -8201,7 +8201,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined mvmer.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined mvmer.stan
 #include /pre/Columbia_copyright.stan
 #include /pre/Brilleman_copyright.stan
 #include /pre/license.stan
@@ -8247,7 +8247,7 @@ Warning in './/functions/bernoulli_likelihoods.stan', line 84, column 7, include
 'mvmer.stan', line 8, column 0: Functions
     do not need to be declared before definition; all user defined function
     names are always in scope regardless of definition order.
-  $ ../../../../../install/default/bin/stanc --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined polr.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --include-paths="." --auto-format --canonicalize=strip-comments --allow-undefined polr.stan
 #include /pre/Columbia_copyright.stan
 #include /pre/license.stan
 

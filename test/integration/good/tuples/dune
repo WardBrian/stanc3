@@ -7,7 +7,10 @@
  (action
   (with-stdout-to
    %{targets}
-   (run %{bin:run_bin_on_args} "%{bin:stanc} -fsoa --print-cpp" %{stanfiles}))))
+   (run
+    %{bin:run_bin_on_args}
+    "/home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp"
+    %{stanfiles}))))
 
 (rule
  (alias runtest)
@@ -25,7 +28,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "%{bin:stanc} -fsoa --debug-optimized-mir"
+    "/home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir"
     %{stanfiles}))))
 
 (rule
@@ -42,7 +45,10 @@
  (action
   (with-stdout-to
    %{targets}
-   (run %{bin:run_bin_on_args} "%{bin:stanc} --auto-format" %{stanfiles}))))
+   (run
+    %{bin:run_bin_on_args}
+    "/home/brian/Dev/ml/stanc3/stanc.exe --auto-format"
+    %{stanfiles}))))
 
 (rule
  (alias runtest)

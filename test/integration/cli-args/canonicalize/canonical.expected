@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc --print-canonical blocks.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --print-canonical blocks.stan
 data {
   int N;
   vector[N] y;
@@ -148,7 +148,7 @@ model {
   } //comment after else branch
 }
 
-  $ ../../../../../install/default/bin/stanc --print-canonical deprecated.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --print-canonical deprecated.stan
 functions {
   array[] real sho(real t, array[] real y, array[] real theta,
                    array[] real x, array[] int x_int) {
@@ -193,7 +193,7 @@ generated quantities {
 
 Warning in 'deprecated.stan', line 24, column 2: Assignment of variable to
     itself.
-  $ ../../../../../install/default/bin/stanc --print-canonical funs.stanfunctions
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --print-canonical funs.stanfunctions
 // comment test comment
 void test(int x, int y) {
   print(x, y);
@@ -202,7 +202,7 @@ void test(int x, int y) {
 real return_lp() {
   return target();
 }
-  $ ../../../../../install/default/bin/stanc --print-canonical parenthesize.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --print-canonical parenthesize.stan
 transformed data {
   int N = 12;
   real b = 1.5;
@@ -247,7 +247,7 @@ Warning in 'parenthesize.stan', line 27, column 13: Found 1 < 2 > 3 > 4. This
     1 < 2 < 3 && 3 > 4 instead.
     You can silence this warning by adding explicit parenthesis. This can be
     automatically changed using the canonicalize flag for stanc
-  $ ../../../../../install/default/bin/stanc --print-canonical squaremc.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --print-canonical squaremc.stan
 /*
  * BUGS Volume 3, funshapes, square minus circle
  * http://www.openbugs.net/Examples/Funshapes.html

@@ -1,5 +1,5 @@
 Display all Stan math signatures exposed in the language
-  $ stanc --dump-stan-math-signatures
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --dump-stan-math-signatures
   Phi(int) => real
   Phi(real) => real
   Phi(vector) => vector

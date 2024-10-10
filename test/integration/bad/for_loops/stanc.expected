@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc assign_to_loop_var1.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe assign_to_loop_var1.stan
 Semantic error in 'assign_to_loop_var1.stan', line 5, column 18 to column 19:
    -------------------------------------------------
      3:      array[2] int vs;
@@ -10,7 +10,7 @@ Semantic error in 'assign_to_loop_var1.stan', line 5, column 18 to column 19:
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc assign_to_loop_var2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe assign_to_loop_var2.stan
 Semantic error in 'assign_to_loop_var2.stan', line 5, column 18 to column 19:
    -------------------------------------------------
      3:      array[2,3] int vs;
@@ -22,7 +22,7 @@ Semantic error in 'assign_to_loop_var2.stan', line 5, column 18 to column 19:
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc assign_to_loop_var3.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe assign_to_loop_var3.stan
 Semantic error in 'assign_to_loop_var3.stan', line 6, column 6 to column 7:
    -------------------------------------------------
      4:      array[2, 3] int vs;
@@ -34,7 +34,7 @@ Semantic error in 'assign_to_loop_var3.stan', line 6, column 6 to column 7:
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc assign_to_loop_var4.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe assign_to_loop_var4.stan
 Semantic error in 'assign_to_loop_var4.stan', line 5, column 6 to column 7:
    -------------------------------------------------
      3:      vector[2] vs;
@@ -46,7 +46,7 @@ Semantic error in 'assign_to_loop_var4.stan', line 5, column 6 to column 7:
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc assign_to_loop_var5.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe assign_to_loop_var5.stan
 Semantic error in 'assign_to_loop_var5.stan', line 5, column 6 to column 7:
    -------------------------------------------------
      3:      row_vector[2] vs;
@@ -58,7 +58,7 @@ Semantic error in 'assign_to_loop_var5.stan', line 5, column 6 to column 7:
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc assign_to_loop_var6.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe assign_to_loop_var6.stan
 Semantic error in 'assign_to_loop_var6.stan', line 4, column 4 to column 5:
    -------------------------------------------------
      2:    vector[2] vs;
@@ -70,7 +70,7 @@ Semantic error in 'assign_to_loop_var6.stan', line 4, column 4 to column 5:
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc assign_to_loop_var7.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe assign_to_loop_var7.stan
 Semantic error in 'assign_to_loop_var7.stan', line 4, column 4 to column 5:
    -------------------------------------------------
      2:    matrix[2, 2] vs;
@@ -82,7 +82,7 @@ Semantic error in 'assign_to_loop_var7.stan', line 4, column 4 to column 5:
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc for_statements_bad_indices0.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe for_statements_bad_indices0.stan
 Semantic error in 'for_statements_bad_indices0.stan', line 5, column 20 to column 21:
    -------------------------------------------------
      3:      while (1) {
@@ -94,7 +94,7 @@ Semantic error in 'for_statements_bad_indices0.stan', line 5, column 20 to colum
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc for_statements_bad_indices1.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe for_statements_bad_indices1.stan
 Semantic error in 'for_statements_bad_indices1.stan', line 5, column 20 to column 21:
    -------------------------------------------------
      3:      while (1) {
@@ -106,7 +106,7 @@ Semantic error in 'for_statements_bad_indices1.stan', line 5, column 20 to colum
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc for_statements_bad_indices2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe for_statements_bad_indices2.stan
 Semantic error in 'for_statements_bad_indices2.stan', line 5, column 20 to column 21:
    -------------------------------------------------
      3:      while (1) {
@@ -118,7 +118,7 @@ Semantic error in 'for_statements_bad_indices2.stan', line 5, column 20 to colum
    -------------------------------------------------
 
 Cannot assign to function argument or loop identifier 'v'.
-  $ ../../../../../install/default/bin/stanc for_statements_bad_indices3.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe for_statements_bad_indices3.stan
 Semantic error in 'for_statements_bad_indices3.stan', line 5, column 16 to column 18:
    -------------------------------------------------
      3:      while (1) {
@@ -130,7 +130,7 @@ Semantic error in 'for_statements_bad_indices3.stan', line 5, column 16 to colum
    -------------------------------------------------
 
 Foreach-loop must be over array, vector, row_vector or matrix. Instead found expression of type int.
-  $ ../../../../../install/default/bin/stanc for_statements_bad_indices4.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe for_statements_bad_indices4.stan
 Semantic error in 'for_statements_bad_indices4.stan', line 6, column 18 to column 19:
    -------------------------------------------------
      4:        matrix[2,3] vs;

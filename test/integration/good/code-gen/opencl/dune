@@ -9,7 +9,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "%{bin:stanc} --print-cpp --use-opencl"
+    "/home/brian/Dev/ml/stanc3/stanc.exe --print-cpp --use-opencl"
     %{stanfiles}))))
 
 (rule

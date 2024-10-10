@@ -4,7 +4,6 @@
 
 (name stanc)
 
-(cram enable)
 
 (generate_opam_files true)
 

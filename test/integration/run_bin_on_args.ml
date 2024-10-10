@@ -8,7 +8,7 @@ let run_capturing_output cmd =
     match Sys.getenv "MUTAML_MUTANT" with
     | None -> cmd
     | Some metaml_mutant ->
-        eprintf "testing MUTAML_MUTANT=%s\n" metaml_mutant;
+        (* eprintf "testing MUTAML_MUTANT=%s\n" metaml_mutant; *)
         Printf.sprintf "MUTAML_MUTANT=%s %s" metaml_mutant cmd in
   let stdout, stdin, stderr = Caml_unix.open_process_full cmd noflags in
   let chns = [stdout; stderr] in

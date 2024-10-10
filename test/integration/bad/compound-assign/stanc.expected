@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc elt_divide_equals_prim.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe elt_divide_equals_prim.stan
 Semantic error in 'elt_divide_equals_prim.stan', line 4, column 2 to column 3:
    -------------------------------------------------
      2:    real x;
@@ -15,7 +15,7 @@ and the right hand side has type
   real
 Available signatures for given lhs:
 No matching signatures
-  $ ../../../../../install/default/bin/stanc elt_times_equals_prim.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe elt_times_equals_prim.stan
 Semantic error in 'elt_times_equals_prim.stan', line 4, column 2 to column 3:
    -------------------------------------------------
      2:    real x;
@@ -32,7 +32,7 @@ and the right hand side has type
   real
 Available signatures for given lhs:
 No matching signatures
-  $ ../../../../../install/default/bin/stanc plus_equals_bad_init.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_bad_init.stan
 Syntax error in 'plus_equals_bad_init.stan', line 3, column 20 to column 22, parsing error:
    -------------------------------------------------
      1:  generated quantities {
@@ -43,7 +43,7 @@ Syntax error in 'plus_equals_bad_init.stan', line 3, column 20 to column 22, par
    -------------------------------------------------
 
 ";" or plain assignment expected after variable declaration.
-  $ ../../../../../install/default/bin/stanc plus_equals_bad_lhs_idxs.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_bad_lhs_idxs.stan
 Semantic error in 'plus_equals_bad_lhs_idxs.stan', line 4, column 2 to column 8:
    -------------------------------------------------
      2:    vector[3] x;
@@ -54,7 +54,7 @@ Semantic error in 'plus_equals_bad_lhs_idxs.stan', line 4, column 2 to column 8:
    -------------------------------------------------
 
 Too many indexes, expression dimensions=1, indexes found=2.
-  $ ../../../../../install/default/bin/stanc plus_equals_bad_var_lhs.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_bad_var_lhs.stan
 Semantic error in 'plus_equals_bad_var_lhs.stan', line 3, column 4 to column 7:
    -------------------------------------------------
      1:  functions {
@@ -72,7 +72,7 @@ and the right hand side has type
   real
 Available signatures for given lhs:
 No matching signatures
-  $ ../../../../../install/default/bin/stanc plus_equals_bad_var_lhs2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_bad_var_lhs2.stan
 Semantic error in 'plus_equals_bad_var_lhs2.stan', line 6, column 2 to column 3:
    -------------------------------------------------
      4:  generated quantities {
@@ -83,7 +83,7 @@ Semantic error in 'plus_equals_bad_var_lhs2.stan', line 6, column 2 to column 3:
    -------------------------------------------------
 
 Cannot assign to global variable 'x' declared in previous blocks.
-  $ ../../../../../install/default/bin/stanc plus_equals_bad_var_rhs.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_bad_var_rhs.stan
 Semantic error in 'plus_equals_bad_var_rhs.stan', line 4, column 11 to column 13:
    -------------------------------------------------
      2:    void foo(real a1) {
@@ -95,7 +95,7 @@ Semantic error in 'plus_equals_bad_var_rhs.stan', line 4, column 11 to column 13
    -------------------------------------------------
 
 Identifier 'a2' not in scope. Did you mean 'a1'?
-  $ ../../../../../install/default/bin/stanc plus_equals_matrix_array.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_matrix_array.stan
 Semantic error in 'plus_equals_matrix_array.stan', line 7, column 2 to column 3:
    -------------------------------------------------
      5:    x[3,1] += y[3,1];
@@ -112,7 +112,7 @@ and the right hand side has type
   array[] matrix
 Available signatures for given lhs:
 No matching signatures
-  $ ../../../../../install/default/bin/stanc plus_equals_matrix_array2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_matrix_array2.stan
 Semantic error in 'plus_equals_matrix_array2.stan', line 7, column 2 to column 6:
    -------------------------------------------------
      5:    x[3,1] += y[3,1];
@@ -131,7 +131,7 @@ Available signatures for given lhs:
 (matrix, int) => void
 (matrix, real) => void
 (matrix, matrix) => void
-  $ ../../../../../install/default/bin/stanc plus_equals_matrix_shape_mismatch.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_matrix_shape_mismatch.stan
 Syntax error in 'plus_equals_matrix_shape_mismatch.stan', line 4, column 10 to column 11, parsing error:
    -------------------------------------------------
      2:  generated quantities {
@@ -143,7 +143,7 @@ Syntax error in 'plus_equals_matrix_shape_mismatch.stan', line 4, column 10 to c
    -------------------------------------------------
 
 Expected "[" expression "]" for vector size.
-  $ ../../../../../install/default/bin/stanc plus_equals_prim_array.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_prim_array.stan
 Semantic error in 'plus_equals_prim_array.stan', line 5, column 2 to column 3:
    -------------------------------------------------
      3:    array[3] real y = {4.0, 5.0, 6.0};
@@ -160,7 +160,7 @@ and the right hand side has type
   array[] real
 Available signatures for given lhs:
 No matching signatures
-  $ ../../../../../install/default/bin/stanc plus_equals_row_vec_array.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_row_vec_array.stan
 Semantic error in 'plus_equals_row_vec_array.stan', line 5, column 2 to column 3:
    -------------------------------------------------
      3:    array[3] row_vector[2] y = {[1,2], [3,4], [5,6]};
@@ -177,7 +177,7 @@ and the right hand side has type
   array[] row_vector
 Available signatures for given lhs:
 No matching signatures
-  $ ../../../../../install/default/bin/stanc plus_equals_sliced.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_sliced.stan
 Semantic error in 'plus_equals_sliced.stan', line 6, column 4 to column 11:
    -------------------------------------------------
      4:      matrix[2, 2] aa;
@@ -197,7 +197,7 @@ Available signatures for given lhs:
 (vector, int) => void
 (vector, real) => void
 (vector, vector) => void
-  $ ../../../../../install/default/bin/stanc plus_equals_type_mismatch.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_type_mismatch.stan
 Semantic error in 'plus_equals_type_mismatch.stan', line 4, column 2 to column 3:
    -------------------------------------------------
      2:    int x = 5;
@@ -214,7 +214,7 @@ and the right hand side has type
   real
 Available signatures for given lhs:
 (int, int) => void
-  $ ../../../../../install/default/bin/stanc plus_equals_type_mismatch2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_type_mismatch2.stan
 Semantic error in 'plus_equals_type_mismatch2.stan', line 4, column 2 to column 3:
    -------------------------------------------------
      2:    real x;
@@ -233,7 +233,7 @@ Available signatures for given lhs:
 (int, int) => void
 (real, int) => void
 (real, real) => void
-  $ ../../../../../install/default/bin/stanc plus_equals_vector_array.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe plus_equals_vector_array.stan
 Semantic error in 'plus_equals_vector_array.stan', line 5, column 2 to column 3:
    -------------------------------------------------
      3:    array[3] vector[2] y = {[1,2]', [3,4]', [5,6]'};
@@ -250,7 +250,7 @@ and the right hand side has type
   array[] vector
 Available signatures for given lhs:
 No matching signatures
-  $ ../../../../../install/default/bin/stanc times_equals_matrix_array.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe times_equals_matrix_array.stan
 Semantic error in 'times_equals_matrix_array.stan', line 5, column 2 to column 8:
    -------------------------------------------------
      3:    array[3] matrix[2,2] y = {[[4, 5], [6, 7]], [[4, 5], [6, 7]], [[4, 5], [6, 7]]};

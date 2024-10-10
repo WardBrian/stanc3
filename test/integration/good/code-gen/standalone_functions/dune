@@ -9,7 +9,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "%{bin:stanc} --standalone-functions --allow-undefined --print-cpp"
+    "/home/brian/Dev/ml/stanc3/stanc.exe --standalone-functions --allow-undefined --print-cpp"
     %{stanfiles}))))
 
 (rule
@@ -28,7 +28,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "%{bin:stanc} --standalone-functions --allow-undefined --auto-format"
+    "/home/brian/Dev/ml/stanc3/stanc.exe --standalone-functions --allow-undefined --auto-format"
     %{stanfiles}))))
 
 (rule

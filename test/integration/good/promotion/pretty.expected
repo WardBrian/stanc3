@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc --auto-format array_overloaded.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format array_overloaded.stan
 functions {
   real bar(array[] real xs) {
     return 1.0;
@@ -13,7 +13,7 @@ model {
   print(bar({2.3, 3}));
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format array_promotion.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format array_promotion.stan
 functions {
   void printer(array[] real x) {
     print(x);
@@ -49,7 +49,7 @@ model {
   print(nested(zs));
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format complex_functions.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format complex_functions.stan
 functions {
   void promote_complex_array(array[] complex zs) {
     print(zs[0]);
@@ -88,7 +88,7 @@ generated quantities {
   real answer = sum_weird(A);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format newton_x_r_type.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format newton_x_r_type.stan
 functions {
   vector algebra_system(vector y, vector theta, array[] real x_r,
                         array[] int x_i) {
@@ -118,7 +118,7 @@ model {
   dummy_parameter ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format newton_x_r_type_control.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format newton_x_r_type_control.stan
 functions {
   vector algebra_system(vector y, vector theta, array[] real x_r,
                         array[] int x_i) {
@@ -149,12 +149,12 @@ model {
   dummy_parameter ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format propto.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format propto.stan
 model {
   target += normal_lupdf(1 | {0}, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format return_position.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format return_position.stan
 functions {
   array[] complex foo(real a) {
     return {1, 2};
@@ -172,7 +172,7 @@ transformed parameters {
   complex_vector[2] c = bar(a);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format tilde_syntax.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format tilde_syntax.stan
 functions {
   real multi_wallenius_integral(real t, // Function argument
                                 real xc, array[] real theta,
@@ -225,7 +225,7 @@ model {
     y[i] ~ multi_wallenius(m, probs, x_i, tol);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format x_r_type.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format x_r_type.stan
 functions {
   vector algebra_system(vector y, vector theta, array[] real x_r,
                         array[] int x_i) {
@@ -255,7 +255,7 @@ model {
   dummy_parameter ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format x_r_type_control.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format x_r_type_control.stan
 functions {
   vector algebra_system(vector y, vector theta, array[] real x_r,
                         array[] int x_i) {

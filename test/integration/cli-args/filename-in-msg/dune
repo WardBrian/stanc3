@@ -8,7 +8,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "%{bin:stanc} --filename-in-msg=foo.stan --include-paths=. "
+    "/home/brian/Dev/ml/stanc3/stanc.exe --filename-in-msg=foo.stan --include-paths=. "
     %{stanfiles}))))
 
 (rule
@@ -26,7 +26,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "%{bin:stanc} --filename-in-msg=foo.stan --print-cpp "
+    "/home/brian/Dev/ml/stanc3/stanc.exe --filename-in-msg=foo.stan --print-cpp "
     filename_good.stan))))
 
 (rule

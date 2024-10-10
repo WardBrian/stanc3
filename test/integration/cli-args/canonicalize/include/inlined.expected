@@ -1,11 +1,11 @@
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. --canonicalize=includes a.stanfunctions
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes a.stanfunctions
 // line comment a
 /*weird block a*/
 void foo(real x) {
   return;
 }
 // another line comment a
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. --canonicalize=includes b.stanfunctions
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes b.stanfunctions
 // line comment a
 /*weird block a*/
 void foo(real x) {
@@ -20,7 +20,7 @@ void bar(real y) {
   return;
 }
 // another line comment b
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. --canonicalize=includes c.stanfunctions
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes c.stanfunctions
 /**
   A documentation comment
 */
@@ -31,7 +31,7 @@ int baz(real z) {
     return 3;
   // trailing coment in c
 }
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. --canonicalize=includes main.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes main.stan
 functions {
   // line comment a
   /*weird block a*/
@@ -100,7 +100,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. --canonicalize=includes tdata.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes tdata.stan
 // I'm in another file!
 
 transformed data {

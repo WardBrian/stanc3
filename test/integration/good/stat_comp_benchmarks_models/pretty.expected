@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc --auto-format arK.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format arK.stan
 data {
   int<lower=0> K;
   int<lower=0> T;
@@ -25,7 +25,7 @@ model {
   }
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format arma.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format arma.stan
 // ARMA(1, 1)
 
 data {
@@ -57,7 +57,7 @@ model {
   err ~ normal(0, sigma);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format eight_schools.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format eight_schools.stan
 data {
   int<lower=0> J;
   array[J] real y;
@@ -80,7 +80,7 @@ model {
   y ~ normal(theta, sigma);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format garch.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format garch.stan
 data {
   int<lower=0> T;
   array[T] real y;
@@ -102,7 +102,7 @@ model {
   y ~ normal(mu, sigma);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format gen_gp_data.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format gen_gp_data.stan
 transformed data {
   real rho = 5.5;
   real alpha = 3;
@@ -132,7 +132,7 @@ generated quantities {
   }
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format gp_pois_regr.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format gp_pois_regr.stan
 data {
   int<lower=1> N;
   array[N] real x;
@@ -160,7 +160,7 @@ model {
   k ~ poisson_log(f);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format gp_regr.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format gp_regr.stan
 data {
   int<lower=1> N;
   array[N] real x;
@@ -183,7 +183,7 @@ model {
   y ~ multi_normal_cholesky(rep_vector(0, N), L_cov);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format irt_2pl.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format irt_2pl.stan
 data {
   int<lower=0> I;
   int<lower=0> J;
@@ -215,7 +215,7 @@ model {
     y[i] ~ bernoulli_logit(a[i] * (theta - b[i]));
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format low_dim_corr_gauss.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format low_dim_corr_gauss.stan
 transformed data {
   vector[2] mu;
   real sigma1;
@@ -256,7 +256,7 @@ generated quantities {
   delta_corr = (z[1] - mu[1]) * (z[2] - mu[2]) / (sigma1 * sigma2) - rho;
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format low_dim_gauss_mix.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format low_dim_gauss_mix.stan
 data {
   int<lower=0> N;
   vector[N] y;
@@ -275,7 +275,7 @@ model {
                       normal_lpdf(y[n] | mu[2], sigma[2]));
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format low_dim_gauss_mix_collapse.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format low_dim_gauss_mix_collapse.stan
 data {
   int<lower=0> N;
   vector[N] y;
@@ -294,7 +294,7 @@ model {
                       normal_lpdf(y[n] | mu[2], sigma[2]));
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format one_comp_mm_elim_abs.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format one_comp_mm_elim_abs.stan
 functions {
   array[] real one_comp_mm_elim_abs(real t, array[] real y,
                                     array[] real theta, array[] real x_r,
@@ -368,7 +368,7 @@ Warning in 'one_comp_mm_elim_abs.stan', line 49, column 8: integrate_ode_bdf
     is deprecated and will be removed in Stan 3.0. Use ode_bdf instead. 
     The new interface is slightly different, see:
     https://mc-stan.org/users/documentation/case-studies/convert_odes.html
-  $ ../../../../../install/default/bin/stanc --auto-format sim_one_comp_mm_elim_abs.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format sim_one_comp_mm_elim_abs.stan
 functions {
   array[] real one_comp_mm_elim_abs(real t, array[] real y,
                                     array[] real theta, array[] real x_r,
@@ -433,7 +433,7 @@ Warning in 'sim_one_comp_mm_elim_abs.stan', line 55, column 6: integrate_ode_bdf
     is deprecated and will be removed in Stan 3.0. Use ode_bdf instead. 
     The new interface is slightly different, see:
     https://mc-stan.org/users/documentation/case-studies/convert_odes.html
-  $ ../../../../../install/default/bin/stanc --auto-format sir.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format sir.stan
 // Simple SIR model inspired by the presentation in
 // http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3380087/pdf/nihms372789.pdf
 

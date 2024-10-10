@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc --auto-format good-empty-omni.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format good-empty-omni.stan
 /**
  * Check all possible legal indexing for assignment statements (left
  * side) and indexed expressions (right side).
@@ -841,7 +841,7 @@ model {
   y ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format good-ints.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format good-ints.stan
 /**
  * Check all possible legal indexing for assignment statements (left
  * side) and indexed expressions (right side).
@@ -1684,7 +1684,7 @@ model {
   y ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format good-lb.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format good-lb.stan
 /**
  * Check all possible legal indexing for assignment statements (left
  * side) and indexed expressions (right side).
@@ -2525,7 +2525,7 @@ model {
   y ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format good-lub.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format good-lub.stan
 /**
  * Check all possible legal indexing for assignment statements (left
  * side) and indexed expressions (right side).
@@ -3390,7 +3390,7 @@ model {
   y ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format good-omni.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format good-omni.stan
 /**
  * Check all possible legal indexing for assignment statements (left
  * side) and indexed expressions (right side).
@@ -4233,7 +4233,7 @@ model {
   y ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format good-omni2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format good-omni2.stan
 /**
  * Check all possible legal indexing for assignment statements (left
  * side) and indexed expressions (right side).
@@ -5076,7 +5076,7 @@ model {
   y ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format good-omni3.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format good-omni3.stan
 /**
  * Check all possible legal indexing for assignment statements (left
  * side) and indexed expressions (right side).
@@ -5919,7 +5919,7 @@ model {
   y ~ normal(0, 1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format good-ub.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format good-ub.stan
 /**
  * Check all possible legal indexing for assignment statements (left
  * side) and indexed expressions (right side).

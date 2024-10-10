@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc --auto-format validate_array_expr_big.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format validate_array_expr_big.stan
 transformed data {
   int i = 5;
   array[100] int td_ar_int_dim1 = {1, 2, 3, 5, i, i, 7, 8, i, 10, 1, 2, 3, 5,
@@ -13,7 +13,7 @@ parameters {
   real<lower=0, upper=1> theta;
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format validate_array_expr_containers.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format validate_array_expr_containers.stan
 functions {
   
 }
@@ -154,12 +154,12 @@ generated quantities {
   print("gq_m_ar_dim2_2 = ", gq_m_ar_dim2_2);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format validate_array_expr_mixed.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format validate_array_expr_mixed.stan
 transformed parameters {
   array[3, 3] real td_arr33 = {{1, 2, 3}, {1, 2., 3}, {1., 2., 3}};
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format validate_array_expr_primitives.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format validate_array_expr_primitives.stan
 functions {
   array[] int f1_arr_int() {
     return {-1, -2};

@@ -7,7 +7,10 @@
  (action
   (with-stdout-to
    %{targets}
-   (run %{bin:run_bin_on_args} "%{bin:stanc} --print-canonical" %{stanfiles}))))
+   (run
+    %{bin:run_bin_on_args}
+    "/home/brian/Dev/ml/stanc3/stanc.exe --print-canonical"
+    %{stanfiles}))))
 
 (rule
  (targets deprecations-only.output)
@@ -20,7 +23,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "%{bin:stanc} --auto-format --canonicalize deprecations"
+    "/home/brian/Dev/ml/stanc3/stanc.exe --auto-format --canonicalize deprecations"
     %{stanfiles}))))
 
 (rule
@@ -34,7 +37,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "%{bin:stanc} --auto-format --canonicalize braces,parentheses"
+    "/home/brian/Dev/ml/stanc3/stanc.exe --auto-format --canonicalize braces,parentheses"
     %{stanfiles}))))
 
 (rule
@@ -48,7 +51,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "%{bin:stanc} --auto-format --canonicalize strip-comments,braces,parentheses,deprecations"
+    "/home/brian/Dev/ml/stanc3/stanc.exe --auto-format --canonicalize strip-comments,braces,parentheses,deprecations"
     %{stanfiles}))))
 
 (rule

@@ -1,10 +1,10 @@
-  $ ../../../../../install/default/bin/stanc --auto-format size_mismatch_data.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format size_mismatch_data.stan
 // compiles, should throw run-time error, mismatched sizes
 transformed data {
   matrix[2, 3] td_m23 = [[1, 2, 3, 4], [4, 5, 6, 8]];
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format size_mismatch_fun.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format size_mismatch_fun.stan
 // compiles, should throw run-time error, mismatched sizes
 functions {
   real foo(real a1) {
@@ -19,14 +19,14 @@ transformed data {
   real bar = foo(a1);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format size_mismatch_gq.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format size_mismatch_gq.stan
 // compiles, should throw run-time error, mismatched sizes
 generated quantities {
   matrix[2, 3] z = [[1, 2, 3, 4], [4, 5, 6, 8]];
   matrix[2, 2] ident = [[1, 0], [0, 1]];
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format size_mismatch_gq2.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format size_mismatch_gq2.stan
 // compiles, should throw run-time error, mismatched sizes
 generated quantities {
   matrix[2, 3] z = [[1, 2, 3], [4, 5, 6]];
@@ -34,7 +34,7 @@ generated quantities {
   z += ident;
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format size_mismatch_lp_local.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format size_mismatch_lp_local.stan
 // compiles, should throw run-time error, mismatched sizes
 parameters {
   real x;
@@ -44,7 +44,7 @@ model {
   x ~ normal(0, 5);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format size_mismatch_tparam.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format size_mismatch_tparam.stan
 // compiles, should throw run-time error, mismatched sizes
 transformed data {
   matrix[2, 3] td_m23 = [[1, 2, 3], [4, 5, 6]];

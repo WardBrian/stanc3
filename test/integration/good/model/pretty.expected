@@ -1,4 +1,4 @@
-  $ ../../../../../install/default/bin/stanc --auto-format domain_fail.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format domain_fail.stan
 parameters {
   real<lower=0> x;
 }
@@ -6,7 +6,7 @@ model {
   target += -sqrt(-x);
 }
 
-  $ ../../../../../install/default/bin/stanc --auto-format valid.stan
+  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format valid.stan
 parameters {
   real x;
 }
