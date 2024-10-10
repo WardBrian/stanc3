@@ -8,8 +8,7 @@ open Cpp
 let stan_namespace_qualify f =
   if String.is_suffix ~suffix:"functor__" f || String.contains f ':' then f
   else if
-    String.is_prefix ~prefix:"pmx_solve_" f
-    || String.is_prefix ~prefix:"pmx_ode_" f
+    String.is_prefix ~prefix:"pmx_" f
   then "torsten::" ^ f
   else "stan::math::" ^ f
 
