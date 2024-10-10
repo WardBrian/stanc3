@@ -17,7 +17,7 @@ testcoverage:
 mutaml-report.json:
 	@rm -rf _mutations
 	dune clean
-	dune build src/stanc --instrument-with mutaml --force
+	MUTAML_MUT_RATE=100 MUTAML_GADT=false dune build src/stanc --instrument-with mutaml --force
 	@rm -rf ./stanc.exe
 	cp _build/default/src/stanc/stanc.exe .
 	mutaml-runner "./mutaml.sh"
