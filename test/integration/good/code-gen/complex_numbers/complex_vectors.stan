@@ -7,7 +7,12 @@ transformed parameters {
   row_vector[2] x = [1, 2];
   complex_row_vector[2] zx = x;
   complex_matrix[n + 1, n + 1] cm = [[1, 2], [3, 4i]];
+<<<<<<< HEAD
   
+=======
+  cm = [zx, cm[1]];
+
+>>>>>>> upstream/test-coverage
   array[2] complex_matrix[2, 2] acm = {[[1, 2], [3, 4]], cm};
   array[2] complex_vector[3] az = {z, [1, 2, 3]'};
 }
