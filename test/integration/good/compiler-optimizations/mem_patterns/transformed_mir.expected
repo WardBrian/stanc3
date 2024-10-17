@@ -1700,7 +1700,8 @@ matrix[2, 2] aos_mat_from_vecs: AoS
        ((pattern (Var N)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters) (out_trans Identity)))))
  (prog_name ad_scalar_data_matrix_model) (prog_path ad_scalar_data_matrix.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns complex-fails.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns complex-fails.stan
 matrix[10, 10] A_p: AoS
 ((functions_block ()) (input_vars ()) (prepare_data ())
  (log_prob
@@ -2034,7 +2035,8 @@ matrix[10, 10] A_p: AoS
        ((pattern (Lit Int 10)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters) (out_trans Identity)))))
  (prog_name complex_fails_model) (prog_path complex-fails.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns constraints.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns constraints.stan
 vector[N] high_low_est: SoA
 vector[K] b: SoA
 vector[Nr] h: SoA
@@ -7390,7 +7392,7 @@ vector[Nr] h_sigma: SoA
           (decl_type (Unsized (UArray UReal))) (initialize Uninit)))
         (meta <opaque>))
        ((pattern
-         (Assignment ((LVariable row_vec_lower_upper_test_flat__) ()) 
+         (Assignment ((LVariable row_vec_lower_upper_test_flat__) ())
           (UArray UReal)
           ((pattern
             (FunApp (CompilerInternal FnReadData)
@@ -9169,7 +9171,8 @@ vector[Nr] h_sigma: SoA
        ((pattern (Var Nr)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters) (out_trans Identity)))))
  (prog_name constraints_model) (prog_path constraints.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns deep_dependence.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns deep_dependence.stan
 matrix[10, 10] X_p: AoS
 matrix[10, 10] X_tp1: AoS
 matrix[10, 10] X_tp2: AoS
@@ -10101,7 +10104,8 @@ matrix[10, 10] X_tp7: AoS
        ((pattern (Lit Int 10)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters) (out_trans Identity)))))
  (prog_name deep_dependence_model) (prog_path deep_dependence.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns indexing.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns indexing.stan
 vector[M] p_soa_vec_v: SoA
 matrix[N, M] p_soa_mat: SoA
 array[vector[N], 10] p_soa_arr_vec_v: SoA
@@ -14725,7 +14729,7 @@ vector[N] tp_aos_loop_vec_v_multi_uni_idx: AoS
           (decl_type (Unsized (UArray UReal))) (initialize Uninit)))
         (meta <opaque>))
        ((pattern
-         (Assignment ((LVariable p_soa_loop_mat_uni_col_idx_flat__) ()) 
+         (Assignment ((LVariable p_soa_loop_mat_uni_col_idx_flat__) ())
           (UArray UReal)
           ((pattern
             (FunApp (CompilerInternal FnReadData)
@@ -15135,7 +15139,7 @@ vector[N] tp_aos_loop_vec_v_multi_uni_idx: AoS
           (decl_type (Unsized (UArray UReal))) (initialize Uninit)))
         (meta <opaque>))
        ((pattern
-         (Assignment ((LVariable p_aos_vec_v_assign_to_aos_flat__) ()) 
+         (Assignment ((LVariable p_aos_vec_v_assign_to_aos_flat__) ())
           (UArray UReal)
           ((pattern
             (FunApp (CompilerInternal FnReadData)
@@ -15210,7 +15214,7 @@ vector[N] tp_aos_loop_vec_v_multi_uni_idx: AoS
           (decl_type (Unsized (UArray UReal))) (initialize Uninit)))
         (meta <opaque>))
        ((pattern
-         (Assignment ((LVariable p_aos_vec_v_tp_fails_func_flat__) ()) 
+         (Assignment ((LVariable p_aos_vec_v_tp_fails_func_flat__) ())
           (UArray UReal)
           ((pattern
             (FunApp (CompilerInternal FnReadData)
@@ -15285,7 +15289,7 @@ vector[N] tp_aos_loop_vec_v_multi_uni_idx: AoS
           (decl_type (Unsized (UArray UReal))) (initialize Uninit)))
         (meta <opaque>))
        ((pattern
-         (Assignment ((LVariable p_aos_loop_vec_v_uni_idx_flat__) ()) 
+         (Assignment ((LVariable p_aos_loop_vec_v_uni_idx_flat__) ())
           (UArray UReal)
           ((pattern
             (FunApp (CompilerInternal FnReadData)
@@ -15436,7 +15440,7 @@ vector[N] tp_aos_loop_vec_v_multi_uni_idx: AoS
           (decl_type (Unsized (UArray UReal))) (initialize Uninit)))
         (meta <opaque>))
        ((pattern
-         (Assignment ((LVariable p_aos_loop_mat_uni_uni_idx_flat__) ()) 
+         (Assignment ((LVariable p_aos_loop_mat_uni_uni_idx_flat__) ())
           (UArray UReal)
           ((pattern
             (FunApp (CompilerInternal FnReadData)
@@ -15811,7 +15815,7 @@ vector[N] tp_aos_loop_vec_v_multi_uni_idx: AoS
           (decl_type (Unsized (UArray UReal))) (initialize Uninit)))
         (meta <opaque>))
        ((pattern
-         (Assignment ((LVariable p_aos_mat_fail_uni_uni_idx1_flat__) ()) 
+         (Assignment ((LVariable p_aos_mat_fail_uni_uni_idx1_flat__) ())
           (UArray UReal)
           ((pattern
             (FunApp (CompilerInternal FnReadData)
@@ -15904,7 +15908,7 @@ vector[N] tp_aos_loop_vec_v_multi_uni_idx: AoS
           (decl_type (Unsized (UArray UReal))) (initialize Uninit)))
         (meta <opaque>))
        ((pattern
-         (Assignment ((LVariable p_aos_mat_fail_uni_uni_idx2_flat__) ()) 
+         (Assignment ((LVariable p_aos_mat_fail_uni_uni_idx2_flat__) ())
           (UArray UReal)
           ((pattern
             (FunApp (CompilerInternal FnReadData)
@@ -16806,7 +16810,8 @@ vector[N] tp_aos_loop_vec_v_multi_uni_idx: AoS
        ((pattern (Var M)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters) (out_trans Identity)))))
  (prog_name indexing_model) (prog_path indexing.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns indexing2.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns indexing2.stan
 vector[10] p_aos_loop_single_idx: AoS
 vector[N] tp_soa_multi_idx_assign_in_loop: SoA
 vector[N] tp_soa_single_idx_in_upfrom_idx: SoA
@@ -17395,7 +17400,8 @@ vector[N] tp_soa_single_idx_in_upfrom_idx: SoA
        ((pattern (Lit Int 10)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters) (out_trans Identity)))))
  (prog_name indexing2_model) (prog_path indexing2.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns reductions_allowed.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns reductions_allowed.stan
 matrix[5, 10] soa_x: SoA
 matrix[5, 10] aos_x: AoS
 matrix[5, 10] aos_y: AoS
@@ -18454,7 +18460,8 @@ matrix[5, 10] tp_matrix_from_udf_reduced_soa: AoS
        ((pattern (Lit Int 10)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters) (out_trans Identity)))))
  (prog_name reductions_allowed_model) (prog_path reductions_allowed.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns return_types_and_udfs_demotes.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns return_types_and_udfs_demotes.stan
 matrix[10, 10] row_soa: SoA
 matrix[10, 10] udf_input_aos: AoS
 matrix[10, 10] user_func_aos: AoS
@@ -18463,7 +18470,7 @@ matrix[10, 10] inner_empty_user_func_aos: AoS
 matrix[10, 10] int_aos_mul_aos: AoS
 matrix[10, 10] mul_two_aos: AoS
 ((functions_block
-  (((fdrt (ReturnType UMatrix)) (fdname empty_user_func) (fdsuffix FnPlain) 
+  (((fdrt (ReturnType UMatrix)) (fdname empty_user_func) (fdsuffix FnPlain)
     (fdargs ())
     (fdbody
      (((pattern
@@ -19426,7 +19433,8 @@ matrix[10, 10] mul_two_aos: AoS
      (out_block TransformedParameters) (out_trans Identity)))))
  (prog_name return_types_and_udfs_demotes_model)
  (prog_path return_types_and_udfs_demotes.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns single_indexing.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns single_indexing.stan
 matrix[10, 10] aos_p: AoS
 matrix[10, 10] soa_p: SoA
 row_vector[10] tp_row_vector_from_soa_loop: SoA
@@ -20167,7 +20175,8 @@ matrix[10, 10] tp_matrix_from_soa_loop: SoA
     ((out_unconstrained_st SReal) (out_constrained_st SReal)
      (out_block TransformedParameters) (out_trans Identity)))))
  (prog_name single_indexing_model) (prog_path single_indexing.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns tp_reused.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns tp_reused.stan
 matrix[5, 10] first_pass_soa_x: AoS
 matrix[5, 10] aos_x: AoS
 matrix[5, 10] tp_matrix_aos: AoS
@@ -20773,7 +20782,8 @@ matrix[5, 10] tp_matrix_aos: AoS
        ((pattern (Lit Int 10)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters) (out_trans Identity)))))
  (prog_name tp_reused_model) (prog_path tp_reused.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns tuple_test.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns tuple_test.stan
 tuple(array[matrix[1, 1], 1], matrix[1, 2], matrix[1, 3]) xx: AoS
 matrix[1, 1] x: AoS
 ((functions_block ()) (input_vars ())
@@ -20822,7 +20832,7 @@ matrix[1, 1] x: AoS
     (meta <opaque>))))
  (log_prob
   (((pattern
-     (Decl (decl_adtype (TupleAD (AutoDiffable AutoDiffable AutoDiffable))) 
+     (Decl (decl_adtype (TupleAD (AutoDiffable AutoDiffable AutoDiffable)))
       (decl_id xx)
       (decl_type
        (Sized
@@ -20922,7 +20932,7 @@ matrix[1, 1] x: AoS
     (meta <opaque>))))
  (reverse_mode_log_prob
   (((pattern
-     (Decl (decl_adtype (TupleAD (AutoDiffable AutoDiffable AutoDiffable))) 
+     (Decl (decl_adtype (TupleAD (AutoDiffable AutoDiffable AutoDiffable)))
       (decl_id xx)
       (decl_type
        (Sized
@@ -21271,7 +21281,7 @@ matrix[1, 1] x: AoS
       ((pattern (Lit Int 1)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
     (meta <opaque>))
    ((pattern
-     (Decl (decl_adtype (TupleAD (AutoDiffable AutoDiffable AutoDiffable))) 
+     (Decl (decl_adtype (TupleAD (AutoDiffable AutoDiffable AutoDiffable)))
       (decl_id xx)
       (decl_type
        (Sized
@@ -21593,7 +21603,7 @@ matrix[1, 1] x: AoS
     (meta <opaque>))))
  (unconstrain_array
   (((pattern
-     (Decl (decl_adtype (TupleAD (AutoDiffable AutoDiffable AutoDiffable))) 
+     (Decl (decl_adtype (TupleAD (AutoDiffable AutoDiffable AutoDiffable)))
       (decl_id xx)
       (decl_type
        (Sized
@@ -21779,7 +21789,8 @@ matrix[1, 1] x: AoS
        ((pattern (Lit Int 1)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block TransformedParameters) (out_trans Identity)))))
  (prog_name tuple_test_model) (prog_path tuple_test.stan))
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --debug-optimized-mir --debug-mem-patterns tuple_test2.stan
+[exit 0]
+  $ ../../../../../../install/default/bin/stanc -fsoa --debug-optimized-mir --debug-mem-patterns tuple_test2.stan
 matrix[3, 3] m1: AoS
 matrix[3, 3] m2: AoS
 tuple(matrix[2, 2], matrix[3, 3]) temp: AoS
@@ -22449,3 +22460,4 @@ tuple(matrix[2, 2], matrix[3, 3]) temp: AoS
        ((pattern (Lit Int 3)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_block Parameters) (out_trans Identity)))))
  (prog_name tuple_test2_model) (prog_path tuple_test2.stan))
+[exit 0]

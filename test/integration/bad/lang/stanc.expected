@@ -1,12 +1,13 @@
   $ /home/brian/Dev/ml/stanc3/stanc.exe bad1.stan
 Syntax error in 'bad1.stan', line 1, column 8 to column 8, parsing error:
    -------------------------------------------------
-     1:  model { 
+     1:  model {
                  ^
    -------------------------------------------------
 
 Variable declaration, statement or "}" expected.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad1.stanfunctions
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad1.stanfunctions
 Syntax error in 'bad1.stanfunctions', line 1, column 5 to column 6, parsing error:
    -------------------------------------------------
      1:  int x;
@@ -14,7 +15,8 @@ Syntax error in 'bad1.stanfunctions', line 1, column 5 to column 6, parsing erro
    -------------------------------------------------
 
 "(" expected after function name.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad10.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad10.stan
 Semantic error in 'bad10.stan', line 2, column 8 to column 11:
    -------------------------------------------------
      1:  data {
@@ -25,7 +27,8 @@ Semantic error in 'bad10.stan', line 2, column 8 to column 11:
    -------------------------------------------------
 
 Identifier 'y__' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad11.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad11.stan
 Semantic error in 'bad11.stan', line 2, column 2 to column 12:
    -------------------------------------------------
      1:  parameters {
@@ -36,7 +39,19 @@ Semantic error in 'bad11.stan', line 2, column 2 to column 12:
    -------------------------------------------------
 
 (Transformed) Parameters cannot be integers.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad12.stan
+Semantic error in 'bad12.stan', line 2, column 2 to column 6:
+   -------------------------------------------------
+     1:  generated quantities {
+     2:    beta = 1;
+           ^
+     3:  }
+   -------------------------------------------------
+
+Cannot assign to global variable 'beta' declared in previous blocks.
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad2.stan
 Semantic error in 'bad2.stan', line 1, column 34 to column 35:
    -------------------------------------------------
      1:  data { array[3] real a; } model { a = 2.0; }
@@ -44,17 +59,19 @@ Semantic error in 'bad2.stan', line 1, column 34 to column 35:
    -------------------------------------------------
 
 Cannot assign to global variable 'a' declared in previous blocks.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad2.stanfunctions
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad2.stanfunctions
 Syntax error in 'bad2.stanfunctions', line 5, column 0 to column 1, parsing error:
    -------------------------------------------------
      3:  }
-     4:  
+     4:
      5:  }
          ^
    -------------------------------------------------
 
 Only function definitions/declarations are expected in '.stanfunctions' file
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad3.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad3.stan
 Syntax error in 'bad3.stan', line 1, column 21 to column 22, parsing error:
    -------------------------------------------------
      1:  data { real a; matrix(2,3) b; } model { a = b; }
@@ -62,7 +79,8 @@ Syntax error in 'bad3.stan', line 1, column 21 to column 22, parsing error:
    -------------------------------------------------
 
 "[" expression "," expression "]" expected for matrix sizes.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad3.stanfunctions
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad3.stanfunctions
 Syntax error in 'bad3.stanfunctions', line 1, column 0 to column 5, parsing error:
    -------------------------------------------------
      1:  while;
@@ -70,7 +88,8 @@ Syntax error in 'bad3.stanfunctions', line 1, column 0 to column 5, parsing erro
    -------------------------------------------------
 
 Expected "functions {" or "data {" or "transformed data {" or "parameters {" or "transformed parameters {" or "model {" or "generated quantities {".
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad4.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad4.stan
 Semantic error in 'bad4.stan', line 1, column 44 to column 48:
    -------------------------------------------------
      1:  data { array[5] real a; } model { for (n in a[1]:5) a[n] = n; }
@@ -78,7 +97,8 @@ Semantic error in 'bad4.stan', line 1, column 44 to column 48:
    -------------------------------------------------
 
 Lower bound of for-loop must be of type int. Instead found type real.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad5.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad5.stan
 Semantic error in 'bad5.stan', line 3, column 6 to column 10:
    -------------------------------------------------
      1:  transformed data {
@@ -90,11 +110,12 @@ Semantic error in 'bad5.stan', line 3, column 6 to column 10:
    -------------------------------------------------
 
 Identifier 'lp__' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad6.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad6.stan
 Semantic error in 'bad6.stan', line 7, column 3 to column 4:
    -------------------------------------------------
      5:     real z;
-     6:     
+     6:
      7:     y = 10.0;
             ^
      8:  }
@@ -102,19 +123,21 @@ Semantic error in 'bad6.stan', line 7, column 3 to column 4:
    -------------------------------------------------
 
 Cannot assign to global variable 'y' declared in previous blocks.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad7.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad7.stan
 Semantic error in 'bad7.stan', line 7, column 2 to column 3:
    -------------------------------------------------
      5:    real z;
-     6:  
+     6:
      7:    y = 10.0;
            ^
      8:  }
-     9:  model { 
+     9:  model {
    -------------------------------------------------
 
 Cannot assign to global variable 'y' declared in previous blocks.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad8.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad8.stan
 Semantic error in 'bad8.stan', line 5, column 4 to column 5:
    -------------------------------------------------
      3:  }
@@ -125,7 +148,8 @@ Semantic error in 'bad8.stan', line 5, column 4 to column 5:
    -------------------------------------------------
 
 Cannot assign to global variable 'y' declared in previous blocks.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad9.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad9.stan
 Semantic error in 'bad9.stan', line 5, column 3 to column 9:
    -------------------------------------------------
      3:  }
@@ -137,7 +161,8 @@ Semantic error in 'bad9.stan', line 5, column 3 to column 9:
    -------------------------------------------------
 
 (Transformed) Parameters cannot be integers.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_bar.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_bar.stan
 Semantic error in 'bad_bar.stan', line 3, column 9 to column 28:
    -------------------------------------------------
      1:  generated quantities {
@@ -148,7 +173,8 @@ Semantic error in 'bad_bar.stan', line 3, column 9 to column 28:
    -------------------------------------------------
 
 Only functions with names ending in _lpdf, _lupdf, _lpmf, _lupmf, _cdf, _lcdf, _lccdf can make use of conditional notation.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_bounds1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_bounds1.stan
 Syntax error in 'bad_bounds1.stan', line 2, column 15 to column 17, parsing error:
    -------------------------------------------------
      1:  data {
@@ -159,7 +185,8 @@ Syntax error in 'bad_bounds1.stan', line 2, column 15 to column 17, parsing erro
    -------------------------------------------------
 
 Ill-formed expression. Expected expression (not containing binary logical operators).
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_decl1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_decl1.stan
 Syntax error in 'bad_decl1.stan', line 2, column 10 to column 13, parsing error:
    -------------------------------------------------
      1:  data {
@@ -170,7 +197,8 @@ Syntax error in 'bad_decl1.stan', line 2, column 10 to column 13, parsing error:
 
 Found a type ('int') where an identifier was expected.
 All variables declared in a comma-separated list must be of the same type.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_decl2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_decl2.stan
 Syntax error in 'bad_decl2.stan', line 2, column 13 to column 14, parsing error:
    -------------------------------------------------
      1:  data {
@@ -180,7 +208,8 @@ Syntax error in 'bad_decl2.stan', line 2, column 13 to column 14, parsing error:
    -------------------------------------------------
 
 Expected non-array type after "array" declaration.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_decl3.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_decl3.stan
 Syntax error in 'bad_decl3.stan', line 3, column 28 to column 29, parsing error:
    -------------------------------------------------
      1:  functions {
@@ -193,7 +222,8 @@ Syntax error in 'bad_decl3.stan', line 3, column 28 to column 29, parsing error:
 
 Expected a new identifier after comma in declaration.
 All variables declared must be of the same type, and any initializing assignment must follow the identifier before the next comma.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_decl4.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_decl4.stan
 Syntax error in 'bad_decl4.stan', line 2, column 10 to column 16, parsing error:
    -------------------------------------------------
      1:  data {
@@ -203,7 +233,8 @@ Syntax error in 'bad_decl4.stan', line 2, column 10 to column 16, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'reject'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_function.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_function.stan
 Semantic error in 'bad_function.stan', line 3, column 3 to column 7:
    -------------------------------------------------
      1:  generated quantities {
@@ -214,7 +245,8 @@ Semantic error in 'bad_function.stan', line 3, column 3 to column 7:
    -------------------------------------------------
 
 A non-returning function was expected but a non-function value 'x' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_function2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_function2.stan
 Semantic error in 'bad_function2.stan', line 3, column 3 to column 7:
    -------------------------------------------------
      1:  generated quantities {
@@ -225,7 +257,8 @@ Semantic error in 'bad_function2.stan', line 3, column 3 to column 7:
    -------------------------------------------------
 
 A non-returning function was expected but an undeclared identifier 'y' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_lmpf.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_lmpf.stan
 Semantic error in 'bad_lmpf.stan', line 2, column 2 to line 4, column 3:
    -------------------------------------------------
      1:  functions {
@@ -236,7 +269,8 @@ Semantic error in 'bad_lmpf.stan', line 2, column 2 to line 4, column 3:
    -------------------------------------------------
 
 Probability mass functions require integer variates (first argument). Instead found type real.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_lpdf.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_lpdf.stan
 Semantic error in 'bad_lpdf.stan', line 2, column 2 to line 4, column 3:
    -------------------------------------------------
      1:  functions {
@@ -247,7 +281,8 @@ Semantic error in 'bad_lpdf.stan', line 2, column 2 to line 4, column 3:
    -------------------------------------------------
 
 Probability density functions require real variates (first argument).
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_periods_data.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_periods_data.stan
 Syntax error in 'bad_periods_data.stan', line 2, column 7, lexing error:
    -------------------------------------------------
      1:  data {
@@ -258,7 +293,8 @@ Syntax error in 'bad_periods_data.stan', line 2, column 7, lexing error:
    -------------------------------------------------
 
 Invalid character found.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_periods_gqs.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_periods_gqs.stan
 Syntax error in 'bad_periods_gqs.stan', line 8, column 7, lexing error:
    -------------------------------------------------
      6:  }
@@ -270,7 +306,8 @@ Syntax error in 'bad_periods_gqs.stan', line 8, column 7, lexing error:
    -------------------------------------------------
 
 Invalid character found.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_periods_local.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_periods_local.stan
 Syntax error in 'bad_periods_local.stan', line 5, column 7, lexing error:
    -------------------------------------------------
      3:  }
@@ -282,7 +319,8 @@ Syntax error in 'bad_periods_local.stan', line 5, column 7, lexing error:
    -------------------------------------------------
 
 Invalid character found.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_periods_params.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_periods_params.stan
 Syntax error in 'bad_periods_params.stan', line 2, column 7, lexing error:
    -------------------------------------------------
      1:  parameters {
@@ -293,7 +331,8 @@ Syntax error in 'bad_periods_params.stan', line 2, column 7, lexing error:
    -------------------------------------------------
 
 Invalid character found.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_periods_tdata.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_periods_tdata.stan
 Syntax error in 'bad_periods_tdata.stan', line 2, column 7, lexing error:
    -------------------------------------------------
      1:  transformed data {
@@ -304,7 +343,8 @@ Syntax error in 'bad_periods_tdata.stan', line 2, column 7, lexing error:
    -------------------------------------------------
 
 Invalid character found.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_periods_tparams.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_periods_tparams.stan
 Syntax error in 'bad_periods_tparams.stan', line 2, column 7, lexing error:
    -------------------------------------------------
      1:  transformed parameters {
@@ -315,7 +355,8 @@ Syntax error in 'bad_periods_tparams.stan', line 2, column 7, lexing error:
    -------------------------------------------------
 
 Invalid character found.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_promotion1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_promotion1.stan
 Semantic error in 'bad_promotion1.stan', line 9, column 2 to column 13:
    -------------------------------------------------
      7:  model {
@@ -330,7 +371,8 @@ Ill-typed arguments supplied to function 'printer':
 Available signatures:
 (array[] vector) => void
   The first argument must be array[] vector but got array[] int
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_promotions2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_promotions2.stan
 Semantic error in 'bad_promotions2.stan', line 9, column 8 to column 17:
    -------------------------------------------------
      7:  model {
@@ -345,7 +387,8 @@ Ill-typed arguments supplied to function 'nested':
 Available signatures:
 (array[,] complex) => real
   The first argument must be array[,] complex but got array[] int
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_promotions3.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_promotions3.stan
 Semantic error in 'bad_promotions3.stan', line 9, column 2 to column 17:
    -------------------------------------------------
      7:  model {
@@ -360,7 +403,8 @@ Ill-typed arguments supplied to function 'printer':
 Available signatures:
 (array[] real) => void
   The first argument must be array[] real but got array[,] int
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_promotions4.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_promotions4.stan
 Semantic error in 'bad_promotions4.stan', line 9, column 2 to column 13:
    -------------------------------------------------
      7:  model {
@@ -375,10 +419,11 @@ Ill-typed arguments supplied to function 'printer':
 Available signatures:
 (array[] int) => void
   The first argument must be array[] int but got array[] real
-  $ /home/brian/Dev/ml/stanc3/stanc.exe good_all.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc good_all.stan
 Semantic error in 'good_all.stan', line 25, column 2 to column 3:
    -------------------------------------------------
-    23:  
+    23:
     24:  model {
     25:    m = m;
            ^
@@ -387,7 +432,8 @@ Semantic error in 'good_all.stan', line 25, column 2 to column 3:
    -------------------------------------------------
 
 Cannot assign to global variable 'm' declared in previous blocks.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete.stan
 Syntax error in 'incomplete.stan', line 2, column 18 to column 19, parsing error:
    -------------------------------------------------
      1:  transformed data {
@@ -397,7 +443,8 @@ Syntax error in 'incomplete.stan', line 2, column 18 to column 19, parsing error
    -------------------------------------------------
 
 Found an incomplete binary expression - are you missing the right hand side?
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete2.stan
 Syntax error in 'incomplete2.stan', line 2, column 15 to column 20, parsing error:
    -------------------------------------------------
      1:  transformed data {
@@ -408,7 +455,8 @@ Syntax error in 'incomplete2.stan', line 2, column 15 to column 20, parsing erro
 
 Unexpected input after the conclusion of a valid expression.
 You may be missing a "," between expressions, an operator, or a terminating "}", ")", "]", or ";".
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete3.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete3.stan
 Syntax error in 'incomplete3.stan', line 2, column 10 to column 15, parsing error:
    -------------------------------------------------
      1:  transformed data {
@@ -418,7 +466,8 @@ Syntax error in 'incomplete3.stan', line 2, column 10 to column 15, parsing erro
    -------------------------------------------------
 
 Found an incomplete binary expression - are you missing the right hand side?
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete4.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete4.stan
 Syntax error in 'incomplete4.stan', line 2, column 13 to column 14, parsing error:
    -------------------------------------------------
      1:  transformed data {
@@ -428,7 +477,8 @@ Syntax error in 'incomplete4.stan', line 2, column 13 to column 14, parsing erro
    -------------------------------------------------
 
 Ill-formed phrase. Found an expression where we expected a statement.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete5.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete5.stan
 Syntax error in 'incomplete5.stan', line 3, column 0 to column 0, parsing error:
    -------------------------------------------------
      1:  transformed data {
@@ -437,7 +487,8 @@ Syntax error in 'incomplete5.stan', line 3, column 0 to column 0, parsing error:
    -------------------------------------------------
 
 Ill-formed block. Expected a statement, variable declaration, or just "}".
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete6.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete6.stan
 Syntax error in 'incomplete6.stan', line 3, column 16 to column 21, parsing error:
    -------------------------------------------------
      1:  transformed data {
@@ -448,7 +499,8 @@ Syntax error in 'incomplete6.stan', line 3, column 16 to column 21, parsing erro
    -------------------------------------------------
 
 Ill-formed expression. We expect a comma separated list of expressions, followed by "]".
-  $ /home/brian/Dev/ml/stanc3/stanc.exe reused_name.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc reused_name.stan
 Semantic error in 'reused_name.stan', line 4, column 14 to column 15:
    -------------------------------------------------
      2:      vector[3] e;
@@ -459,7 +511,8 @@ Semantic error in 'reused_name.stan', line 4, column 14 to column 15:
    -------------------------------------------------
 
 Identifier 'e' is already in use.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe unterminated_comment.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc unterminated_comment.stan
 Syntax error in 'unterminated_comment.stan', line 4, column -1, lexing error:
    -------------------------------------------------
      2:  never
@@ -468,3 +521,4 @@ Syntax error in 'unterminated_comment.stan', line 4, column -1, lexing error:
    -------------------------------------------------
 
 Unexpected end of input
+[exit 1]

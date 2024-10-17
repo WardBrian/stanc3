@@ -9,7 +9,8 @@ Semantic error in 'array_literal_mismatch.stan', line 2, column 43 to column 52:
 
 Array expression must have entries of consistent type. Expected tuple(
 int, int) but found tuple(int, int, int).
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad-arg.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad-arg.stan
 Syntax error in 'bad-arg.stan', line 2, column 23 to column 27, parsing error:
    -------------------------------------------------
      1:  functions {
@@ -20,7 +21,8 @@ Syntax error in 'bad-arg.stan', line 2, column 23 to column 27, parsing error:
    -------------------------------------------------
 
 Expected comma-separated list of types followed by ")" to declare tuple type.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad-index1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad-index1.stan
 Semantic error in 'bad-index1.stan', line 3, column 9 to column 12:
    -------------------------------------------------
      1:  transformed data {
@@ -31,7 +33,8 @@ Semantic error in 'bad-index1.stan', line 3, column 9 to column 12:
    -------------------------------------------------
 
 Tried to index a non-tuple type. Expression has type real.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad-index2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad-index2.stan
 Semantic error in 'bad-index2.stan', line 3, column 11 to column 17:
    -------------------------------------------------
      1:  transformed data {
@@ -43,7 +46,8 @@ Semantic error in 'bad-index2.stan', line 3, column 11 to column 17:
 
 Tried to access index 3 for a tuple of length 2.
 Only indices indices between 1 and 2 are valid.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad-index3.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad-index3.stan
 Semantic error in 'bad-index3.stan', line 3, column 3 to column 6:
    -------------------------------------------------
      1:  transformed data {
@@ -54,7 +58,8 @@ Semantic error in 'bad-index3.stan', line 3, column 3 to column 6:
    -------------------------------------------------
 
 Tried to index a non-tuple type. Expression has type real.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad-index4.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad-index4.stan
 Semantic error in 'bad-index4.stan', line 3, column 2 to column 8:
    -------------------------------------------------
      1:  transformed data {
@@ -66,7 +71,8 @@ Semantic error in 'bad-index4.stan', line 3, column 2 to column 8:
 
 Tried to access index 3 for a tuple of length 2.
 Only indices indices between 1 and 2 are valid.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad-index5.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad-index5.stan
 Semantic error in 'bad-index5.stan', line 3, column 11 to column 18:
    -------------------------------------------------
      1:  transformed data {
@@ -77,7 +83,8 @@ Semantic error in 'bad-index5.stan', line 3, column 11 to column 18:
    -------------------------------------------------
 
 Too many indexes, expression dimensions=0, indexes found=1.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_addition.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_addition.stan
 Semantic error in 'bad_addition.stan', line 3, column 2 to column 3:
    -------------------------------------------------
      1:  model {
@@ -94,11 +101,12 @@ and the right hand side has type
   int
 Available signatures for given lhs:
 No matching signatures
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_duplicates.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_duplicates.stan
 Semantic error in 'bad_unpack_duplicates.stan', line 5, column 2 to column 14:
    -------------------------------------------------
      3:    int y = 4;
-     4:  
+     4:
      5:    (x, y, x, y) = (y, x, y, x);
            ^
      6:  }
@@ -106,7 +114,8 @@ Semantic error in 'bad_unpack_duplicates.stan', line 5, column 2 to column 14:
 
 The same value cannot be assigned to multiple times in one assignment:
   x, y
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_fn_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_fn_type.stan
 Semantic error in 'bad_unpack_fn_type.stan', line 4, column 4 to column 24:
    -------------------------------------------------
      2:    int foo() {
@@ -118,19 +127,21 @@ Semantic error in 'bad_unpack_fn_type.stan', line 4, column 4 to column 24:
    -------------------------------------------------
 
 Cannot assign a function type '() => int' to variable 'foo'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_global.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_global.stan
 Semantic error in 'bad_unpack_global.stan', line 8, column 3 to column 4:
    -------------------------------------------------
      6:     int y;
-     7:  
+     7:
      8:    (x,y) = (1,2);
             ^
-     9:  
+     9:
     10:  }
    -------------------------------------------------
 
 Cannot assign to global variable 'x' declared in previous blocks.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_lhs.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_lhs.stan
 Syntax error in 'bad_unpack_lhs.stan', line 4, column 2 to column 15, parsing error:
    -------------------------------------------------
      2:    int x = 3;
@@ -141,7 +152,8 @@ Syntax error in 'bad_unpack_lhs.stan', line 4, column 2 to column 15, parsing er
    -------------------------------------------------
 
 Expected an assignable value but found a general expression.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_overlap1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_overlap1.stan
 Semantic error in 'bad_unpack_overlap1.stan', line 9, column 2 to column 30:
    -------------------------------------------------
      7:    // we disallow this because it's not obvious if unique
@@ -153,7 +165,8 @@ Semantic error in 'bad_unpack_overlap1.stan', line 9, column 2 to column 30:
 
 The same value cannot be assigned to multiple times in one assignment:
   x_flat[...]
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_overlap2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_overlap2.stan
 Semantic error in 'bad_unpack_overlap2.stan', line 4, column 2 to column 22:
    -------------------------------------------------
      2:    int i = 1, j = 1;
@@ -165,7 +178,8 @@ Semantic error in 'bad_unpack_overlap2.stan', line 4, column 2 to column 22:
 
 The same value cannot be assigned to multiple times in one assignment:
   tup[...].1
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_read_write.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_read_write.stan
 Semantic error in 'bad_unpack_read_write.stan', line 4, column 2 to column 11:
    -------------------------------------------------
      2:    int x = 1;
@@ -177,7 +191,8 @@ Semantic error in 'bad_unpack_read_write.stan', line 4, column 2 to column 11:
 
 The same variable cannot be both assigned to and read from on the left hand side of an assignment:
   x
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_read_write2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_read_write2.stan
 Semantic error in 'bad_unpack_read_write2.stan', line 4, column 2 to column 15:
    -------------------------------------------------
      2:    tuple(int,int) x2 = (1,1);
@@ -189,7 +204,8 @@ Semantic error in 'bad_unpack_read_write2.stan', line 4, column 2 to column 15:
 
 The same variable cannot be both assigned to and read from on the left hand side of an assignment:
   x2
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_read_write3.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_read_write3.stan
 Semantic error in 'bad_unpack_read_write3.stan', line 6, column 2 to column 17:
    -------------------------------------------------
      4:    // one could imagine allowing this case,
@@ -201,7 +217,8 @@ Semantic error in 'bad_unpack_read_write3.stan', line 6, column 2 to column 17:
 
 The same variable cannot be both assigned to and read from on the left hand side of an assignment:
   x2
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_shape.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_shape.stan
 Semantic error in 'bad_unpack_shape.stan', line 4, column 2 to column 8:
    -------------------------------------------------
      2:    int x = 3;
@@ -216,7 +233,8 @@ The left hand side has type
   tuple(int, int)
 and the right hand side has type
   tuple(int, int, int)
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_tuple_overlap1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_tuple_overlap1.stan
 Semantic error in 'bad_unpack_tuple_overlap1.stan', line 3, column 2 to column 16:
    -------------------------------------------------
      1:  model {
@@ -228,7 +246,8 @@ Semantic error in 'bad_unpack_tuple_overlap1.stan', line 3, column 2 to column 1
 
 The same value cannot be assigned to multiple times in one assignment:
   tup.2.2
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_tuple_overlap2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_tuple_overlap2.stan
 Semantic error in 'bad_unpack_tuple_overlap2.stan', line 3, column 2 to column 17:
    -------------------------------------------------
      1:  generated quantities {
@@ -240,7 +259,8 @@ Semantic error in 'bad_unpack_tuple_overlap2.stan', line 3, column 2 to column 1
 
 The same value cannot be assigned to multiple times in one assignment:
   tup[...].1
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_unpack_types.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_unpack_types.stan
 Semantic error in 'bad_unpack_types.stan', line 4, column 6 to column 7:
    -------------------------------------------------
      2:    real x = 3.0;
@@ -255,7 +275,8 @@ The left hand side has type
   int
 and the right hand side has type
   real
-  $ /home/brian/Dev/ml/stanc3/stanc.exe empty_tuple_expr.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc empty_tuple_expr.stan
 Syntax error in 'empty_tuple_expr.stan', line 2, column 25 to column 26, parsing error:
    -------------------------------------------------
      1:  model {
@@ -265,7 +286,8 @@ Syntax error in 'empty_tuple_expr.stan', line 2, column 25 to column 26, parsing
    -------------------------------------------------
 
 Expression or comma separated list of expressions followed by ")" expected after "(".
-  $ /home/brian/Dev/ml/stanc3/stanc.exe empty_tuple_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc empty_tuple_type.stan
 Syntax error in 'empty_tuple_type.stan', line 2, column 8 to column 9, parsing error:
    -------------------------------------------------
      1:  model {
@@ -276,7 +298,8 @@ Syntax error in 'empty_tuple_type.stan', line 2, column 8 to column 9, parsing e
 
 Incomplete type declaration. Expected comma separated list of types between "("
 and ")" to declare tuple variable.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe fn-assign.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc fn-assign.stan
 Semantic error in 'fn-assign.stan', line 4, column 4 to column 17:
    -------------------------------------------------
      2:    int foo() {
@@ -288,10 +311,11 @@ Semantic error in 'fn-assign.stan', line 4, column 4 to column 17:
    -------------------------------------------------
 
 Cannot assign a function type '() => int' to variable 'x'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe function-mismatch1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc function-mismatch1.stan
 Semantic error in 'function-mismatch1.stan', line 8, column 2 to column 17:
    -------------------------------------------------
-     6:  
+     6:
      7:  model {
      8:    foo((1, 2, 3));
            ^
@@ -303,34 +327,38 @@ Ill-typed arguments supplied to function 'foo':
 Available signatures:
 (tuple(real, real)) => void
   The first argument must be tuple(real, real) but got tuple(int, int, int)
-  $ /home/brian/Dev/ml/stanc3/stanc.exe fuzz-tuple-idx1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc fuzz-tuple-idx1.stan
 Syntax error in 'fuzz-tuple-idx1.stan', line 1, column 36 to column 58, parsing error:
    -------------------------------------------------
      1:  functions{void f(tuple(matrix,int)t)t.40000000000000000000
                                              ^
    -------------------------------------------------
 
-Failed to parse integer from string '.40000000000000000000' in tuple index. 
+Failed to parse integer from string '.40000000000000000000' in tuple index.
 The index is likely too large.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe fuzz-tuple-idx2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc fuzz-tuple-idx2.stan
 Syntax error in 'fuzz-tuple-idx2.stan', line 1, column 61 to column 83, parsing error:
    -------------------------------------------------
      1:  transformed data{tuple(array[0]tuple(int,array[0]real),int)x;x.10000000000000000000
                                                                       ^
    -------------------------------------------------
 
-Failed to parse integer from string '.10000000000000000000' in tuple index. 
+Failed to parse integer from string '.10000000000000000000' in tuple index.
 The index is likely too large.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe fuzz-tuple-idx3.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc fuzz-tuple-idx3.stan
 Syntax error in 'fuzz-tuple-idx3.stan', line 1, column 45 to column 66, parsing error:
    -------------------------------------------------
      1:  transformed data{matrix[0,0]v;row_vector[0]m;m.6000000000000000000
                                                       ^
    -------------------------------------------------
 
-Failed to parse integer from string '.6000000000000000000' in tuple index. 
+Failed to parse integer from string '.6000000000000000000' in tuple index.
 The index is likely too large.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete1.stan
 Syntax error in 'incomplete1.stan', line 2, column 30 to column 35, parsing error:
    -------------------------------------------------
      1:  data {
@@ -339,7 +367,8 @@ Syntax error in 'incomplete1.stan', line 2, column 30 to column 35, parsing erro
    -------------------------------------------------
 
 Incomplete type specification, expected further types followed by ")" to complete tuple.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete2.stan
 Syntax error in 'incomplete2.stan', line 1, column 33 to column 36, parsing error:
    -------------------------------------------------
      1:  data { tuple( array [ foo ] real foo
@@ -348,7 +377,8 @@ Syntax error in 'incomplete2.stan', line 1, column 33 to column 36, parsing erro
 
 Invalid type specification, unmatched "(".
 Expected "," followed by further types and ")" to complete tuple.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete3.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete3.stan
 Syntax error in 'incomplete3.stan', line 2, column 0 to column 0, parsing error:
    -------------------------------------------------
      1:  model { tuple( complex , complex ) foo,
@@ -357,7 +387,8 @@ Syntax error in 'incomplete3.stan', line 2, column 0 to column 0, parsing error:
 
 Expected a new identifier after comma in declaration.
 All variables declared must be of the same type, and any initializing assignment must follow the identifier before the next comma.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete4.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete4.stan
 Syntax error in 'incomplete4.stan', line 2, column 45 to column 50, parsing error:
    -------------------------------------------------
      1:  data {
@@ -367,7 +398,8 @@ Syntax error in 'incomplete4.stan', line 2, column 45 to column 50, parsing erro
 
 Incomplete type specification. Expected either ")" or "," followed by
 further types and ")" to complete tuple.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete5.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete5.stan
 Syntax error in 'incomplete5.stan', line 1, column 14 to column 19, parsing error:
    -------------------------------------------------
      1:  data { tuple( while
@@ -376,7 +408,8 @@ Syntax error in 'incomplete5.stan', line 1, column 14 to column 19, parsing erro
 
 Incomplete type declaration. Expected comma separated list of types between "("
 and ")" to declare tuple variable.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete6.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete6.stan
 Syntax error in 'incomplete6.stan', line 2, column 30 to column 31, parsing error:
    -------------------------------------------------
      1:  transformed data {
@@ -386,7 +419,8 @@ Syntax error in 'incomplete6.stan', line 2, column 30 to column 31, parsing erro
 
 Unexpected input after the conclusion of a valid expression.
 You may be missing a "," between expressions, an operator, or a terminating "}", ")", "]", or ";".
-  $ /home/brian/Dev/ml/stanc3/stanc.exe incomplete7.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc incomplete7.stan
 Syntax error in 'incomplete7.stan', line 2, column 20 to column 21, parsing error:
    -------------------------------------------------
      1:  functions {
@@ -396,7 +430,8 @@ Syntax error in 'incomplete7.stan', line 2, column 20 to column 21, parsing erro
    -------------------------------------------------
 
 Expected comma-separated list of types followed by ")" to declare tuple type.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe onepl_expr.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc onepl_expr.stan
 Syntax error in 'onepl_expr.stan', line 2, column 13 to column 14, parsing error:
    -------------------------------------------------
      1:  model {
@@ -406,7 +441,8 @@ Syntax error in 'onepl_expr.stan', line 2, column 13 to column 14, parsing error
    -------------------------------------------------
 
 Expression or comma separated list of expressions followed by ")" expected after "(".
-  $ /home/brian/Dev/ml/stanc3/stanc.exe onepl_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc onepl_type.stan
 Syntax error in 'onepl_type.stan', line 2, column 22 to column 23, parsing error:
    -------------------------------------------------
      1:  functions {
@@ -417,7 +453,8 @@ Syntax error in 'onepl_type.stan', line 2, column 22 to column 23, parsing error
    -------------------------------------------------
 
 Expected comma-separated list of types followed by ")" to declare tuple type.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe onepl_type2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc onepl_type2.stan
 Syntax error in 'onepl_type2.stan', line 2, column 13 to column 14, parsing error:
    -------------------------------------------------
      1:  model {
@@ -427,7 +464,8 @@ Syntax error in 'onepl_type2.stan', line 2, column 13 to column 14, parsing erro
    -------------------------------------------------
 
 Incomplete type specification, expected further types followed by ")" to complete tuple.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe onepl_type_missing_comma.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc onepl_type_missing_comma.stan
 Syntax error in 'onepl_type_missing_comma.stan', line 2, column 12 to column 13, parsing error:
    -------------------------------------------------
      1:  model {
@@ -438,10 +476,11 @@ Syntax error in 'onepl_type_missing_comma.stan', line 2, column 12 to column 13,
 
 Invalid type specification, unmatched "(".
 Expected "," followed by further types and ")" to complete tuple.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe tuple-dataonly-ad.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc tuple-dataonly-ad.stan
 Semantic error in 'tuple-dataonly-ad.stan', line 13, column 12 to column 19:
    -------------------------------------------------
-    11:  
+    11:
     12:  model {
     13:    target += foo(ps);
                      ^
@@ -455,10 +494,11 @@ Available signatures:
   The first argument must be data-only. (Local variables are assumed to
   depend on parameters; same goes for function inputs unless they are marked
   with the keyword 'data'.)
-  $ /home/brian/Dev/ml/stanc3/stanc.exe tuple-dataonly-ad2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc tuple-dataonly-ad2.stan
 Semantic error in 'tuple-dataonly-ad2.stan', line 17, column 12 to column 24:
    -------------------------------------------------
-    15:  
+    15:
     16:  model {
     17:    target += foo((x1,x2));
                      ^
@@ -472,7 +512,8 @@ Available signatures:
   The first argument must be data-only. (Local variables are assumed to
   depend on parameters; same goes for function inputs unless they are marked
   with the keyword 'data'.)
-  $ /home/brian/Dev/ml/stanc3/stanc.exe tuple_ternary.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc tuple_ternary.stan
 Semantic error in 'tuple_ternary.stan', line 2, column 25 to column 47:
    -------------------------------------------------
      1:  transformed data {
@@ -483,3 +524,4 @@ Semantic error in 'tuple_ternary.stan', line 2, column 25 to column 47:
 
 Type mismatch in ternary expression, expression when true is: tuple(int, int); expression when false is: tuple(
 int, int, int)
+[exit 1]

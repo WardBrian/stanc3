@@ -9,7 +9,8 @@ Semantic error in 'non_data_index1.stan', line 6, column 13 to column 14:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index10.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index10.stan
 Semantic error in 'non_data_index10.stan', line 6, column 27 to column 28:
    -------------------------------------------------
      4:  }
@@ -20,7 +21,8 @@ Semantic error in 'non_data_index10.stan', line 6, column 27 to column 28:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index11.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index11.stan
 Semantic error in 'non_data_index11.stan', line 6, column 30 to column 31:
    -------------------------------------------------
      4:  }
@@ -31,7 +33,8 @@ Semantic error in 'non_data_index11.stan', line 6, column 30 to column 31:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index12.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index12.stan
 Semantic error in 'non_data_index12.stan', line 6, column 28 to column 29:
    -------------------------------------------------
      4:  }
@@ -42,7 +45,8 @@ Semantic error in 'non_data_index12.stan', line 6, column 28 to column 29:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index13.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index13.stan
 Semantic error in 'non_data_index13.stan', line 6, column 19 to column 20:
    -------------------------------------------------
      4:  }
@@ -53,7 +57,8 @@ Semantic error in 'non_data_index13.stan', line 6, column 19 to column 20:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index14.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index14.stan
 Semantic error in 'non_data_index14.stan', line 6, column 18 to column 19:
    -------------------------------------------------
      4:  }
@@ -64,7 +69,8 @@ Semantic error in 'non_data_index14.stan', line 6, column 18 to column 19:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index2.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index2.stan
 Semantic error in 'non_data_index2.stan', line 6, column 14 to column 15:
    -------------------------------------------------
      4:  }
@@ -75,7 +81,8 @@ Semantic error in 'non_data_index2.stan', line 6, column 14 to column 15:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index3.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index3.stan
 Semantic error in 'non_data_index3.stan', line 6, column 18 to column 19:
    -------------------------------------------------
      4:  }
@@ -86,7 +93,8 @@ Semantic error in 'non_data_index3.stan', line 6, column 18 to column 19:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index4.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index4.stan
 Semantic error in 'non_data_index4.stan', line 5, column 14 to column 15:
    -------------------------------------------------
      3:  }
@@ -97,19 +105,21 @@ Semantic error in 'non_data_index4.stan', line 5, column 14 to column 15:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index5.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index5.stan
 Semantic error in 'non_data_index5.stan', line 6, column 17 to column 18:
    -------------------------------------------------
      4:  }
      5:  transformed parameters {
      6:    matrix[2, size(y)] m;
                           ^
-     7:  
+     7:
      8:  }
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index6.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index6.stan
 Semantic error in 'non_data_index6.stan', line 6, column 15 to column 16:
    -------------------------------------------------
      4:  }
@@ -120,7 +130,8 @@ Semantic error in 'non_data_index6.stan', line 6, column 15 to column 16:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index7.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index7.stan
 Semantic error in 'non_data_index7.stan', line 6, column 15 to column 16:
    -------------------------------------------------
      4:  }
@@ -131,7 +142,8 @@ Semantic error in 'non_data_index7.stan', line 6, column 15 to column 16:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index8.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index8.stan
 Semantic error in 'non_data_index8.stan', line 6, column 24 to column 25:
    -------------------------------------------------
      4:  }
@@ -142,7 +154,8 @@ Semantic error in 'non_data_index8.stan', line 6, column 24 to column 25:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe non_data_index9.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc non_data_index9.stan
 Semantic error in 'non_data_index9.stan', line 6, column 19 to column 20:
    -------------------------------------------------
      4:  }
@@ -153,7 +166,8 @@ Semantic error in 'non_data_index9.stan', line 6, column 19 to column 20:
    -------------------------------------------------
 
 Non-data variables are not allowed in top level size declarations.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe rng_index1.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc rng_index1.stan
 Semantic error in 'rng_index1.stan', line 6, column 8 to column 23:
    -------------------------------------------------
      4:  }
@@ -164,3 +178,4 @@ Semantic error in 'rng_index1.stan', line 6, column 8 to column 23:
    -------------------------------------------------
 
 Random number generators are not allowed in top level size declarations.
+[exit 1]

@@ -6,7 +6,7 @@ Semantic error in 'bad_data_qualifer.stan', line 31, column 10 to column 76:
     31:    y_s_p = solve_newton(algebra_system, y, theta_p, x_r, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'solve_newton':
@@ -21,7 +21,8 @@ where F2 = (vector) => vector
    (data vector, vector, array[] real, array[] int) => vector
   These are not compatible because:
     The first argument has an incompatible data-qualifier.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_fun_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_fun_type.stan
 Semantic error in 'bad_fun_type.stan', line 31, column 10 to column 62:
    -------------------------------------------------
     29:  transformed parameters {
@@ -29,7 +30,7 @@ Semantic error in 'bad_fun_type.stan', line 31, column 10 to column 62:
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -50,7 +51,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
 (<F2>, vector, vector, data array[] real, data array[] int, data real,
  data real, data real) => vector
   Expected 8 arguments but found 5 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_fun_type_control.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_fun_type_control.stan
 Semantic error in 'bad_fun_type_control.stan', line 31, column 10 to column 78:
    -------------------------------------------------
     29:  transformed parameters {
@@ -58,7 +60,7 @@ Semantic error in 'bad_fun_type_control.stan', line 31, column 10 to column 78:
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -79,7 +81,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
      vector
 (<F2>, vector, vector, data array[] real, data array[] int) => vector
   Expected 5 arguments but found 8 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_newton_fun_type_control.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_newton_fun_type_control.stan
 Semantic error in 'bad_newton_fun_type_control.stan', line 31, column 10 to column 85:
    -------------------------------------------------
     29:  transformed parameters {
@@ -87,7 +90,7 @@ Semantic error in 'bad_newton_fun_type_control.stan', line 31, column 10 to colu
     31:    y_s_p = algebra_solver_newton(algebra_system, y, theta_p, x_r, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver_newton':
@@ -108,7 +111,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
      vector
 (<F2>, vector, vector, data array[] real, data array[] int) => vector
   Expected 5 arguments but found 8 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_newton_x_i_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_newton_x_i_type.stan
 Semantic error in 'bad_newton_x_i_type.stan', line 31, column 10 to column 69:
    -------------------------------------------------
     29:  transformed parameters {
@@ -116,7 +120,7 @@ Semantic error in 'bad_newton_x_i_type.stan', line 31, column 10 to column 69:
     31:    y_s_p = algebra_solver_newton(algebra_system, y, theta_p, x_r, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver_newton':
@@ -129,7 +133,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
 (<F2>, vector, vector, data array[] real, data array[] int, data real,
  data real, data real) => vector
   Expected 8 arguments but found 5 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_newton_x_i_type_control.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_newton_x_i_type_control.stan
 Semantic error in 'bad_newton_x_i_type_control.stan', line 31, column 10 to column 85:
    -------------------------------------------------
     29:  transformed parameters {
@@ -137,7 +142,7 @@ Semantic error in 'bad_newton_x_i_type_control.stan', line 31, column 10 to colu
     31:    y_s_p = algebra_solver_newton(algebra_system, y, theta_p, x_r, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver_newton':
@@ -150,7 +155,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
   The 5th argument must be array[] int but got array[] real
 (<F2>, vector, vector, data array[] real, data array[] int) => vector
   Expected 5 arguments but found 8 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_newton_x_r_var_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_newton_x_r_var_type.stan
 Semantic error in 'bad_newton_x_r_var_type.stan', line 31, column 10 to column 71:
    -------------------------------------------------
     29:  transformed parameters {
@@ -158,7 +164,7 @@ Semantic error in 'bad_newton_x_r_var_type.stan', line 31, column 10 to column 7
     31:    y_s_p = algebra_solver_newton(algebra_system, y, theta_p, x_r_p, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver_newton':
@@ -173,7 +179,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
 (<F2>, vector, vector, data array[] real, data array[] int, data real,
  data real, data real) => vector
   Expected 8 arguments but found 5 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_newton_x_r_var_type_control.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_newton_x_r_var_type_control.stan
 Semantic error in 'bad_newton_x_r_var_type_control.stan', line 31, column 10 to column 87:
    -------------------------------------------------
     29:  transformed parameters {
@@ -181,7 +188,7 @@ Semantic error in 'bad_newton_x_r_var_type_control.stan', line 31, column 10 to 
     31:    y_s_p = algebra_solver_newton(algebra_system, y, theta_p, x_r_p, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver_newton':
@@ -196,7 +203,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
   with the keyword 'data'.)
 (<F2>, vector, vector, data array[] real, data array[] int) => vector
   Expected 5 arguments but found 8 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_newton_y_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_newton_y_type.stan
 Semantic error in 'bad_newton_y_type.stan', line 31, column 10 to column 69:
    -------------------------------------------------
     29:  transformed parameters {
@@ -204,7 +212,7 @@ Semantic error in 'bad_newton_y_type.stan', line 31, column 10 to column 69:
     31:    y_s_p = algebra_solver_newton(algebra_system, y, theta_p, x_r, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver_newton':
@@ -225,7 +233,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
 (<F2>, vector, vector, data array[] real, data array[] int, data real,
  data real, data real) => vector
   Expected 8 arguments but found 5 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_newton_y_type_control.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_newton_y_type_control.stan
 Semantic error in 'bad_newton_y_type_control.stan', line 31, column 10 to column 85:
    -------------------------------------------------
     29:  transformed parameters {
@@ -233,7 +242,7 @@ Semantic error in 'bad_newton_y_type_control.stan', line 31, column 10 to column
     31:    y_s_p = algebra_solver_newton(algebra_system, y, theta_p, x_r, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver_newton':
@@ -254,7 +263,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
      vector
 (<F2>, vector, vector, data array[] real, data array[] int) => vector
   Expected 5 arguments but found 8 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_solve_newton_arguments_number.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_solve_newton_arguments_number.stan
 Semantic error in 'bad_solve_newton_arguments_number.stan', line 31, column 10 to column 65:
    -------------------------------------------------
     29:  transformed parameters {
@@ -262,7 +272,7 @@ Semantic error in 'bad_solve_newton_arguments_number.stan', line 31, column 10 t
     31:    y_s_p = solve_newton(algebra_system, y, theta_p, x_r, x_i, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'solve_newton':
@@ -280,7 +290,8 @@ where F2 = (vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_solve_newton_arguments_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_solve_newton_arguments_type.stan
 Semantic error in 'bad_solve_newton_arguments_type.stan', line 31, column 10 to column 60:
    -------------------------------------------------
     29:  transformed parameters {
@@ -288,7 +299,7 @@ Semantic error in 'bad_solve_newton_arguments_type.stan', line 31, column 10 to 
     31:    y_s_p = solve_newton(algebra_system, y, theta_p, x_i, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'solve_newton':
@@ -306,7 +317,27 @@ where F2 = (vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_solve_newton_tol_arguments_number.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_solve_newton_lpdf.stan
+Semantic error in 'bad_solve_newton_lpdf.stan', line 28, column 12 to column 65:
+   -------------------------------------------------
+    26:    vector[2] theta_p;
+    27:
+    28:    theta_p = solve_newton(algebra_system_lpdf, x, y, dat, dat_int);
+                     ^
+    29:
+    30:  }
+   -------------------------------------------------
+
+Ill-typed arguments supplied to function 'solve_newton':
+(<F1>, vector, vector, array[] real, array[] int)
+where F1 = (vector, vector, array[] real, array[] int) => real
+Available signatures:
+(<F2>, vector) => vector
+where F2 = (vector) => vector
+  The first argument must be a pure function but got a probability density or mass function. These function types are not compatible.
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_solve_newton_tol_arguments_number.stan
 Semantic error in 'bad_solve_newton_tol_arguments_number.stan', line 34, column 10 to line 35, column 50:
    -------------------------------------------------
     32:  transformed parameters {
@@ -332,7 +363,8 @@ where F2 = (vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_solve_newton_tol_arguments_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_solve_newton_tol_arguments_type.stan
 Semantic error in 'bad_solve_newton_tol_arguments_type.stan', line 34, column 10 to line 35, column 52:
    -------------------------------------------------
     32:  transformed parameters {
@@ -358,7 +390,8 @@ where F2 = (vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_solve_powell_arguments_number.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_solve_powell_arguments_number.stan
 Semantic error in 'bad_solve_powell_arguments_number.stan', line 31, column 10 to column 65:
    -------------------------------------------------
     29:  transformed parameters {
@@ -366,7 +399,7 @@ Semantic error in 'bad_solve_powell_arguments_number.stan', line 31, column 10 t
     31:    y_s_p = solve_powell(algebra_system, y, theta_p, x_r, x_i, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'solve_powell':
@@ -384,7 +417,8 @@ where F2 = (vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_solve_powell_arguments_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_solve_powell_arguments_type.stan
 Semantic error in 'bad_solve_powell_arguments_type.stan', line 31, column 10 to column 60:
    -------------------------------------------------
     29:  transformed parameters {
@@ -392,7 +426,7 @@ Semantic error in 'bad_solve_powell_arguments_type.stan', line 31, column 10 to 
     31:    y_s_p = solve_powell(algebra_system, y, theta_p, x_i, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'solve_powell':
@@ -410,7 +444,8 @@ where F2 = (vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_solve_powell_tol_arguments_number.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_solve_powell_tol_arguments_number.stan
 Semantic error in 'bad_solve_powell_tol_arguments_number.stan', line 34, column 10 to line 35, column 50:
    -------------------------------------------------
     32:  transformed parameters {
@@ -436,7 +471,8 @@ where F2 = (vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_solve_powell_tol_arguments_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_solve_powell_tol_arguments_type.stan
 Semantic error in 'bad_solve_powell_tol_arguments_type.stan', line 34, column 10 to line 35, column 41:
    -------------------------------------------------
     32:  transformed parameters {
@@ -462,7 +498,8 @@ where F2 = (vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_theta_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_theta_type.stan
 Semantic error in 'bad_theta_type.stan', line 31, column 10 to column 62:
    -------------------------------------------------
     29:  transformed parameters {
@@ -470,7 +507,7 @@ Semantic error in 'bad_theta_type.stan', line 31, column 10 to column 62:
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -491,7 +528,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
 (<F2>, vector, vector, data array[] real, data array[] int, data real,
  data real, data real) => vector
   Expected 8 arguments but found 5 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_theta_type_control.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_theta_type_control.stan
 Semantic error in 'bad_theta_type_control.stan', line 31, column 10 to column 78:
    -------------------------------------------------
     29:  transformed parameters {
@@ -499,7 +537,7 @@ Semantic error in 'bad_theta_type_control.stan', line 31, column 10 to column 78
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -520,7 +558,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
      vector
 (<F2>, vector, vector, data array[] real, data array[] int) => vector
   Expected 5 arguments but found 8 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_x_i_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_x_i_type.stan
 Semantic error in 'bad_x_i_type.stan', line 31, column 10 to column 62:
    -------------------------------------------------
     29:  transformed parameters {
@@ -528,7 +567,7 @@ Semantic error in 'bad_x_i_type.stan', line 31, column 10 to column 62:
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -541,7 +580,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
 (<F2>, vector, vector, data array[] real, data array[] int, data real,
  data real, data real) => vector
   Expected 8 arguments but found 5 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_x_i_type_control.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_x_i_type_control.stan
 Semantic error in 'bad_x_i_type_control.stan', line 31, column 10 to column 78:
    -------------------------------------------------
     29:  transformed parameters {
@@ -549,7 +589,7 @@ Semantic error in 'bad_x_i_type_control.stan', line 31, column 10 to column 78:
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -562,7 +602,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
   The 5th argument must be array[] int but got array[] real
 (<F2>, vector, vector, data array[] real, data array[] int) => vector
   Expected 5 arguments but found 8 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_x_r_var_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_x_r_var_type.stan
 Semantic error in 'bad_x_r_var_type.stan', line 31, column 10 to column 64:
    -------------------------------------------------
     29:  transformed parameters {
@@ -570,7 +611,7 @@ Semantic error in 'bad_x_r_var_type.stan', line 31, column 10 to column 64:
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r_p, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -585,7 +626,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
 (<F2>, vector, vector, data array[] real, data array[] int, data real,
  data real, data real) => vector
   Expected 8 arguments but found 5 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_x_r_var_type_control.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_x_r_var_type_control.stan
 Semantic error in 'bad_x_r_var_type_control.stan', line 31, column 10 to column 80:
    -------------------------------------------------
     29:  transformed parameters {
@@ -593,7 +635,7 @@ Semantic error in 'bad_x_r_var_type_control.stan', line 31, column 10 to column 
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r_p, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -608,7 +650,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
   with the keyword 'data'.)
 (<F2>, vector, vector, data array[] real, data array[] int) => vector
   Expected 5 arguments but found 8 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_y_type.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_y_type.stan
 Semantic error in 'bad_y_type.stan', line 31, column 10 to column 62:
    -------------------------------------------------
     29:  transformed parameters {
@@ -616,7 +659,7 @@ Semantic error in 'bad_y_type.stan', line 31, column 10 to column 62:
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r, x_i);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -637,7 +680,8 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
 (<F2>, vector, vector, data array[] real, data array[] int, data real,
  data real, data real) => vector
   Expected 8 arguments but found 5 arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_y_type_control.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_y_type_control.stan
 Semantic error in 'bad_y_type_control.stan', line 31, column 10 to column 78:
    -------------------------------------------------
     29:  transformed parameters {
@@ -645,7 +689,7 @@ Semantic error in 'bad_y_type_control.stan', line 31, column 10 to column 78:
     31:    y_s_p = algebra_solver(algebra_system, y, theta_p, x_r, x_i, 0.01, 0.01, 10);
                    ^
     32:  }
-    33:  
+    33:
    -------------------------------------------------
 
 Ill-typed arguments supplied to function 'algebra_solver':
@@ -666,3 +710,4 @@ where F2 = (vector, vector, data array[] real, data array[] int) => vector
      vector
 (<F2>, vector, vector, data array[] real, data array[] int) => vector
   Expected 5 arguments but found 8 arguments.
+[exit 1]

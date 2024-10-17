@@ -9,7 +9,8 @@ Semantic error in 'auto.stan', line 2, column 7 to column 11:
    -------------------------------------------------
 
 Identifier 'auto' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe break.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc break.stan
 Syntax error in 'break.stan', line 2, column 7 to column 12, parsing error:
    -------------------------------------------------
      1:  data {
@@ -20,7 +21,8 @@ Syntax error in 'break.stan', line 2, column 7 to column 12, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'break'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe cholesky_factor_corr.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc cholesky_factor_corr.stan
 Syntax error in 'cholesky_factor_corr.stan', line 2, column 7 to column 27, parsing error:
    -------------------------------------------------
      1:  data {
@@ -31,7 +33,8 @@ Syntax error in 'cholesky_factor_corr.stan', line 2, column 7 to column 27, pars
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'cholesky_factor_corr'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe cholesky_factor_cov.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc cholesky_factor_cov.stan
 Syntax error in 'cholesky_factor_cov.stan', line 2, column 7 to column 26, parsing error:
    -------------------------------------------------
      1:  data {
@@ -42,7 +45,8 @@ Syntax error in 'cholesky_factor_cov.stan', line 2, column 7 to column 26, parsi
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'cholesky_factor_cov'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe column_stochastic_matrix.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc column_stochastic_matrix.stan
 Syntax error in 'column_stochastic_matrix.stan', line 2, column 7 to column 31, parsing error:
    -------------------------------------------------
      1:  data {
@@ -52,7 +56,8 @@ Syntax error in 'column_stochastic_matrix.stan', line 2, column 7 to column 31, 
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'column_stochastic_matrix'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe continue.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc continue.stan
 Syntax error in 'continue.stan', line 2, column 7 to column 15, parsing error:
    -------------------------------------------------
      1:  data {
@@ -63,7 +68,8 @@ Syntax error in 'continue.stan', line 2, column 7 to column 15, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'continue'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe corr_matrix.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc corr_matrix.stan
 Syntax error in 'corr_matrix.stan', line 2, column 7 to column 18, parsing error:
    -------------------------------------------------
      1:  data {
@@ -74,7 +80,8 @@ Syntax error in 'corr_matrix.stan', line 2, column 7 to column 18, parsing error
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'corr_matrix'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe cov_matrix.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc cov_matrix.stan
 Syntax error in 'cov_matrix.stan', line 2, column 7 to column 17, parsing error:
    -------------------------------------------------
      1:  data {
@@ -85,7 +92,8 @@ Syntax error in 'cov_matrix.stan', line 2, column 7 to column 17, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'cov_matrix'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe data.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc data.stan
 Syntax error in 'data.stan', line 2, column 7 to column 11, parsing error:
    -------------------------------------------------
      1:  data {
@@ -96,7 +104,8 @@ Syntax error in 'data.stan', line 2, column 7 to column 11, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'data'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe else.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc else.stan
 Syntax error in 'else.stan', line 2, column 7 to column 11, parsing error:
    -------------------------------------------------
      1:  data {
@@ -107,7 +116,8 @@ Syntax error in 'else.stan', line 2, column 7 to column 11, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'else'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe export.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc export.stan
 Semantic error in 'export.stan', line 2, column 7 to column 13:
    -------------------------------------------------
      1:  data {
@@ -118,7 +128,8 @@ Semantic error in 'export.stan', line 2, column 7 to column 13:
    -------------------------------------------------
 
 Identifier 'export' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe extern.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc extern.stan
 Semantic error in 'extern.stan', line 2, column 7 to column 13:
    -------------------------------------------------
      1:  data {
@@ -129,7 +140,8 @@ Semantic error in 'extern.stan', line 2, column 7 to column 13:
    -------------------------------------------------
 
 Identifier 'extern' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe false.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc false.stan
 Semantic error in 'false.stan', line 2, column 7 to column 12:
    -------------------------------------------------
      1:  data {
@@ -140,7 +152,8 @@ Semantic error in 'false.stan', line 2, column 7 to column 12:
    -------------------------------------------------
 
 Identifier 'false' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe for.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc for.stan
 Syntax error in 'for.stan', line 2, column 7 to column 10, parsing error:
    -------------------------------------------------
      1:  data {
@@ -151,7 +164,8 @@ Syntax error in 'for.stan', line 2, column 7 to column 10, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'for'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe generated.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc generated.stan
 Semantic error in 'generated.stan', line 2, column 7 to column 16:
    -------------------------------------------------
      1:  data {
@@ -162,7 +176,8 @@ Semantic error in 'generated.stan', line 2, column 7 to column 16:
    -------------------------------------------------
 
 Identifier 'generated' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe if.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc if.stan
 Syntax error in 'if.stan', line 2, column 7 to column 9, parsing error:
    -------------------------------------------------
      1:  data {
@@ -173,7 +188,8 @@ Syntax error in 'if.stan', line 2, column 7 to column 9, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'if'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe in.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc in.stan
 Syntax error in 'in.stan', line 2, column 7 to column 9, parsing error:
    -------------------------------------------------
      1:  data {
@@ -184,7 +200,8 @@ Syntax error in 'in.stan', line 2, column 7 to column 9, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'in'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe int.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc int.stan
 Syntax error in 'int.stan', line 2, column 7 to column 10, parsing error:
    -------------------------------------------------
      1:  data {
@@ -195,7 +212,8 @@ Syntax error in 'int.stan', line 2, column 7 to column 10, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'int'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe matrix.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc matrix.stan
 Syntax error in 'matrix.stan', line 2, column 7 to column 13, parsing error:
    -------------------------------------------------
      1:  data {
@@ -206,7 +224,8 @@ Syntax error in 'matrix.stan', line 2, column 7 to column 13, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'matrix'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe model.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc model.stan
 Syntax error in 'model.stan', line 2, column 7 to column 12, parsing error:
    -------------------------------------------------
      1:  data {
@@ -217,7 +236,8 @@ Syntax error in 'model.stan', line 2, column 7 to column 12, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'model'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe ordered.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc ordered.stan
 Syntax error in 'ordered.stan', line 2, column 7 to column 14, parsing error:
    -------------------------------------------------
      1:  data {
@@ -228,7 +248,8 @@ Syntax error in 'ordered.stan', line 2, column 7 to column 14, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'ordered'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe parameters.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc parameters.stan
 Syntax error in 'parameters.stan', line 2, column 7 to column 17, parsing error:
    -------------------------------------------------
      1:  data {
@@ -239,7 +260,8 @@ Syntax error in 'parameters.stan', line 2, column 7 to column 17, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'parameters'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe positive_ordered.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc positive_ordered.stan
 Syntax error in 'positive_ordered.stan', line 2, column 7 to column 23, parsing error:
    -------------------------------------------------
      1:  data {
@@ -250,7 +272,8 @@ Syntax error in 'positive_ordered.stan', line 2, column 7 to column 23, parsing 
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'positive_ordered'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe quantities.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc quantities.stan
 Semantic error in 'quantities.stan', line 2, column 7 to column 17:
    -------------------------------------------------
      1:  data {
@@ -261,7 +284,8 @@ Semantic error in 'quantities.stan', line 2, column 7 to column 17:
    -------------------------------------------------
 
 Identifier 'quantities' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe real.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc real.stan
 Syntax error in 'real.stan', line 2, column 7 to column 11, parsing error:
    -------------------------------------------------
      1:  data {
@@ -272,7 +296,8 @@ Syntax error in 'real.stan', line 2, column 7 to column 11, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'real'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe repeat.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc repeat.stan
 Semantic error in 'repeat.stan', line 2, column 7 to column 13:
    -------------------------------------------------
      1:  data {
@@ -283,7 +308,8 @@ Semantic error in 'repeat.stan', line 2, column 7 to column 13:
    -------------------------------------------------
 
 Identifier 'repeat' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe return.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc return.stan
 Syntax error in 'return.stan', line 2, column 7 to column 13, parsing error:
    -------------------------------------------------
      1:  data {
@@ -294,7 +320,8 @@ Syntax error in 'return.stan', line 2, column 7 to column 13, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'return'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe row_stochastic_matrix.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc row_stochastic_matrix.stan
 Syntax error in 'row_stochastic_matrix.stan', line 2, column 6 to column 27, parsing error:
    -------------------------------------------------
      1:  generated quantities {
@@ -304,7 +331,8 @@ Syntax error in 'row_stochastic_matrix.stan', line 2, column 6 to column 27, par
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'row_stochastic_matrix'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe row_vector.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc row_vector.stan
 Syntax error in 'row_vector.stan', line 2, column 7 to column 17, parsing error:
    -------------------------------------------------
      1:  data {
@@ -315,7 +343,8 @@ Syntax error in 'row_vector.stan', line 2, column 7 to column 17, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'row_vector'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe simplex.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc simplex.stan
 Syntax error in 'simplex.stan', line 2, column 7 to column 14, parsing error:
    -------------------------------------------------
      1:  data {
@@ -326,7 +355,8 @@ Syntax error in 'simplex.stan', line 2, column 7 to column 14, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'simplex'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe static.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc static.stan
 Semantic error in 'static.stan', line 2, column 7 to column 13:
    -------------------------------------------------
      1:  data {
@@ -337,7 +367,8 @@ Semantic error in 'static.stan', line 2, column 7 to column 13:
    -------------------------------------------------
 
 Identifier 'static' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe struct.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc struct.stan
 Semantic error in 'struct.stan', line 2, column 7 to column 13:
    -------------------------------------------------
      1:  data {
@@ -348,7 +379,8 @@ Semantic error in 'struct.stan', line 2, column 7 to column 13:
    -------------------------------------------------
 
 Identifier 'struct' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe sum_to_zero.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc sum_to_zero.stan
 Syntax error in 'sum_to_zero.stan', line 2, column 7 to column 25, parsing error:
    -------------------------------------------------
      1:  data {
@@ -358,7 +390,8 @@ Syntax error in 'sum_to_zero.stan', line 2, column 7 to column 25, parsing error
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'sum_to_zero_vector'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe then.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc then.stan
 Semantic error in 'then.stan', line 2, column 7 to column 11:
    -------------------------------------------------
      1:  data {
@@ -369,7 +402,8 @@ Semantic error in 'then.stan', line 2, column 7 to column 11:
    -------------------------------------------------
 
 Identifier 'then' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe transformed.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc transformed.stan
 Semantic error in 'transformed.stan', line 2, column 7 to column 18:
    -------------------------------------------------
      1:  data {
@@ -380,7 +414,8 @@ Semantic error in 'transformed.stan', line 2, column 7 to column 18:
    -------------------------------------------------
 
 Identifier 'transformed' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe true.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc true.stan
 Semantic error in 'true.stan', line 2, column 7 to column 11:
    -------------------------------------------------
      1:  data {
@@ -391,7 +426,8 @@ Semantic error in 'true.stan', line 2, column 7 to column 11:
    -------------------------------------------------
 
 Identifier 'true' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe typedef.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc typedef.stan
 Semantic error in 'typedef.stan', line 2, column 7 to column 14:
    -------------------------------------------------
      1:  data {
@@ -402,7 +438,8 @@ Semantic error in 'typedef.stan', line 2, column 7 to column 14:
    -------------------------------------------------
 
 Identifier 'typedef' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe unit_vector.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc unit_vector.stan
 Syntax error in 'unit_vector.stan', line 2, column 7 to column 18, parsing error:
    -------------------------------------------------
      1:  data {
@@ -413,7 +450,8 @@ Syntax error in 'unit_vector.stan', line 2, column 7 to column 18, parsing error
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'unit_vector'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe until.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc until.stan
 Semantic error in 'until.stan', line 2, column 7 to column 12:
    -------------------------------------------------
      1:  data {
@@ -424,7 +462,8 @@ Semantic error in 'until.stan', line 2, column 7 to column 12:
    -------------------------------------------------
 
 Identifier 'until' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe var.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc var.stan
 Semantic error in 'var.stan', line 2, column 7 to column 10:
    -------------------------------------------------
      1:  data {
@@ -435,7 +474,8 @@ Semantic error in 'var.stan', line 2, column 7 to column 10:
    -------------------------------------------------
 
 Identifier 'var' clashes with reserved keyword.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe vector.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc vector.stan
 Syntax error in 'vector.stan', line 2, column 7 to column 13, parsing error:
    -------------------------------------------------
      1:  data {
@@ -446,7 +486,8 @@ Syntax error in 'vector.stan', line 2, column 7 to column 13, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'vector'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe void.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc void.stan
 Syntax error in 'void.stan', line 2, column 7 to column 11, parsing error:
    -------------------------------------------------
      1:  data {
@@ -457,7 +498,8 @@ Syntax error in 'void.stan', line 2, column 7 to column 11, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'void'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe while.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc while.stan
 Syntax error in 'while.stan', line 2, column 7 to column 12, parsing error:
    -------------------------------------------------
      1:  data {
@@ -468,3 +510,4 @@ Syntax error in 'while.stan', line 2, column 7 to column 12, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'while'.
+[exit 1]

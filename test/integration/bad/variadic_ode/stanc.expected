@@ -24,7 +24,8 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_initial_state.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_initial_state.stan
 Semantic error in 'bad_initial_state.stan', line 29, column 4 to line 31, column 24:
    -------------------------------------------------
     27:  transformed parameters {
@@ -50,7 +51,8 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_initial_time.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_initial_time.stan
 Semantic error in 'bad_initial_time.stan', line 30, column 4 to line 32, column 24:
    -------------------------------------------------
     28:  transformed parameters {
@@ -76,7 +78,8 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_max_num_steps.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_max_num_steps.stan
 Semantic error in 'bad_max_num_steps.stan', line 30, column 4 to line 32, column 24:
    -------------------------------------------------
     28:  transformed parameters {
@@ -102,7 +105,8 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_no_args.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_no_args.stan
 Semantic error in 'bad_no_args.stan', line 25, column 4 to line 26, column 28:
    -------------------------------------------------
     23:  transformed parameters {
@@ -128,7 +132,8 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_non_matching_args.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_non_matching_args.stan
 Semantic error in 'bad_non_matching_args.stan', line 29, column 4 to line 31, column 24:
    -------------------------------------------------
     27:  transformed parameters {
@@ -154,7 +159,8 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_one_arg.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_one_arg.stan
 Semantic error in 'bad_one_arg.stan', line 27, column 4 to line 29, column 18:
    -------------------------------------------------
     25:  transformed parameters {
@@ -180,7 +186,8 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_rel_tol.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_rel_tol.stan
 Semantic error in 'bad_rel_tol.stan', line 30, column 4 to line 32, column 24:
    -------------------------------------------------
     28:  transformed parameters {
@@ -206,7 +213,8 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_times.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_times.stan
 Semantic error in 'bad_times.stan', line 30, column 4 to line 31, column 24:
    -------------------------------------------------
     28:  transformed parameters {
@@ -232,7 +240,8 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
-  $ /home/brian/Dev/ml/stanc3/stanc.exe bad_times_tol.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc bad_times_tol.stan
 Semantic error in 'bad_times_tol.stan', line 30, column 4 to line 32, column 24:
    -------------------------------------------------
     28:  transformed parameters {
@@ -258,3 +267,4 @@ where F2 = (real, vector) => vector
      array[] real
     but the other is
      vector
+[exit 1]

@@ -49,7 +49,8 @@ generated quantities {
   gq_m1 /= foo(td_x);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format divide_equals_manual.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format divide_equals_manual.stan
 functions {
   vector foo(vector a1) {
     vector[3] lf1;
@@ -118,7 +119,8 @@ generated quantities {
   gq_mat33_b /= d_real_a;
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format divide_equals_prim.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format divide_equals_prim.stan
 functions {
   real foo(real a1) {
     real b;
@@ -183,7 +185,8 @@ generated quantities {
   z /= foo(y);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format divide_equals_print.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format divide_equals_print.stan
 // test via printf, compile and then run (cmdstan):
 // > stan/src/test/test-models/good/compound-assign/divide_equals_print sample algorithm=fixed_param num_warmup=0 num_samples=1
 
@@ -242,7 +245,8 @@ generated quantities {
   print("z /= foo(y): ", z);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format divide_equals_sliced.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format divide_equals_sliced.stan
 functions {
   void foo_vec(real a1) {
     array[2] int J;
@@ -254,7 +258,8 @@ functions {
   }
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format elt_divide_equals.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format elt_divide_equals.stan
 functions {
   matrix foo_matrix(matrix a1, real a2) {
     matrix[2, 3] lf_m1 = a1;
@@ -310,7 +315,8 @@ generated quantities {
   gq_m1 ./= tp_x;
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format elt_divide_equals_sliced.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format elt_divide_equals_sliced.stan
 functions {
   void foo_vec(real a1) {
     array[2] int J;
@@ -324,7 +330,8 @@ functions {
   }
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format elt_multiply_equals.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format elt_multiply_equals.stan
 functions {
   matrix foo_matrix(matrix a1, real a2) {
     matrix[2, 3] lf_m1 = a1;
@@ -363,7 +370,8 @@ generated quantities {
   gq_m1 .*= td_m1;
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format elt_multiply_equals_sliced.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format elt_multiply_equals_sliced.stan
 functions {
   void foo_vec(real a1) {
     array[2] int J;
@@ -377,7 +385,8 @@ functions {
   }
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format indexed_expr_divide_equals.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format indexed_expr_divide_equals.stan
 transformed data {
   matrix[2, 3] a = [[1, 2, 3], [4, 5, 6]];
   a /= 5.0;
@@ -388,7 +397,8 @@ transformed data {
   print("r1 div 5: ", a);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format matrix_compound_assigns.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format matrix_compound_assigns.stan
 generated quantities {
   real x = 3.3;
   matrix[2, 2] z = [[1, 2], [4, 5]];
@@ -398,41 +408,42 @@ generated quantities {
   print("ident ", ident);
   z *= x;
   print("z *= x ", z);
-  
+
   z = [[1, 2], [4, 5]];
   z += x;
   print("z += x ", z);
-  
+
   z = [[1, 2], [4, 5]];
   z -= x;
   print("z -= x ", z);
-  
+
   z = [[1, 2], [4, 5]];
   z /= x;
   print("z /= x ", z);
-  
+
   z = [[1, 2], [4, 5]];
   z *= ident;
   print("z *= ident ", z);
-  
+
   z = [[1, 2], [4, 5]];
   z .*= ident;
   print("z .*= ident ", z);
-  
+
   z = [[1, 2], [4, 5]];
   z += ident;
   print("z += ident ", z);
-  
+
   z = [[1, 2], [4, 5]];
   z -= ident;
   print("z -= ident ", z);
-  
+
   z = [[1, 2], [4, 5]];
   z ./= ident;
   print("z ./= ident ", z);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format minus_equals_container.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format minus_equals_container.stan
 functions {
   vector foo_vec(vector a1) {
     vector[3] lf_v1;
@@ -504,7 +515,8 @@ generated quantities {
   gq_m1 -= foo_matrix(tp_m1);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format minus_equals_manual.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format minus_equals_manual.stan
 functions {
   vector foo(vector a1) {
     vector[3] lf1;
@@ -597,7 +609,8 @@ generated quantities {
   gq_mat33_b -= d_mat33_a;
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format minus_equals_prim.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format minus_equals_prim.stan
 functions {
   real foo(real a1) {
     real b;
@@ -662,7 +675,8 @@ generated quantities {
   z -= foo(y);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format minus_equals_sliced.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format minus_equals_sliced.stan
 functions {
   void foo_vec(vector a1) {
     matrix[2, 2] aa;
@@ -689,7 +703,8 @@ generated quantities {
   gq_m1[1, J] -= gq_rv1[J];
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format multiply_equals.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format multiply_equals.stan
 functions {
   real foo(real a1) {
     real lf1 = a1;
@@ -720,7 +735,7 @@ parameters {
 model {
   real w = 7;
   theta ~ beta(1, 1);
-  for (n in 1 : N) 
+  for (n in 1 : N)
     y[n] ~ bernoulli(theta);
   print("in model block");
   print("w: ", w);
@@ -741,7 +756,8 @@ generated quantities {
   print("z *= foo(theta) + foo(y1): ", z);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format multiply_equals_container.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format multiply_equals_container.stan
 functions {
   real foo(real a1) {
     real lf_x;
@@ -798,7 +814,8 @@ generated quantities {
   gq_m1 *= foo_matrix(tp_m1);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format multiply_equals_manual.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format multiply_equals_manual.stan
 functions {
   vector foo(vector a1) {
     vector[3] lf1;
@@ -875,7 +892,8 @@ generated quantities {
   gq_mat33_b *= d_mat33_a;
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format multiply_equals_prim.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format multiply_equals_prim.stan
 functions {
   real foo(real a1) {
     real b;
@@ -940,7 +958,8 @@ generated quantities {
   z *= foo(y);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format multiply_equals_sliced.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format multiply_equals_sliced.stan
 functions {
   void foo_vec(real a1) {
     array[2] int J;
@@ -954,7 +973,8 @@ functions {
   }
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format plus_equals_container.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format plus_equals_container.stan
 functions {
   vector foo_vec(vector a1) {
     vector[3] lf_v1;
@@ -1026,7 +1046,8 @@ generated quantities {
   gq_m1 += foo_matrix(tp_m1);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format plus_equals_manual.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format plus_equals_manual.stan
 functions {
   vector foo(vector a1) {
     vector[3] lf1;
@@ -1119,7 +1140,8 @@ generated quantities {
   gq_mat33_b += d_mat33_a;
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format plus_equals_prim.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format plus_equals_prim.stan
 functions {
   real foo(real a1) {
     real b;
@@ -1184,7 +1206,8 @@ generated quantities {
   z += foo(y);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format plus_equals_prim_print.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format plus_equals_prim_print.stan
 // test via printf, compile and then run (cmdstan):
 // > stan/src/test/test-models/good/compound-assign/plus_equals_prim_print sample algorithm=fixed_param num_warmup=0 num_samples=1
 
@@ -1243,7 +1266,8 @@ generated quantities {
   print("z += foo(y): ", z);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format plus_equals_row_vector.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format plus_equals_row_vector.stan
 functions {
   vector foo(vector a1) {
     vector[3] lf1 = a1;
@@ -1266,7 +1290,8 @@ generated quantities {
   print("z[1] += 5 ", z);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format plus_equals_sliced.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format plus_equals_sliced.stan
 functions {
   void foo_vec(vector a1) {
     matrix[2, 2] aa;
@@ -1293,7 +1318,8 @@ generated quantities {
   gq_m1[1, J] += gq_rv1[J];
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format plus_equals_vector.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format plus_equals_vector.stan
 functions {
   vector foo(vector a1) {
     vector[3] lf1;
@@ -1319,7 +1345,8 @@ generated quantities {
   print("z[1] += 5 ", z);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format sliced_plus_equals_container.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format sliced_plus_equals_container.stan
 functions {
   void foo_vec(vector a1) {
     matrix[2, 2] aa;
@@ -1339,3 +1366,4 @@ model {
   mu[J] += b[J];
 }
 
+[exit 0]

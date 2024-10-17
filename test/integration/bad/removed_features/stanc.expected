@@ -11,11 +11,12 @@ Semantic error in 'abs-deprecate.stan', line 3, column 7 to column 17:
 
 A returning function was expected but an undeclared identifier 'fabs' was supplied.
 A similar known identifier is 'abs'
-  $ /home/brian/Dev/ml/stanc3/stanc.exe binomial_coefficient_log.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc binomial_coefficient_log.stan
 Semantic error in 'binomial_coefficient_log.stan', line 12, column 26 to column 66:
    -------------------------------------------------
     10:    real transformed_data_real;
-    11:  
+    11:
     12:    transformed_data_real = binomial_coefficient_log(d_real, r_real);
                                    ^
     13:    transformed_data_real = binomial_coefficient_log(d_int, r_real);
@@ -23,7 +24,8 @@ Semantic error in 'binomial_coefficient_log.stan', line 12, column 26 to column 
    -------------------------------------------------
 
 A returning function was expected but an undeclared identifier 'binomial_coefficient_log' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe cdf_conditioning.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc cdf_conditioning.stan
 Semantic error in 'cdf_conditioning.stan', line 7, column 12 to column 28:
    -------------------------------------------------
      5:  }
@@ -34,11 +36,12 @@ Semantic error in 'cdf_conditioning.stan', line 7, column 12 to column 28:
    -------------------------------------------------
 
 Probability functions with suffixes _lpdf, _lupdf, _lpmf, _lupmf, _cdf, _lcdf and _lccdf, require a vertical bar (|) between the first two arguments.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe cov_exp_quad.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc cov_exp_quad.stan
 Semantic error in 'cov_exp_quad.stan', line 17, column 28 to column 65:
    -------------------------------------------------
     15:    matrix[d_int_1, d_int_1] transformed_data_matrix;
-    16:  
+    16:
     17:    transformed_data_matrix = cov_exp_quad(d_arr_1, d_sigma, d_len);
                                      ^
     18:    transformed_data_matrix = cov_exp_quad(d_arr_1, d_arr_2, d_sigma, d_len);
@@ -46,7 +49,8 @@ Semantic error in 'cov_exp_quad.stan', line 17, column 28 to column 65:
    -------------------------------------------------
 
 A returning function was expected but an undeclared identifier 'cov_exp_quad' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe decl.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc decl.stan
 Syntax error in 'decl.stan', line 2, column 7 to column 12, parsing error:
    -------------------------------------------------
      1:  data {
@@ -57,7 +61,8 @@ Syntax error in 'decl.stan', line 2, column 7 to column 12, parsing error:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'array'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe declarations.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc declarations.stan
 Syntax error in 'declarations.stan', line 3, column 18 to column 19, parsing error:
    -------------------------------------------------
      1:  data {
@@ -72,10 +77,11 @@ Syntax error in 'declarations.stan', line 3, column 18 to column 19, parsing err
 It looks like you are trying to use the old array syntax.
 Please use the new syntax:
 array[1] int<lower=0> a1;
-  $ /home/brian/Dev/ml/stanc3/stanc.exe deprecated_tilde.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc deprecated_tilde.stan
 Semantic error in 'deprecated_tilde.stan', line 12, column 6 to column 19:
    -------------------------------------------------
-    10:  
+    10:
     11:  model {
     12:    1 ~ test_log_lpmf(2.5);
                ^
@@ -85,7 +91,8 @@ Semantic error in 'deprecated_tilde.stan', line 12, column 6 to column 19:
 
 ~ statement should refer to a distribution without its "_lpdf/_lupdf" or "_lpmf/_lupmf" suffix.
 For example, "target += normal_lpdf(y, 0, 1)" should become "y ~ normal(0, 1)."
-  $ /home/brian/Dev/ml/stanc3/stanc.exe duplicate-warns.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc duplicate-warns.stan
 Semantic error in 'duplicate-warns.stan', line 4, column 2 to column 24:
    -------------------------------------------------
      2:    real foo;
@@ -97,7 +104,8 @@ Semantic error in 'duplicate-warns.stan', line 4, column 2 to column 24:
    -------------------------------------------------
 
 A non-returning function was expected but an undeclared identifier 'increment_log_prob' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe get-lp-deprecate.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc get-lp-deprecate.stan
 Semantic error in 'get-lp-deprecate.stan', line 5, column 19 to column 27:
    -------------------------------------------------
      3:  }
@@ -109,7 +117,8 @@ Semantic error in 'get-lp-deprecate.stan', line 5, column 19 to column 27:
    -------------------------------------------------
 
 A returning function was expected but an undeclared identifier 'get_lp' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe get_lp_target.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc get_lp_target.stan
 Semantic error in 'get_lp_target.stan', line 6, column 21 to column 29:
    -------------------------------------------------
      4:  transformed parameters {
@@ -121,7 +130,8 @@ Semantic error in 'get_lp_target.stan', line 6, column 21 to column 29:
    -------------------------------------------------
 
 A returning function was expected but an undeclared identifier 'get_lp' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe identifiers.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc identifiers.stan
 Syntax error in 'identifiers.stan', line 2, column 6 to column 11, parsing error:
    -------------------------------------------------
      1:  data {
@@ -132,11 +142,12 @@ Syntax error in 'identifiers.stan', line 2, column 6 to column 11, parsing error
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'upper'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe if_else.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc if_else.stan
 Semantic error in 'if_else.stan', line 9, column 26 to column 54:
    -------------------------------------------------
      7:    real transformed_data_real;
-     8:  
+     8:
      9:    transformed_data_real = if_else(d_int, d_int, d_int);
                                    ^
     10:    transformed_data_real = if_else(d_int, d_int, d_real);
@@ -144,7 +155,8 @@ Semantic error in 'if_else.stan', line 9, column 26 to column 54:
    -------------------------------------------------
 
 A returning function was expected but an undeclared identifier 'if_else' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe increment_log_prob.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc increment_log_prob.stan
 Semantic error in 'increment_log_prob.stan', line 42, column 2 to column 24:
    -------------------------------------------------
     40:  }
@@ -156,7 +168,8 @@ Semantic error in 'increment_log_prob.stan', line 42, column 2 to column 24:
    -------------------------------------------------
 
 A non-returning function was expected but an undeclared identifier 'increment_log_prob' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe lvalue_multiindex.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc lvalue_multiindex.stan
 Semantic error in 'lvalue_multiindex.stan', line 6, column 3 to column 10:
    -------------------------------------------------
      4:  transformed data {
@@ -168,11 +181,12 @@ Semantic error in 'lvalue_multiindex.stan', line 6, column 3 to column 10:
    -------------------------------------------------
 
 Left hand side of an assignment cannot have nested multi-indexing.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe multiply_log.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc multiply_log.stan
 Semantic error in 'multiply_log.stan', line 11, column 26 to column 54:
    -------------------------------------------------
      9:    real transformed_data_real;
-    10:  
+    10:
     11:    transformed_data_real = multiply_log(d_real, r_real);
                                    ^
     12:    transformed_data_real = multiply_log(d_int, r_real);
@@ -180,7 +194,8 @@ Semantic error in 'multiply_log.stan', line 11, column 26 to column 54:
    -------------------------------------------------
 
 A returning function was expected but an undeclared identifier 'multiply_log' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe old-log-funs.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc old-log-funs.stan
 Semantic error in 'old-log-funs.stan', line 3, column 6 to column 24:
    -------------------------------------------------
      1:  transformed data {
@@ -192,7 +207,8 @@ Semantic error in 'old-log-funs.stan', line 3, column 6 to column 24:
    -------------------------------------------------
 
 A returning function was expected but an undeclared identifier 'multiply_log' was supplied.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe pound-comment-deprecated.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc pound-comment-deprecated.stan
 Syntax error in 'pound-comment-deprecated.stan', line 2, column 1, lexing error:
    -------------------------------------------------
      1:  data {
@@ -203,11 +219,12 @@ Syntax error in 'pound-comment-deprecated.stan', line 2, column 1, lexing error:
    -------------------------------------------------
 
 Invalid character found.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe real-bools.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc real-bools.stan
 Semantic error in 'real-bools.stan', line 6, column 9 to column 10:
    -------------------------------------------------
      4:    array[5] real xyz;
-     5:  
+     5:
      6:    while (z) {
                   ^
      7:      // real as boolean value
@@ -215,7 +232,8 @@ Semantic error in 'real-bools.stan', line 6, column 9 to column 10:
    -------------------------------------------------
 
 Condition in while-loop must be of type int. Instead found type real.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe removed_deprecated_syntax.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc removed_deprecated_syntax.stan
 Syntax error in 'removed_deprecated_syntax.stan', line 10, column 9 to column 10, parsing error:
    -------------------------------------------------
      8:    real a;
@@ -230,18 +248,20 @@ Syntax error in 'removed_deprecated_syntax.stan', line 10, column 9 to column 10
 It looks like you are trying to use the old array syntax.
 Please use the new syntax:
 array[7] real c;
-  $ /home/brian/Dev/ml/stanc3/stanc.exe unreserved-array-keyword.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc unreserved-array-keyword.stan
 Syntax error in 'unreserved-array-keyword.stan', line 2, column 24 to column 29, parsing error:
    -------------------------------------------------
      1:  functions {
      2:    real f(array[,,] real array) { return array[1,2,3]; }
                                  ^
      3:  }
-     4:  
+     4:
    -------------------------------------------------
 
 Expected a new identifier but found reserved keyword 'array'.
-  $ /home/brian/Dev/ml/stanc3/stanc.exe unsized-old-array.stan
+[exit 1]
+  $ ../../../../../install/default/bin/stanc unsized-old-array.stan
 Syntax error in 'unsized-old-array.stan', line 2, column 17 to column 20, parsing error:
    -------------------------------------------------
      1:  functions{
@@ -253,5 +273,6 @@ Syntax error in 'unsized-old-array.stan', line 2, column 17 to column 20, parsin
 
 An identifier is expected after the type as a function argument name.
 It looks like you are trying to use the old array syntax.
-Please use the new syntax: 
+Please use the new syntax:
 array[,] real
+[exit 1]

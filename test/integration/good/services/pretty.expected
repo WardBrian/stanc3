@@ -4,10 +4,10 @@ data {
   int<lower=0> N_edges;
   array[N_edges] int<lower=1, upper=N> node1; // node1[i] adjacent to node2[i]
   array[N_edges] int<lower=1, upper=N> node2; // and node1[i] < node2[i]
-  
+
   array[N] int<lower=0> y; // count outcomes
   vector<lower=0>[N] E; // exposure
-  
+
   real<lower=0> scaling_factor; //the scaling factor to make the ICAR variances approxiamtely one
 }
 transformed data {
@@ -15,20 +15,20 @@ transformed data {
 }
 parameters {
   real beta0; // intercept
-  
+
   real<lower=0> sigma; // overall standard deviation
   real<lower=0, upper=1> rho; // proportion unstructured vs. spatially structured variance
-  
+
   vector[N] theta; // heterogeneous effects
   vector[N - 1] phi_raw; // raw spatial effects
 }
 transformed parameters {
   vector[N] phi;
   vector[N] convolved_re;
-  
+
   phi[1 : (N - 1)] = phi_raw;
   phi[N] = -sum(phi_raw);
-  
+
   // NB: scaling_factor scales the spatial effect so the variance is approxiamtely 1.
   // This is NOT a magic number, and comes as data.
   // Divide by sqrt of scaling factor to properly scale precision matrix phi.
@@ -36,10 +36,10 @@ transformed parameters {
 }
 model {
   y ~ poisson_log(log_E + beta0 + convolved_re * sigma);
-  
+
   // This is the prior for phi! (up to proportionality)
   target += -0.5 * dot_self(phi[node1] - phi[node2]);
-  
+
   beta0 ~ normal(0.0, 2.5);
   theta ~ normal(0.0, 1.0);
   sigma ~ normal(0, 5);
@@ -66,7 +66,8 @@ generated quantities {
   }
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format test_gq.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format test_gq.stan
 parameters {
   array[2] real<lower=-10, upper=10> y;
 }
@@ -87,7 +88,8 @@ generated quantities {
   y_rep[2] = normal_rng(y[2], 1);
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format test_gq2.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format test_gq2.stan
 parameters {
   array[2] real<lower=-10, upper=10> y;
 }
@@ -98,7 +100,8 @@ generated quantities {
   print("no QoIs");
 }
 
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format test_lp.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc --auto-format test_lp.stan
 parameters {
   array[2] real<lower=-10, upper=10> y;
 }
@@ -114,3 +117,4 @@ generated quantities {
   real xgq = 0.007;
 }
 
+[exit 0]

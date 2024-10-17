@@ -804,10 +804,10 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         std::get<0>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)])) = in__.template read<
                                                                     local_scalar_t__>();
         current_statement__ = 5;
-        std::get<0>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) = 
+        std::get<0>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) =
           in__.template read<std::complex<local_scalar_t__>>();
         current_statement__ = 5;
-        std::get<1>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) = 
+        std::get<1>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) =
           in__.template read<Eigen::Matrix<local_scalar_t__,-1,1>>(4);
       }
       std::vector<
@@ -841,11 +841,11 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         for (int sym2__ = 1; sym2__ <= 4; ++sym2__) {
           current_statement__ = 6;
           std::get<0>(
-            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<local_scalar_t__>();
           current_statement__ = 6;
           std::get<1>(
-            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<Eigen::Matrix<local_scalar_t__,-1,1>>(5);
         }
       }
@@ -894,7 +894,7 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         current_statement__ = 7;
         for (int sym2__ = 1; sym2__ <= 4; ++sym2__) {
           current_statement__ = 7;
-          std::get<0>(std::get<1>(very_deep_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<0>(std::get<1>(very_deep_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<local_scalar_t__>();
           current_statement__ = 7;
           for (int sym3__ = 1; sym3__ <= 5; ++sym3__) {
@@ -1056,10 +1056,10 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         std::get<0>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)])) = in__.template read<
                                                                     local_scalar_t__>();
         current_statement__ = 5;
-        std::get<0>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) = 
+        std::get<0>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) =
           in__.template read<std::complex<local_scalar_t__>>();
         current_statement__ = 5;
-        std::get<1>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) = 
+        std::get<1>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) =
           in__.template read<Eigen::Matrix<local_scalar_t__,-1,1>>(4);
       }
       std::vector<
@@ -1093,11 +1093,11 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         for (int sym2__ = 1; sym2__ <= 4; ++sym2__) {
           current_statement__ = 6;
           std::get<0>(
-            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<local_scalar_t__>();
           current_statement__ = 6;
           std::get<1>(
-            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<Eigen::Matrix<local_scalar_t__,-1,1>>(5);
         }
       }
@@ -1146,7 +1146,7 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         current_statement__ = 7;
         for (int sym2__ = 1; sym2__ <= 4; ++sym2__) {
           current_statement__ = 7;
-          std::get<0>(std::get<1>(very_deep_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<0>(std::get<1>(very_deep_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<local_scalar_t__>();
           current_statement__ = 7;
           for (int sym3__ = 1; sym3__ <= 5; ++sym3__) {
@@ -1321,10 +1321,10 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         std::get<0>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)])) = in__.template read<
                                                                     local_scalar_t__>();
         current_statement__ = 5;
-        std::get<0>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) = 
+        std::get<0>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) =
           in__.template read<std::complex<local_scalar_t__>>();
         current_statement__ = 5;
-        std::get<1>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) = 
+        std::get<1>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) =
           in__.template read<Eigen::Matrix<local_scalar_t__,-1,1>>(4);
       }
       std::vector<
@@ -1351,11 +1351,11 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         for (int sym2__ = 1; sym2__ <= 4; ++sym2__) {
           current_statement__ = 6;
           std::get<0>(
-            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<local_scalar_t__>();
           current_statement__ = 6;
           std::get<1>(
-            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<Eigen::Matrix<local_scalar_t__,-1,1>>(5);
         }
       }
@@ -1409,7 +1409,7 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         current_statement__ = 7;
         for (int sym2__ = 1; sym2__ <= 4; ++sym2__) {
           current_statement__ = 7;
-          std::get<0>(std::get<1>(very_deep_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<0>(std::get<1>(very_deep_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<local_scalar_t__>();
           current_statement__ = 7;
           for (int sym3__ = 1; sym3__ <= 5; ++sym3__) {
@@ -1652,7 +1652,7 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         std::get<0>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)])) = in__.read<
                                                                     local_scalar_t__>();
         current_statement__ = 5;
-        std::get<0>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) = 
+        std::get<0>(std::get<1>(std::get<2>(arr_tuple_tuple_p[(sym1__ - 1)]))) =
           in__.read<std::complex<local_scalar_t__>>();
         current_statement__ = 5;
         stan::model::assign(
@@ -1703,7 +1703,7 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         for (int sym2__ = 1; sym2__ <= 4; ++sym2__) {
           current_statement__ = 6;
           std::get<0>(
-            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+            std::get<1>(arr_tuple_arr_tuple_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.read<local_scalar_t__>();
           current_statement__ = 6;
           stan::model::assign(
@@ -1769,7 +1769,7 @@ class arrays_tuples_nested_model final : public model_base_crtp<arrays_tuples_ne
         current_statement__ = 7;
         for (int sym2__ = 1; sym2__ <= 4; ++sym2__) {
           current_statement__ = 7;
-          std::get<0>(std::get<1>(very_deep_p[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<0>(std::get<1>(very_deep_p[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.read<local_scalar_t__>();
           current_statement__ = 7;
           for (int sym3__ = 1; sym3__ <= 5; ++sym3__) {
@@ -2926,7 +2926,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return arrays_tuples_nested_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp basic_unpacking.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp basic_unpacking.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace basic_unpacking_model_namespace {
@@ -3310,7 +3311,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return basic_unpacking_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp infer_tuple_ad.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp infer_tuple_ad.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace infer_tuple_ad_model_namespace {
@@ -3323,7 +3325,7 @@ static constexpr std::array<const char*, 3> locations_array__ =
   " (in 'infer_tuple_ad.stan', line 5, column 2 to column 47)"};
 class infer_tuple_ad_model final : public model_base_crtp<infer_tuple_ad_model> {
  private:
-  
+
  public:
   ~infer_tuple_ad_model() {}
   infer_tuple_ad_model(stan::io::var_context& context__, unsigned int
@@ -3672,7 +3674,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return infer_tuple_ad_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp nested_unpacking.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp nested_unpacking.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace nested_unpacking_model_namespace {
@@ -4104,7 +4107,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return nested_unpacking_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp qr_unpack.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp qr_unpack.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace qr_unpack_model_namespace {
@@ -4568,7 +4572,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return qr_unpack_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp simple.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp simple.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace simple_model_namespace {
@@ -4887,7 +4892,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return simple_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp simple2.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp simple2.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace simple2_model_namespace {
@@ -5211,7 +5217,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return simple2_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp simple3.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp simple3.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace simple3_model_namespace {
@@ -5550,7 +5557,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return simple3_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-constraints-data.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-constraints-data.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_constraints_data_model_namespace {
@@ -5983,7 +5991,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_constraints_data_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-constraints-params.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-constraints-params.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_constraints_params_model_namespace {
@@ -6185,14 +6194,14 @@ class tuple_constraints_params_model final : public model_base_crtp<tuple_constr
         for (int sym2__ = 1; sym2__ <=
              complicated_brack_dot2_1dim__; ++sym2__) {
           current_statement__ = 4;
-          std::get<0>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<0>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<local_scalar_t__>();
           current_statement__ = 4;
-          std::get<1>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<1>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read_constrain_simplex<
               Eigen::Matrix<local_scalar_t__,-1,1>, jacobian__>(lp__, 5);
           current_statement__ = 4;
-          std::get<2>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<2>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read_constrain_cholesky_factor_cov<
               Eigen::Matrix<local_scalar_t__,-1,-1>, jacobian__>(lp__, 5, 4);
         }
@@ -6306,14 +6315,14 @@ class tuple_constraints_params_model final : public model_base_crtp<tuple_constr
         for (int sym2__ = 1; sym2__ <=
              complicated_brack_dot2_1dim__; ++sym2__) {
           current_statement__ = 4;
-          std::get<0>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<0>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<local_scalar_t__>();
           current_statement__ = 4;
-          std::get<1>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<1>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read_constrain_simplex<
               Eigen::Matrix<local_scalar_t__,-1,1>, jacobian__>(lp__, 5);
           current_statement__ = 4;
-          std::get<2>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<2>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read_constrain_cholesky_factor_cov<
               Eigen::Matrix<local_scalar_t__,-1,-1>, jacobian__>(lp__, 5, 4);
         }
@@ -6430,14 +6439,14 @@ class tuple_constraints_params_model final : public model_base_crtp<tuple_constr
         for (int sym2__ = 1; sym2__ <=
              complicated_brack_dot2_1dim__; ++sym2__) {
           current_statement__ = 4;
-          std::get<0>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<0>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read<local_scalar_t__>();
           current_statement__ = 4;
-          std::get<1>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<1>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read_constrain_simplex<
               Eigen::Matrix<local_scalar_t__,-1,1>, jacobian__>(lp__, 5);
           current_statement__ = 4;
-          std::get<2>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<2>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.template read_constrain_cholesky_factor_cov<
               Eigen::Matrix<local_scalar_t__,-1,-1>, jacobian__>(lp__, 5, 4);
         }
@@ -6578,7 +6587,7 @@ class tuple_constraints_params_model final : public model_base_crtp<tuple_constr
         for (int sym2__ = 1; sym2__ <=
              complicated_brack_dot2_1dim__; ++sym2__) {
           current_statement__ = 4;
-          std::get<0>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) = 
+          std::get<0>(std::get<1>(complicated[(sym1__ - 1)])[(sym2__ - 1)]) =
             in__.read<local_scalar_t__>();
           current_statement__ = 4;
           stan::model::assign(
@@ -7130,7 +7139,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_constraints_params_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-dataonly.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-dataonly.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_dataonly_model_namespace {
@@ -7587,7 +7597,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_dataonly_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-dataonly2.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-dataonly2.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_dataonly2_model_namespace {
@@ -7626,7 +7637,7 @@ tuple_tester(const std::tuple<std::vector<double>, int>& x, std::ostream*
 }
 class tuple_dataonly2_model final : public model_base_crtp<tuple_dataonly2_model> {
  private:
-  
+
  public:
   ~tuple_dataonly2_model() {}
   tuple_dataonly2_model(stan::io::var_context& context__, unsigned int
@@ -7939,7 +7950,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_dataonly2_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-foreach.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-foreach.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_foreach_model_namespace {
@@ -8258,7 +8270,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_foreach_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-full.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-full.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_full_model_namespace {
@@ -8690,7 +8703,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_full_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-ix-assign.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-ix-assign.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_ix_assign_model_namespace {
@@ -9003,7 +9017,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_ix_assign_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-ix-assign2.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-ix-assign2.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_ix_assign2_model_namespace {
@@ -9318,7 +9333,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_ix_assign2_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-ix-assign3.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-ix-assign3.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_ix_assign3_model_namespace {
@@ -9632,7 +9648,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_ix_assign3_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-ix-assign4.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-ix-assign4.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_ix_assign4_model_namespace {
@@ -9950,7 +9967,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_ix_assign4_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-nested-param.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-nested-param.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_nested_param_model_namespace {
@@ -9963,7 +9981,7 @@ static constexpr std::array<const char*, 3> locations_array__ =
   " (in 'tuple-nested-param.stan', line 3, column 2 to column 47)"};
 class tuple_nested_param_model final : public model_base_crtp<tuple_nested_param_model> {
  private:
-  
+
  public:
   ~tuple_nested_param_model() {}
   tuple_nested_param_model(stan::io::var_context& context__, unsigned int
@@ -10456,7 +10474,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_nested_param_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-params.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-params.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_params_model_namespace {
@@ -10468,7 +10487,7 @@ static constexpr std::array<const char*, 2> locations_array__ =
   " (in 'tuple-params.stan', line 2, column 2 to column 32)"};
 class tuple_params_model final : public model_base_crtp<tuple_params_model> {
  private:
-  
+
  public:
   ~tuple_params_model() {}
   tuple_params_model(stan::io::var_context& context__, unsigned int
@@ -10832,7 +10851,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_params_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-promotion.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-promotion.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_promotion_model_namespace {
@@ -11886,7 +11906,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_promotion_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple-templating.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple-templating.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_templating_model_namespace {
@@ -12556,7 +12577,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_templating_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple_copying.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple_copying.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_copying_model_namespace {
@@ -13332,7 +13354,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_copying_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple_exprs.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple_exprs.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_exprs_model_namespace {
@@ -13350,7 +13373,7 @@ static constexpr std::array<const char*, 8> locations_array__ =
   " (in 'tuple_exprs.stan', line 9, column 2 to column 24)"};
 class tuple_exprs_model final : public model_base_crtp<tuple_exprs_model> {
  private:
-  
+
  public:
   ~tuple_exprs_model() {}
   tuple_exprs_model(stan::io::var_context& context__, unsigned int
@@ -13713,7 +13736,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_exprs_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple_hof.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple_hof.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_hof_model_namespace {
@@ -14211,7 +14235,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_hof_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple_lpdf.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple_lpdf.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_lpdf_model_namespace {
@@ -14273,7 +14298,7 @@ foo_lpdf(const std::tuple<T0__0__, T0__1__>& x,
 }
 class tuple_lpdf_model final : public model_base_crtp<tuple_lpdf_model> {
  private:
-  
+
  public:
   ~tuple_lpdf_model() {}
   tuple_lpdf_model(stan::io::var_context& context__, unsigned int
@@ -14578,7 +14603,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_lpdf_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple_lpdf2.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple_lpdf2.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_lpdf2_model_namespace {
@@ -14619,7 +14645,7 @@ foo_lpdf(const std::tuple<T0__0__, T0__1__>& x, std::ostream* pstream__) {
 }
 class tuple_lpdf2_model final : public model_base_crtp<tuple_lpdf2_model> {
  private:
-  
+
  public:
   ~tuple_lpdf2_model() {}
   tuple_lpdf2_model(stan::io::var_context& context__, unsigned int
@@ -14922,7 +14948,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_lpdf2_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple_lpmf.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple_lpmf.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_lpmf_model_namespace {
@@ -14967,7 +14994,7 @@ foo_lpmf(const std::tuple<T0__0__, T0__1__>& x, const T1__& y, std::ostream*
 }
 class tuple_lpmf_model final : public model_base_crtp<tuple_lpmf_model> {
  private:
-  
+
  public:
   ~tuple_lpmf_model() {}
   tuple_lpmf_model(stan::io::var_context& context__, unsigned int
@@ -15270,7 +15297,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_lpmf_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp tuple_temporary.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp tuple_temporary.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace tuple_temporary_model_namespace {
@@ -15290,7 +15318,7 @@ static constexpr std::array<const char*, 10> locations_array__ =
   " (in 'tuple_temporary.stan', line 6, column 24 to column 25)"};
 class tuple_temporary_model final : public model_base_crtp<tuple_temporary_model> {
  private:
-  
+
  public:
   ~tuple_temporary_model() {}
   tuple_temporary_model(stan::io::var_context& context__, unsigned int
@@ -15693,7 +15721,8 @@ stan::math::profile_map& get_stan_profile_data() {
   return tuple_temporary_model_namespace::profiles__;
 }
 #endif
-  $ /home/brian/Dev/ml/stanc3/stanc.exe -fsoa --print-cpp unpack_promote.stan
+[exit 0]
+  $ ../../../../../install/default/bin/stanc -fsoa --print-cpp unpack_promote.stan
 // Code generated by %%NAME%% %%VERSION%%
 #include <stan/model/model_header.hpp>
 namespace unpack_promote_model_namespace {
@@ -16414,3 +16443,4 @@ stan::math::profile_map& get_stan_profile_data() {
   return unpack_promote_model_namespace::profiles__;
 }
 #endif
+[exit 0]
