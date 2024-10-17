@@ -9,7 +9,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "/home/brian/Dev/ml/stanc3/stanc.exe --auto-format --max-line-length=40"
+    "/mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --max-line-length=40"
     %{stanfiles}))))
 
 (rule
@@ -28,7 +28,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "/home/brian/Dev/ml/stanc3/stanc.exe --auto-format --max-line-length=120"
+    "/mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --max-line-length=120"
     %{stanfiles}))))
 
 (rule

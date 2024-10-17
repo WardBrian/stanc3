@@ -1,4 +1,4 @@
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format arrays-tuples-nested.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format arrays-tuples-nested.stan
 data {
   tuple(array[10] real, int) basic;
   tuple(int, tuple(real, vector[2])) tuple_tuple;
@@ -21,7 +21,7 @@ parameters {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format basic_unpacking.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format basic_unpacking.stan
 transformed data {
   int x = 3;
   int y = 4;
@@ -31,19 +31,19 @@ transformed data {
   (x, y) = (y, x);
   print(x, y);
   (/* comment 1*/ x /*comment 2*/, /*comment 3*/ y /* comment 4 */) = (y, x);
-
+  
   /* ^^^:comment 5*/
   (//comment 1
    x //comment 2
    , //comment 3
    y //comment 4
    ) = (y, x);
-
+  
   // ^^^: comment 5
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format infer_tuple_ad.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format infer_tuple_ad.stan
 parameters {
   real x;
 }
@@ -52,7 +52,7 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format nested_unpacking.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format nested_unpacking.stan
 data {
   tuple(array[3] real, tuple(real, vector[4], array[4] real), int) complicated;
 }
@@ -62,12 +62,12 @@ model {
   vector[4] z;
   array[4] real w;
   int i;
-
+  
   (x, (y, z, w), i) = complicated;
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format qr_unpack.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format qr_unpack.stan
 data {
   int<lower=1> N;
   int<lower=1> M;
@@ -78,29 +78,29 @@ parameters {
 model {
   matrix[N, M] Q;
   matrix[M, M] R;
-
+  
   (Q, R) = qr_thin(A);
-
+  
   // ... do something with Q and R ...
   target += sum(Q) + dot_self(to_vector(R));
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format simple.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format simple.stan
 transformed data {
   tuple(real, int) x = (3.14, 2);
   print(x.1);
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format simple2.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format simple2.stan
 transformed data {
   tuple(array[2] real, int) x = ({1.01, 3.14}, 2);
   print(x.1[2]);
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format simple3.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format simple3.stan
 transformed data {
   tuple(array[2, 3] real, int) x = ({{1.01, 3.14}, {1.01, 3.14},
                                      {1.01, 3.14}},
@@ -109,7 +109,7 @@ transformed data {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-constraints-data.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-constraints-data.stan
 data {
   tuple(int<lower=0>, tuple(real<lower=1>, int<upper=2>)) y;
   tuple(int<lower=0>, real<lower=1>, simplex[2]) x;
@@ -117,7 +117,7 @@ data {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-constraints-params.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-constraints-params.stan
 functions {
   tuple(real, real) foo() {
     return (1.0, 2.0);
@@ -130,13 +130,13 @@ parameters {
   tuple(real<lower=0>, real<lower=0>) ps;
   array[3, 2] tuple(real<lower=0>, simplex[4]) ps2;
   real<lower=foo().1, upper=ps.2> t;
-
+  
   array[2] tuple(real, array[indicator ? 3 : 0]
                  tuple(real, simplex[5], cholesky_factor_cov[5, 4])) complicated;
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-dataonly.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-dataonly.stan
 functions {
   real foo(data tuple(real, real) x) {
     return x.1;
@@ -158,7 +158,7 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-dataonly2.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-dataonly2.stan
 functions {
   real tuple_tester(data tuple(array[] real, int) x) {
     return x.1[1];
@@ -169,16 +169,16 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-foreach.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-foreach.stan
 transformed data {
   array[100] tuple(real, real) arr;
   for (t in arr) {
-
+    
   }
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-full.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-full.stan
 data {
   tuple(int<lower=0, upper=1>, tuple(array[2] int, array[2] int)) ds;
 }
@@ -187,53 +187,53 @@ parameters {
 }
 model {
   ds.1 ~ bernoulli(ps.1);
-
+  
   target += ps.2 + ds.2.1[1] + ds.2.2[2];
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-ix-assign.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-ix-assign.stan
 transformed data {
   tuple(int, int) x;
   x.1 = 5;
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-ix-assign2.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-ix-assign2.stan
 transformed data {
   tuple(array[10] int, int) x;
   x.1[1] = 5;
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-ix-assign3.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-ix-assign3.stan
 transformed data {
   array[10] tuple(int, int) x;
   x[1].1 = 5;
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-ix-assign4.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-ix-assign4.stan
 transformed data {
   tuple(array[10] tuple(int, array[100] real), int) x;
   x.1[1].1 = 5;
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-nested-param.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-nested-param.stan
 parameters {
   tuple(real, real) ps;
   tuple(real, tuple(real, matrix[10, 10])) ps2;
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-params.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-params.stan
 parameters {
   tuple(real, real<lower=0>) ps;
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-promotion.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-promotion.stan
 functions {
   real dummy(tuple(array[] real, array[] real) test) {
     return sum(test.1) + sum(test.2);
@@ -245,23 +245,23 @@ data {
 }
 transformed data {
   array[4] tuple(int, array[2] int) arrs;
-
+  
   tuple(tuple(int, array[2] int), int, tuple(vector[3], int)) nested;
-
+  
   tuple(array[2] real, complex) basic = ({1, 2}, 3);
-
+  
   tuple(complex_vector[3], real) CV = (V, 2);
   tuple(vector[3], int) V2 = (V, 2);
   CV = V2;
-
+  
   real t = dummy(d);
 }
 transformed parameters {
   tuple(array[3] complex, array[3] complex) d2 = d;
   tuple(vector[3], real) V3 = V2;
-
+  
   array[4] tuple(real, array[2] complex) arrs2 = arrs;
-
+  
   tuple(tuple(real, array[2] complex), real, tuple(vector[3], real)) nested2 = nested;
   tuple(tuple(real, array[2] complex), real, tuple(vector[3], real)) nested3;
   nested3 = nested;
@@ -274,24 +274,24 @@ generated quantities {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple-templating.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple-templating.stan
 functions {
   void foo(tuple(matrix, int) test) {
     print(test.1);
   }
-
+  
   real tsum(tuple(array[] int, array[] real) s) {
     return sum(s.2);
   }
-
+  
   void foo2(array[] tuple(matrix, int) test) {
     print(test[1].1);
   }
-
+  
   void foo3(tuple(real, matrix) test) {
     print(test.1);
   }
-
+  
   void overly_complicated(tuple(array[] matrix, tuple(int, matrix), real) t1,
                           array[] tuple(int, matrix) t2) {
     print(t1.2.2);
@@ -311,7 +311,7 @@ generated quantities {
   real s = tsum((a1, a2));
   // eigen expression inside tuple inside array
   foo2({(m1 + m2, 1)});
-
+  
   // a whole bunch of painful
   overly_complicated(({m1 + m2}, (1, m1 + m2), 3.5),
                      {(1, m1 * 2), (2, m2 * 3)});
@@ -319,19 +319,19 @@ generated quantities {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple_copying.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple_copying.stan
 functions {
   void f(tuple(matrix, matrix) x) {
     print(x.1);
     print(x.2);
   }
-
+  
   void g(tuple(matrix, int, array[] real) x) {
     print(x.1);
     print(x.2);
     print(x.3);
   }
-
+  
   void h(tuple(real, tuple(matrix, array[] real)) x) {
     print(x.1);
     print(x.2.1);
@@ -351,14 +351,14 @@ parameters {
 model {
   tuple(matrix[2, 2], matrix[3, 3]) temp = (x, m1 * m2);
   f(temp);
-
+  
   f((x, m1 * m2));
-
+  
   tuple(matrix[3, 3], int, array[10] real) temp2 = (m1 + m2, 1, y);
   g(temp2);
-
+  
   g((m1 + m2, 1, y));
-
+  
   // note: these will have additional copies for now
   tuple(real, tuple(matrix[2, 2], array[10] real)) temp3 = (1, data_tuple);
   h(temp3);
@@ -367,20 +367,20 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple_exprs.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple_exprs.stan
 generated quantities {
   int x = 3;
   int y = 4;
   complex z;
   matrix[2, 4] foo;
-
+  
   print(((z, x), {1, 2}, 3));
   print((x, (1, x)));
   print((foo, 2, 3, x));
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple_hof.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple_hof.stan
 functions {
   real fun(array[] real y_slice, int start, int end,
            tuple(real, array[] int) m) {
@@ -403,7 +403,7 @@ transformed parameters {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple_lpdf.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple_lpdf.stan
 functions {
   real foo_lpdf(tuple(real, real) x, tuple(real, real, real) y) {
     return 0;
@@ -414,7 +414,7 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple_lpdf2.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple_lpdf2.stan
 functions {
   real foo_lpdf(tuple(real, int) x) {
     return 0;
@@ -425,7 +425,7 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple_lpmf.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple_lpmf.stan
 functions {
   real foo_lpmf(tuple(int, int) x, real y) {
     return x.1 + x.2 * y;
@@ -436,7 +436,7 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format tuple_temporary.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format tuple_temporary.stan
 generated quantities {
   matrix[1, 1] m = [[1.5]];
   // m * 2.0 is a temporary:
@@ -446,7 +446,7 @@ generated quantities {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format unpack_promote.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format unpack_promote.stan
 data {
   int<lower=0> N;
   vector[N] x;
@@ -463,16 +463,16 @@ model {
   array[N] real r;
   array[N] complex z;
   complex_vector[N] v;
-
+  
   (r, v) = td;
   print(r, v);
   (r, z[ : ], v) = (y, y, x);
   print(r, z, v);
   (r, z, v) = (alpha, alpha, theta);
   print(r, z, v);
-
+  
   tuple(complex_vector[N], int) tup;
-
+  
   (tup.1, tup.2) = (theta, 1);
   print(tup);
 }

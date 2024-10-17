@@ -1,4 +1,4 @@
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format funnel.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format funnel.stan
 transformed data {
   int N;
   N = 10;

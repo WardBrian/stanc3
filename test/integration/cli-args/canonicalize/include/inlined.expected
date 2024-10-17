@@ -1,4 +1,4 @@
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes a.stanfunctions
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes a.stanfunctions
 // line comment a
 /*weird block a*/
 void foo(real x) {
@@ -6,7 +6,7 @@ void foo(real x) {
 }
 // another line comment a
 [exit 0]
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. --canonicalize=includes b.stanfunctions
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes b.stanfunctions
 // line comment a
 /*weird block a*/
 void foo(real x) {
@@ -22,19 +22,19 @@ void bar(real y) {
 }
 // another line comment b
 [exit 0]
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. --canonicalize=includes c.stanfunctions
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes c.stanfunctions
 /**
   A documentation comment
 */
 int baz(real z) {
-  if (1)
+  if (1) 
     return 2; // test
-  else
+  else 
     return 3;
   // trailing coment in c
 }
 [exit 0]
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. --canonicalize=includes main.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes main.stan
 functions {
   // line comment a
   /*weird block a*/
@@ -42,7 +42,7 @@ functions {
     return;
   }
   // another line comment a
-
+  
   //include other functions
   // line comment b
   /*weird block b*/
@@ -50,14 +50,14 @@ functions {
     return;
   }
   // another line comment b
-
+  
   /**
     A documentation comment
   */
   int baz(real z) {
-    if (1)
+    if (1) 
       return 2; // test
-    else
+    else 
       return 3;
     // trailing coment in c
   }
@@ -73,38 +73,38 @@ transformed data {
 model {
   x ~ bernoulli(0);
   if (1) {
-
+    
   } else {
     // test tildes
-
+    
     x ~ exponential(15);
   }
 }
 generated quantities {
   real z;
   if (1) {
-
+    
   } else {
     // test 2
-
+    
     z = exp(15);
-
+    
     /* this contains only statements
     */
-
+    
     z = 10.5; // z = 10.5
     z = 11.2;
   }
-
+  
   if (1) {
     /* block comment */
-
+    
     foo(3.4);
   }
 }
 
 [exit 0]
-  $ ../../../../../../install/default/bin/stanc --auto-format --include-paths=. --canonicalize=includes tdata.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --include-paths=. --canonicalize=includes tdata.stan
 // I'm in another file!
 
 transformed data {

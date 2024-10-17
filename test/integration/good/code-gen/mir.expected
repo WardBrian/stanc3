@@ -1,4 +1,4 @@
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --debug-mir mother.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --debug-mir mother.stan
 ((functions_block
   (((fdrt (ReturnType UInt)) (fdname foo) (fdsuffix FnPlain)
     (fdargs ((AutoDiffable n UInt)))

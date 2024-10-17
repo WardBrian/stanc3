@@ -1,4 +1,4 @@
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format domain_fail.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format domain_fail.stan
 parameters {
   real<lower=0> x;
 }
@@ -7,7 +7,7 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format valid.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format valid.stan
 parameters {
   real x;
 }

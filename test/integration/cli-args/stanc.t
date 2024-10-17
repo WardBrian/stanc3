@@ -1,5 +1,5 @@
 Show help
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --help
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --help
   Usage: %%NAME%% [option] ... <model_file.stan[functions]>
     --debug-lex                     For debugging purposes: print the lexer actions
     --debug-parse                   For debugging purposes: print the parser actions
@@ -43,10 +43,10 @@ Show help
     -help                           Display this list of options
     --help                          Display this list of options
 Show version
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --version
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --version
   %%NAME%%3 %%VERSION%% (Unix)
 Error when no file passed
-  $ /home/brian/Dev/ml/stanc3/stanc.exe
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe
   Please specify a model_file.
   Usage: %%NAME%% [option] ... <model_file.stan[functions]>
     --debug-lex                     For debugging purposes: print the lexer actions
@@ -92,8 +92,8 @@ Error when no file passed
     --help                          Display this list of options
   [127]
 Error when multiple files passed
-  $ /home/brian/Dev/ml/stanc3/stanc.exe foo.stan foo2.stan
-  /home/brian/Dev/ml/stanc3/stanc.exe: Please specify only one model_file.
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe foo.stan foo2.stan
+  /mnt/home/bward/ceph/mutation/stanc3/stanc.exe: Please specify only one model_file.
   Usage: %%NAME%% [option] ... <model_file.stan[functions]>
     --debug-lex                     For debugging purposes: print the lexer actions
     --debug-parse                   For debugging purposes: print the parser actions

@@ -1,135 +1,135 @@
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format --canonicalize deprecations blocks.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --canonicalize deprecations blocks.stan
 data {
   int N;
   vector[N] y;
 }
 model {
   int j = 0;
-
+  
   // test for - with / without parens
-  for (i in 1 : N)
+  for (i in 1 : N) 
     target += i;
   for (i in 1 : N) {
     target += i;
   }
-
+  
   // test for - with / without parens
   while (j < N) j = j + 1;
   while (j < N) {
     j = j + 1;
   }
   while ((j < N)) j = j + 1;
-
+  
   // test if - with / without parens
-  if (N > 5)
+  if (N > 5) 
     y ~ std_normal();
   if (N > 5) {
     y ~ std_normal();
   }
-
+  
   // test if-else - with / without parens
-  if (N > 5)
+  if (N > 5) 
     y ~ std_normal();
-  else
+  else 
     y ~ std_normal();
-
+  
   if (N > 5) {
     y ~ std_normal();
-  } else
+  } else 
     y ~ std_normal();
-
+  
   if (N > 5) {
     y ~ std_normal();
-  } else
+  } else 
     y ~ std_normal();
-
-  if (N > 5)
+  
+  if (N > 5) 
     y ~ std_normal();
   else {
     y ~ std_normal();
   }
-
+  
   if (N > 5) {
     y ~ std_normal();
   } else {
     y ~ std_normal();
   }
-
+  
   ///////////////////////////////
   // nested if else combinations
   ///////////////////////////////
-  if (N > 5)
+  if (N > 5) 
     y ~ std_normal();
-  else if (N > 5)
+  else if (N > 5) 
     y ~ std_normal();
-
-  if (N > 5)
+  
+  if (N > 5) 
     y ~ std_normal();
-  else if (N > 5)
+  else if (N > 5) 
     y ~ std_normal();
-
-  if (N > 5)
-    if (N > 5)
+  
+  if (N > 5) 
+    if (N > 5) 
       y ~ std_normal();
-    else
+    else 
       y ~ std_normal();
-
+  
   if (N > 5) {
-    if (N > 5)
+    if (N > 5) 
       y ~ std_normal();
-  } else
+  } else 
     y ~ std_normal();
-
-  if (N > 5)
+  
+  if (N > 5) 
     y ~ std_normal();
-  else if (N > 5)
+  else if (N > 5) 
     y ~ std_normal();
-  else if (N > 5)
+  else if (N > 5) 
     y ~ std_normal();
-
-  if (N > 5)
+  
+  if (N > 5) 
     y ~ std_normal();
-  else if (N > 5)
+  else if (N > 5) 
     y ~ std_normal();
   else {
-    if (N > 5)
+    if (N > 5) 
       y ~ std_normal();
   }
-
+  
   if (N > 5) {
     y ~ std_normal();
   } else {
-    if (N > 5)
+    if (N > 5) 
       y ~ std_normal();
-    else if (N > 5)
+    else if (N > 5) 
       y ~ std_normal();
   }
-
+  
   // test comments in various places wrt IfThenElse
   if (N > 5)  //comment before then branch
     y ~ std_normal();
-  else
+  else 
     y ~ std_normal();
-
-  if (N > 5)
+  
+  if (N > 5) 
     y ~ std_normal(); //comment after then branch
-  else
+  else 
     y ~ std_normal();
-
-  if (N > 5)
+  
+  if (N > 5) 
     y ~ std_normal();
   else //comment before else branch
-
+  
     y ~ std_normal();
-
-  if (N > 5)
+  
+  if (N > 5) 
     y ~ std_normal();
-  else
+  else 
     y ~ std_normal(); //comment after else branch
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format --canonicalize deprecations deprecated.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --canonicalize deprecations deprecated.stan
 functions {
   array[] real sho(real t, array[] real y, array[] real theta,
                    array[] real x, array[] int x_int) {
@@ -158,7 +158,7 @@ parameters {
   array[3] real theta;
 }
 model {
-
+  
 }
 generated quantities {
   array[2] real y0 = {1.0, 2.0};
@@ -175,7 +175,7 @@ generated quantities {
 Warning in 'deprecated.stan', line 24, column 2: Assignment of variable to
     itself.
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format --canonicalize deprecations funs.stanfunctions
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --canonicalize deprecations funs.stanfunctions
 // comment test comment
 void test(int x, int y) {
   print(x, ((y)));
@@ -185,11 +185,11 @@ real return_lp() {
   return target();
 }
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format --canonicalize deprecations parenthesize.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --canonicalize deprecations parenthesize.stan
 transformed data {
   int N = 12;
   real b = 1.5;
-
+  
   tuple(real, tuple(real, int)) tpl = ((3.1), ((4.5, (((2))))));
 }
 parameters {
@@ -199,38 +199,38 @@ parameters {
 model {
   matrix[N - 3, 4] n;
   row_vector[N] v = (((1.0) + (m))')[1];
-
+  
   v = ([(1), ((2)), (((3)))]);
   for (i in (1) : (N - 3)) {
     n[i] = (m[i : (i + 3), (((i)))]');
   }
-  if (((b < x) && (!(x < 1))))
+  if (((b < x) && (!(x < 1)))) 
     (x + 4) ~ normal(0, (1 + 1)) T[0, (8)];
-
+  
   real y_raw;
   real y;
   y = (((y_raw > 0) ? 1 : -1)) - y_raw;
   y = ((((y_raw > 0) ? 1 : -1))) - y_raw;
-
+  
   int bool = 1 < 2 > 3 < 4;
-
+  
   tuple(real, real) t = (((3, 4)));
   t.2 = (t).1;
   t.2 = (3, (4)).1;
 }
 
 Warning in 'parenthesize.stan', line 27, column 13: Found 1 < 2 < 3. This is
-    interpreted as (1 < 2) < 3. Consider if the intended meaning was
+    interpreted as (1 < 2) < 3. Consider if the intended meaning was 
     1 > 2 && 2 < 3 instead.
     You can silence this warning by adding explicit parenthesis. This can be
     automatically changed using the canonicalize flag for stanc
 Warning in 'parenthesize.stan', line 27, column 13: Found 1 < 2 > 3 > 4. This
-    is interpreted as (1 < 2 > 3) > 4. Consider if the intended meaning was
+    is interpreted as (1 < 2 > 3) > 4. Consider if the intended meaning was 
     1 < 2 < 3 && 3 > 4 instead.
     You can silence this warning by adding explicit parenthesis. This can be
     automatically changed using the canonicalize flag for stanc
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format --canonicalize deprecations squaremc.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --canonicalize deprecations squaremc.stan
 /*
  * BUGS Volume 3, funshapes, square minus circle
  * http://www.openbugs.net/Examples/Funshapes.html

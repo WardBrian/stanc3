@@ -1,6 +1,6 @@
 Test that a nonsense argument is caught
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --canonicalize dummy
-  /home/brian/Dev/ml/stanc3/stanc.exe: Unrecognized canonicalizer option 'dummy'. 
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --canonicalize dummy
+  /mnt/home/bward/ceph/mutation/stanc3/stanc.exe: Unrecognized canonicalizer option 'dummy'. 
   Should be one of 'deprecations', 'parentheses', 'braces', 'includes', 'strip-comments'.
   Usage: %%NAME%% [option] ... <model_file.stan[functions]>
     --debug-lex                     For debugging purposes: print the lexer actions
@@ -47,7 +47,7 @@ Test that a nonsense argument is caught
   [2]
 
 Test capitalization - this should fail due to the lack of model_name, not the canonicalizer
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --canonicalize DEPRECATIONS,parentheses,bRaCeS
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --canonicalize DEPRECATIONS,parentheses,bRaCeS
   Please specify a model_file.
   Usage: %%NAME%% [option] ... <model_file.stan[functions]>
     --debug-lex                     For debugging purposes: print the lexer actions

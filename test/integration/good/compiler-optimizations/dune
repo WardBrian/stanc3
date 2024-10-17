@@ -9,7 +9,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "/home/brian/Dev/ml/stanc3/stanc.exe --O --print-cpp"
+    "/mnt/home/bward/ceph/mutation/stanc3/stanc.exe --O --print-cpp"
     %{stanfiles}))))
 
 (rule
@@ -28,7 +28,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "/home/brian/Dev/ml/stanc3/stanc.exe --O1 --print-cpp"
+    "/mnt/home/bward/ceph/mutation/stanc3/stanc.exe --O1 --print-cpp"
     %{stanfiles}))))
 
 (rule
@@ -47,7 +47,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "/home/brian/Dev/ml/stanc3/stanc.exe --print-cpp --O0"
+    "/mnt/home/bward/ceph/mutation/stanc3/stanc.exe --print-cpp --O0"
     %{stanfiles}))))
 
 (rule

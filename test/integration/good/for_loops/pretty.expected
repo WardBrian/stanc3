@@ -1,9 +1,9 @@
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --auto-format x_in_xs_function_block_1.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format x_in_xs_function_block_1.stan
 functions {
   int foo(int a) {
     array[2] int vs;
     int y;
-    for (v in vs)
+    for (v in vs) 
       y = v;
     return 0;
   }
@@ -16,12 +16,12 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format x_in_xs_function_block_2.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format x_in_xs_function_block_2.stan
 functions {
   int foo(int a) {
     array[2] int vs;
     int y;
-    for (v in vs)
+    for (v in vs) 
       y = 3;
     return 0;
   }
@@ -34,12 +34,12 @@ model {
 }
 
 [exit 0]
-  $ ../../../../../install/default/bin/stanc --auto-format x_in_xs_function_block_3.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format x_in_xs_function_block_3.stan
 functions {
   int foo(int a) {
     array[2, 3] int vs;
     int y;
-    for (v in vs[1])
+    for (v in vs[1]) 
       y = 3;
     return 0;
   }

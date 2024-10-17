@@ -9,7 +9,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "/home/brian/Dev/ml/stanc3/stanc.exe --print-canonical"
+    "/mnt/home/bward/ceph/mutation/stanc3/stanc.exe --print-canonical"
     %{stanfiles}))))
 
 (rule
@@ -23,7 +23,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "/home/brian/Dev/ml/stanc3/stanc.exe --auto-format --canonicalize deprecations"
+    "/mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --canonicalize deprecations"
     %{stanfiles}))))
 
 (rule
@@ -37,7 +37,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "/home/brian/Dev/ml/stanc3/stanc.exe --auto-format --canonicalize braces,parentheses"
+    "/mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --canonicalize braces,parentheses"
     %{stanfiles}))))
 
 (rule
@@ -51,7 +51,7 @@
    %{targets}
    (run
     %{bin:run_bin_on_args}
-    "/home/brian/Dev/ml/stanc3/stanc.exe --auto-format --canonicalize strip-comments,braces,parentheses,deprecations"
+    "/mnt/home/bward/ceph/mutation/stanc3/stanc.exe --auto-format --canonicalize strip-comments,braces,parentheses,deprecations"
     %{stanfiles}))))
 
 (rule

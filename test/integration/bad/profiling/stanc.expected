@@ -1,52 +1,52 @@
-  $ /home/brian/Dev/ml/stanc3/stanc.exe profile-bad1.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe profile-bad1.stan
 Syntax error in 'profile-bad1.stan', line 2, column 12 to column 13, parsing error:
    -------------------------------------------------
      1:  transformed data {
      2:      profile {
                      ^
-     3:
+     3:  
      4:      }
    -------------------------------------------------
 
 Expected profile name as string in parenthesis
 [exit 1]
-  $ ../../../../../install/default/bin/stanc profile-bad2.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe profile-bad2.stan
 Syntax error in 'profile-bad2.stan', line 2, column 12 to column 13, parsing error:
    -------------------------------------------------
      1:  transformed data {
      2:      profile() {
                      ^
-     3:
+     3:  
      4:      }
    -------------------------------------------------
 
 Expected profile name as string in parenthesis
 [exit 1]
-  $ ../../../../../install/default/bin/stanc profile-bad3.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe profile-bad3.stan
 Syntax error in 'profile-bad3.stan', line 2, column 13 to column 18, parsing error:
    -------------------------------------------------
      1:  transformed data {
      2:      profile( while {
                       ^
-     3:
+     3:  
      4:      }
    -------------------------------------------------
 
 Expected profile name as string in parenthesis
 [exit 1]
-  $ ../../../../../install/default/bin/stanc profile-bad4.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe profile-bad4.stan
 Syntax error in 'profile-bad4.stan', line 2, column 13 to column 18, parsing error:
    -------------------------------------------------
      1:  transformed data {
      2:      profile (while) {
                       ^
-     3:
+     3:  
      4:      }
    -------------------------------------------------
 
 Expected profile name as string in parenthesis
 [exit 1]
-  $ ../../../../../install/default/bin/stanc profile-bad5.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe profile-bad5.stan
 Syntax error in 'profile-bad5.stan', line 2, column 9 to column 16, parsing error:
    -------------------------------------------------
      1:  transformed data {
@@ -57,7 +57,7 @@ Syntax error in 'profile-bad5.stan', line 2, column 9 to column 16, parsing erro
 
 Expected a new identifier but found reserved keyword 'profile'.
 [exit 1]
-  $ ../../../../../install/default/bin/stanc profile-bad6.stan
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe profile-bad6.stan
 Syntax error in 'profile-bad6.stan', line 2, column 9 to column 16, parsing error:
    -------------------------------------------------
      1:  functions {

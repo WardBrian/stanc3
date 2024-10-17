@@ -5,4 +5,4 @@
 
 (cram
  (applies_to :whole_subtree)
- (deps /home/brian/Dev/ml/stanc3/stanc.exe))
+ (deps /mnt/home/bward/ceph/mutation/stanc3/stanc.exe))

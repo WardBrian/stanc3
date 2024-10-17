@@ -1,5 +1,5 @@
 Display all Stan math distributions exposed in the language
-  $ /home/brian/Dev/ml/stanc3/stanc.exe --dump-stan-math-distributions
+  $ /mnt/home/bward/ceph/mutation/stanc3/stanc.exe --dump-stan-math-distributions
   bernoulli: lpmf, rng, ccdf, cdf
   bernoulli_logit: lpmf, rng
   bernoulli_logit_glm: lpmf
