@@ -103,15 +103,9 @@ let is_primitive = function
 
 (** The signatures hash table *)
 let (stan_math_signatures : (string, signature list) Hashtbl.t) =
-  String.Table.create ()
-
-(** All of the signatures that are added by hand, rather than the ones
-    added "declaratively" *)
-let (manual_stan_math_signatures : (string, signature list) Hashtbl.t) =
-  String.Table.create ()
+  String.Table.create ~size:30_000 ()
 
 (** The variadic signatures hash table
-
     These functions cannot be overloaded.
 *)
 let (stan_math_variadic_signatures : (string, variadic_signature) Hashtbl.t) =
@@ -136,7 +130,7 @@ let rng_return_type t lt =
   if List.for_all ~f:is_primitive lt then t else UnsizedType.UArray t
 
 let add_unqualified (name, rt, uqargts, mem_pattern) =
-  Hashtbl.add_multi manual_stan_math_signatures ~key:name
+  Hashtbl.add_multi stan_math_signatures ~key:name
     ~data:
       ( rt
       , List.map ~f:(fun x -> (UnsizedType.AutoDiffable, x)) uqargts
@@ -2574,12 +2568,7 @@ let () =
   add_unqualified ("zeros_int_array", ReturnType (UArray UInt), [UInt], SoA);
   add_unqualified ("zeros_array", ReturnType (UArray UReal), [UInt], SoA);
   add_unqualified ("zeros_row_vector", ReturnType URowVector, [UInt], SoA);
-  add_unqualified ("zeros_vector", ReturnType UVector, [UInt], SoA);
-  (* Now add all the manually added stuff to the main hashtable used
-     for type-checking *)
-  Hashtbl.iteri manual_stan_math_signatures ~f:(fun ~key ~data ->
-      List.iter data ~f:(fun data ->
-          Hashtbl.add_multi stan_math_signatures ~key ~data))
+  add_unqualified ("zeros_vector", ReturnType UVector, [UInt], SoA)
 
 (* variadics *)
 
