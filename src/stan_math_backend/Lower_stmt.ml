@@ -131,12 +131,22 @@ let lower_sized_decl name st adtype initialize =
   let init =
     lower_assign_sized st adtype initialize
     |> Option.value_map ~default:Uninitialized ~f:(fun i -> Assignment i) in
-  make_variable_defn ~type_ ~name ~init ()
+  let defn = VariableDefn (make_variable_defn ~type_ ~name ~init ()) in
+  let sizes =
+    let dims = SizedType.get_dims_expr st in
+    match dims with
+    | Some dims ->
+        [ VariableDefn
+            (make_variable_defn ~type_:Auto ~name:(name ^ "_sizes__")
+               ~init:(Assignment (Lower_expr.lower_expr dims))
+               ()) ]
+    | None -> [] in
+  defn :: sizes
 
 let lower_decl vident pst adtype initialize =
   match pst with
-  | Type.Sized st -> VariableDefn (lower_sized_decl vident st adtype initialize)
-  | Unsized ut -> VariableDefn (lower_unsized_decl vident ut adtype)
+  | Type.Sized st -> lower_sized_decl vident st adtype initialize
+  | Unsized ut -> [VariableDefn (lower_unsized_decl vident ut adtype)]
 
 let lower_profile name body =
   let profile =
@@ -271,6 +281,7 @@ let rec lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
          ; Exprs.literal_string
              ("assigning variable " ^ Stmt.Helpers.get_lhs_name lhs) ]
         @ List.map ~f:lower_index lhs_idcs)
+      (* todo determine name/expression of sizes variable and pass *)
       |> wrap_e
   | TargetPE e ->
       let accum = Var "lp_accum__" in
@@ -341,7 +352,7 @@ let rec lower_statement Stmt.Fixed.{pattern; meta} : stmt list =
   | Block ls -> [Stmts.block (lower_statements ls)]
   | SList ls -> lower_statements ls
   | Decl {decl_adtype; decl_id; decl_type; initialize} ->
-      [lower_decl decl_id decl_type decl_adtype initialize]
+      lower_decl decl_id decl_type decl_adtype initialize
   | Profile (name, ls) -> [lower_profile name (lower_statements ls)]
 
 and lower_statements = List.concat_map ~f:lower_statement

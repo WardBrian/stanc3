@@ -135,6 +135,29 @@ let rec get_array_dims st =
       let st', dims = get_array_dims st in
       (st', dim :: dims)
 
+let rec get_dims_expr st =
+  match st with
+  | SInt | SReal | SComplex -> None
+  | SMatrix (_, d1, d2) | SComplexMatrix (d1, d2) ->
+      Some (Expr.Helpers.tuple_expr [d1; d2])
+  | SRowVector (_, dim)
+   |SVector (_, dim)
+   |SComplexRowVector dim
+   |SComplexVector dim ->
+      Some (Expr.Helpers.tuple_expr [dim])
+  | SArray _ ->
+      let s, d = get_array_dims st in
+      let inner =
+        get_dims_expr s |> Option.value_map ~f:List.return ~default:[] in
+      Some (Expr.Helpers.tuple_expr (d @ inner))
+  | STuple subtypes ->
+      let inner =
+        List.map
+          ~f:(fun st ->
+            get_dims_expr st |> Option.value ~default:Expr.Helpers.zero)
+          subtypes in
+      Some (Expr.Helpers.tuple_expr inner)
+
 (** Return a type's dimensions and inner scalar.
     Differs from [get_array_dims] in that this also breaks down vectors or matrices, so
     a [SVector d] is returned as [(SReal, [d])] rather than [(SVector d, [])]
