@@ -186,8 +186,8 @@ Pretty-printed program does not match the original!
  (comments <opaque>))
 Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
 Called from Frontend__Pretty_print_prog.pretty_print_program in file "src/frontend/Pretty_print_prog.ml", line 76, characters 2-44
-Called from Driver__Entry.stan2mir in file "src/driver/Entry.ml", lines 82-87, characters 9-45
-Called from Driver__Entry.stan2cpp in file "src/driver/Entry.ml", lines 153-154, characters 4-24
+Called from Driver__Entry.stan2mir in file "src/driver/Entry.ml", lines 83-88, characters 9-45
+Called from Driver__Entry.stan2cpp in file "src/driver/Entry.ml", lines 154-156, characters 4-35
 Called from Dune__exe__Stanc.stanc.(fun) in file "src/stanc/stanc.ml", lines 70-73, characters 4-64
 Called from Std__Return.with_return in file "src/std/Return.ml", line 9, characters 14-22
 Re-raised at Std__Return.with_return in file "src/std/Return.ml", line 14, characters 38-45

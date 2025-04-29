@@ -1,2 +1,5 @@
+type annotation_classifier =
+  string -> Middle.UnsizedType.t -> [`Fine | `Unknown | `WrongType]
+
 val find_unrecognized :
-  (string -> bool) -> Ast.untyped_program -> Warnings.t list
+  annotation_classifier -> Ast.untyped_program -> Warnings.t list
