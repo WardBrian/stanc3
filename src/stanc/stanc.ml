@@ -247,7 +247,7 @@ let get_ast_or_exit ?printed_filename ?(print_warnings = true)
   match res with
   | Result.Ok ast -> ast
   | Result.Error err ->
-      Errors.pp ?printed_filename Fmt.stderr err;
+      Fmt.list (Errors.pp ?printed_filename) Fmt.stderr err;
       exit 1
 
 let print_sexp sexp =

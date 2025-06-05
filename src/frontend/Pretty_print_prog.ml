@@ -53,11 +53,12 @@ let check_correctness ?(bare_functions = false) prog pretty =
       else Parse.parse_string Parser.Incremental.program pretty in
     match res with
     | Ok prog -> prog
-    | Error e ->
-        let error = Errors.to_string e in
+    | Error _e ->
+        (* let error = Errors.to_string e in *)
         Common.ICE.internal_compiler_error
           [%message
-            "Pretty-printed program failed to parse" error
+            "Pretty-printed program failed to parse"
+            (* error *)
               (prog : Ast.untyped_program)
               pretty] in
   if compare_untyped_program prog result_ast <> 0 then

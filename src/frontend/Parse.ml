@@ -14,7 +14,8 @@ let parse parse_fun lexbuf =
       () in
   let success prog =
     Result.Ok {prog with Ast.comments= Preprocessor.get_comments ()} in
-  let failure error_state =
+  let errors = ref [] in
+  let rec failure prev error_state =
     let env =
       match[@warning "-4"] error_state with
       | Interp.HandlingError env -> env
@@ -42,18 +43,35 @@ let parse parse_fun lexbuf =
           | _ ->
               "(Parse error state " ^ string_of_int (Interp.number state) ^ ")")
     in
-    Errors.Parsing
-      ( message
-      , Preprocessor.location_span_of_positions
-          ( Lexing.lexeme_start_p (Preprocessor.current_buffer ())
-          , Lexing.lexeme_end_p (Preprocessor.current_buffer ()) ) )
-    |> Result.Error in
+    errors :=
+      Errors.Parsing
+        ( message
+        , Preprocessor.location_span_of_positions
+            ( Lexing.lexeme_start_p (Preprocessor.current_buffer ())
+            , Lexing.lexeme_end_p (Preprocessor.current_buffer ()) ) )
+      :: !errors;
+    let rec loop () =
+      (* just start munching tokens, in the hope that one of them will
+         complete the just-failed sentence and allow us to continue.
+         not quite 'panic mode', since we don't get to control synchronization as much *)
+      let next, loc, _ = input () in
+      match next with
+      | Parser.EOF ->
+          Result.Error (List.map ~f:(fun e -> Errors.Syntax_error e) !errors)
+      | _ when Interp.acceptable prev next loc ->
+          parse_fun lexbuf.Lexing.lex_curr_p
+          |> Interp.loop_handle_undo success failure input
+      | _ -> loop () in
+    loop () in
   let result =
     try
       parse_fun lexbuf.Lexing.lex_curr_p
-      |> Interp.loop_handle success failure input
-      |> Result.map_error ~f:(fun e -> Errors.Syntax_error e)
-    with Errors.SyntaxError err -> Result.Error (Errors.Syntax_error err) in
+      |> Interp.loop_handle_undo success failure input
+      |> Result.map_error ~f:(fun e -> e)
+    with Errors.SyntaxError err ->
+      Result.Error
+        (Errors.Syntax_error err
+        :: List.map ~f:(fun e -> Errors.Syntax_error e) !errors) in
   (result, Input_warnings.collect ())
 
 let parse_string parse_fun str =
@@ -66,7 +84,7 @@ let parse_file parse_fun path =
     try Ok (In_channel.create path) with _ -> Error (Errors.FileNotFound path)
   in
   match chan with
-  | Error err -> (Error err, [])
+  | Error err -> (Error [err], [])
   | Ok chan ->
       let lexbuf = Lexing.from_channel chan in
       Preprocessor.init lexbuf path;
