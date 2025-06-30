@@ -13,7 +13,7 @@
 
 (menhir
  (modules parser)
- (flags :standard --table --strict --require-aliases))
+ (flags :standard --exn-carries-state --strict --require-aliases))
 
 (rule
  (with-stdout-to
