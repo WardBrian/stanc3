@@ -6039,6 +6039,60 @@
          (type_ (StdVector (StdVector (StdVector (Matrix Double 1 -1 AoS)))))
          (name transformed_data_row_vector_array_3d) (init Uninitialized)))
        (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name p_simplex_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name p_1d_simplex_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name p_3d_simplex_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name p_cfcov_54_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name p_cfcov_33_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name p_cfcov_33_ar_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name tp_simplex_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name tp_1d_simplex_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name tp_3d_simplex_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name tp_cfcov_54_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name tp_cfcov_33_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name tp_cfcov_33_ar_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name gq_simplex_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name gq_1d_simplex_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name gq_3d_simplex_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name gq_cfcov_54_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name gq_cfcov_33_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
+        ((static false) (constexpr false) (type_ Int) (name gq_cfcov_33_ar_1dim_unc__)
+         (init Uninitialized)))
+       (GlobalVariableDefn
         ((static false) (constexpr false)
          (type_ (TypeTrait Eigen::Map ((Matrix Double -1 1 AoS)))) (name d_vec)
          (init (InitializerList ((Literal nullptr) (Literal 0))))))
@@ -14152,8 +14206,7 @@
             (For
              ((static false) (constexpr false) (type_ Int) (name sym1__)
               (init (Assignment (Literal 1))))
-             (BinOp (Var sym1__) LEq (Parens (BinOp (Var N) Subtract (Literal 1))))
-             (Increment (Var sym1__))
+             (BinOp (Var sym1__) LEq (Var p_simplex_1dim_unc__)) (Increment (Var sym1__))
              (Block
               ((Expression
                 (MethodCall (Var param_names__) emplace_back ()
@@ -14163,7 +14216,7 @@
             (For
              ((static false) (constexpr false) (type_ Int) (name sym1__)
               (init (Assignment (Literal 1))))
-             (BinOp (Var sym1__) LEq (Parens (BinOp (Var N) Subtract (Literal 1))))
+             (BinOp (Var sym1__) LEq (Var p_1d_simplex_1dim_unc__))
              (Increment (Var sym1__))
              (Block
               ((For
@@ -14183,7 +14236,7 @@
             (For
              ((static false) (constexpr false) (type_ Int) (name sym1__)
               (init (Assignment (Literal 1))))
-             (BinOp (Var sym1__) LEq (Parens (BinOp (Var N) Subtract (Literal 1))))
+             (BinOp (Var sym1__) LEq (Var p_3d_simplex_1dim_unc__))
              (Increment (Var sym1__))
              (Block
               ((For
@@ -14222,22 +14275,7 @@
             (For
              ((static false) (constexpr false) (type_ Int) (name sym1__)
               (init (Assignment (Literal 1))))
-             (BinOp (Var sym1__) LEq
-              (Parens
-               (BinOp
-                (Parens
-                 (BinOp
-                  (Parens
-                   (BinOp
-                    (Parens
-                     (BinOp (Literal 4) Multiply
-                      (Parens (BinOp (Literal 4) Subtract (Literal 1)))))
-                    Divide (Literal 2)))
-                  Add (Literal 4)))
-                Add
-                (Parens
-                 (BinOp (Parens (BinOp (Literal 5) Subtract (Literal 4))) Multiply
-                  (Literal 4))))))
+             (BinOp (Var sym1__) LEq (Var p_cfcov_54_1dim_unc__))
              (Increment (Var sym1__))
              (Block
               ((Expression
@@ -14248,22 +14286,7 @@
             (For
              ((static false) (constexpr false) (type_ Int) (name sym1__)
               (init (Assignment (Literal 1))))
-             (BinOp (Var sym1__) LEq
-              (Parens
-               (BinOp
-                (Parens
-                 (BinOp
-                  (Parens
-                   (BinOp
-                    (Parens
-                     (BinOp (Literal 3) Multiply
-                      (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
-                    Divide (Literal 2)))
-                  Add (Literal 3)))
-                Add
-                (Parens
-                 (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
-                  (Literal 3))))))
+             (BinOp (Var sym1__) LEq (Var p_cfcov_33_1dim_unc__))
              (Increment (Var sym1__))
              (Block
               ((Expression
@@ -14274,22 +14297,7 @@
             (For
              ((static false) (constexpr false) (type_ Int) (name sym1__)
               (init (Assignment (Literal 1))))
-             (BinOp (Var sym1__) LEq
-              (Parens
-               (BinOp
-                (Parens
-                 (BinOp
-                  (Parens
-                   (BinOp
-                    (Parens
-                     (BinOp (Literal 3) Multiply
-                      (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
-                    Divide (Literal 2)))
-                  Add (Literal 3)))
-                Add
-                (Parens
-                 (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
-                  (Literal 3))))))
+             (BinOp (Var sym1__) LEq (Var p_cfcov_33_ar_1dim_unc__))
              (Increment (Var sym1__))
              (Block
               ((For
@@ -14562,7 +14570,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq (Parens (BinOp (Var N) Subtract (Literal 1))))
+                (BinOp (Var sym1__) LEq (Var tp_simplex_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((Expression
@@ -14573,7 +14581,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq (Parens (BinOp (Var N) Subtract (Literal 1))))
+                (BinOp (Var sym1__) LEq (Var tp_1d_simplex_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((For
@@ -14593,7 +14601,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq (Parens (BinOp (Var N) Subtract (Literal 1))))
+                (BinOp (Var sym1__) LEq (Var tp_3d_simplex_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((For
@@ -14633,22 +14641,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq
-                 (Parens
-                  (BinOp
-                   (Parens
-                    (BinOp
-                     (Parens
-                      (BinOp
-                       (Parens
-                        (BinOp (Literal 4) Multiply
-                         (Parens (BinOp (Literal 4) Subtract (Literal 1)))))
-                       Divide (Literal 2)))
-                     Add (Literal 4)))
-                   Add
-                   (Parens
-                    (BinOp (Parens (BinOp (Literal 5) Subtract (Literal 4))) Multiply
-                     (Literal 4))))))
+                (BinOp (Var sym1__) LEq (Var tp_cfcov_54_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((Expression
@@ -14659,22 +14652,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq
-                 (Parens
-                  (BinOp
-                   (Parens
-                    (BinOp
-                     (Parens
-                      (BinOp
-                       (Parens
-                        (BinOp (Literal 3) Multiply
-                         (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
-                       Divide (Literal 2)))
-                     Add (Literal 3)))
-                   Add
-                   (Parens
-                    (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
-                     (Literal 3))))))
+                (BinOp (Var sym1__) LEq (Var tp_cfcov_33_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((Expression
@@ -14685,22 +14663,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq
-                 (Parens
-                  (BinOp
-                   (Parens
-                    (BinOp
-                     (Parens
-                      (BinOp
-                       (Parens
-                        (BinOp (Literal 3) Multiply
-                         (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
-                       Divide (Literal 2)))
-                     Add (Literal 3)))
-                   Add
-                   (Parens
-                    (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
-                     (Literal 3))))))
+                (BinOp (Var sym1__) LEq (Var tp_cfcov_33_ar_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((For
@@ -14958,7 +14921,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq (Parens (BinOp (Var N) Subtract (Literal 1))))
+                (BinOp (Var sym1__) LEq (Var gq_simplex_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((Expression
@@ -14969,7 +14932,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq (Parens (BinOp (Var N) Subtract (Literal 1))))
+                (BinOp (Var sym1__) LEq (Var gq_1d_simplex_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((For
@@ -14989,7 +14952,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq (Parens (BinOp (Var N) Subtract (Literal 1))))
+                (BinOp (Var sym1__) LEq (Var gq_3d_simplex_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((For
@@ -15029,22 +14992,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq
-                 (Parens
-                  (BinOp
-                   (Parens
-                    (BinOp
-                     (Parens
-                      (BinOp
-                       (Parens
-                        (BinOp (Literal 4) Multiply
-                         (Parens (BinOp (Literal 4) Subtract (Literal 1)))))
-                       Divide (Literal 2)))
-                     Add (Literal 4)))
-                   Add
-                   (Parens
-                    (BinOp (Parens (BinOp (Literal 5) Subtract (Literal 4))) Multiply
-                     (Literal 4))))))
+                (BinOp (Var sym1__) LEq (Var gq_cfcov_54_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((Expression
@@ -15055,22 +15003,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq
-                 (Parens
-                  (BinOp
-                   (Parens
-                    (BinOp
-                     (Parens
-                      (BinOp
-                       (Parens
-                        (BinOp (Literal 3) Multiply
-                         (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
-                       Divide (Literal 2)))
-                     Add (Literal 3)))
-                   Add
-                   (Parens
-                    (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
-                     (Literal 3))))))
+                (BinOp (Var sym1__) LEq (Var gq_cfcov_33_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((Expression
@@ -15081,22 +15014,7 @@
                (For
                 ((static false) (constexpr false) (type_ Int) (name sym1__)
                  (init (Assignment (Literal 1))))
-                (BinOp (Var sym1__) LEq
-                 (Parens
-                  (BinOp
-                   (Parens
-                    (BinOp
-                     (Parens
-                      (BinOp
-                       (Parens
-                        (BinOp (Literal 3) Multiply
-                         (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
-                       Divide (Literal 2)))
-                     Add (Literal 3)))
-                   Add
-                   (Parens
-                    (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
-                     (Literal 3))))))
+                (BinOp (Var sym1__) LEq (Var gq_cfcov_33_ar_1dim_unc__))
                 (Increment (Var sym1__))
                 (Block
                  ((For
@@ -15380,7 +15298,7 @@
           (((Return
              ((Constructor (TypeLiteral std::string)
                ((Literal
-                 "\"[{\\\"name\\\":\\\"p_real\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_upper\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_lower\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"offset_multiplier\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"no_offset_multiplier\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"offset_no_multiplier\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_real_1d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_real_3d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_1d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_3d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_1d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_3d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(5) + \",\\\"cols\\\":\" + std::to_string(4) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_ar_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(4) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(2) + \",\\\"cols\\\":\" + std::to_string(3) + \"}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string((N -1)) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_1d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string((N -1)) + \"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_3d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string((N -1)) + \"}}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_cfcov_54\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *4))) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_cfcov_33\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_cfcov_33_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + \"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"x_p\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(2) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"y_p\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(2) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"tp_real_1d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_real_3d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_1d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_3d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_1d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_3d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(5) + \",\\\"cols\\\":\" + std::to_string(4) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_ar_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(4) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(2) + \",\\\"cols\\\":\" + std::to_string(3) + \"}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string((N -1)) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_1d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string((N -1)) + \"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_3d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string((N -1)) + \"}}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_cfcov_54\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *4))) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_cfcov_33\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_cfcov_33_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + \"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"theta_p\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(2) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_real\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"gq_r1\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_r2\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_real_1d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_real_3d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_1d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_3d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_1d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_3d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_ar_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(4) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(2) + \",\\\"cols\\\":\" + std::to_string(3) + \"}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string((N -1)) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_1d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string((N -1)) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_3d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string((N -1)) + \"}}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_cfcov_54\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *4))) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_cfcov_33\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_cfcov_33_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"indices\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"int\\\"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"indexing_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res1\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res2\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res3\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(3) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res11\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res21\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res31\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(3) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res4\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res5\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(2) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(2) + \"}},\\\"block\\\":\\\"generated_quantities\\\"}]\""))))))))))
+                 "\"[{\\\"name\\\":\\\"p_real\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_upper\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_lower\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"offset_multiplier\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"no_offset_multiplier\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"offset_no_multiplier\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_real_1d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_real_3d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_1d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_3d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_1d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_3d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(5) + \",\\\"cols\\\":\" + std::to_string(4) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_ar_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(4) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(2) + \",\\\"cols\\\":\" + std::to_string(3) + \"}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(p_simplex_1dim_unc__) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_1d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(p_1d_simplex_1dim_unc__) + \"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_3d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(p_3d_simplex_1dim_unc__) + \"}}}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_cfcov_54\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(p_cfcov_54_1dim_unc__) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_cfcov_33\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(p_cfcov_33_1dim_unc__) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"p_cfcov_33_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(p_cfcov_33_ar_1dim_unc__) + \"}},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"x_p\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(2) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"y_p\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(2) + \"},\\\"block\\\":\\\"parameters\\\"},{\\\"name\\\":\\\"tp_real_1d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_real_3d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_1d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_3d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_1d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_3d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(5) + \",\\\"cols\\\":\" + std::to_string(4) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_ar_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(4) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(2) + \",\\\"cols\\\":\" + std::to_string(3) + \"}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(tp_simplex_1dim_unc__) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_1d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(tp_1d_simplex_1dim_unc__) + \"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_3d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(tp_3d_simplex_1dim_unc__) + \"}}}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_cfcov_54\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(tp_cfcov_54_1dim_unc__) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_cfcov_33\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(tp_cfcov_33_1dim_unc__) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_cfcov_33_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(tp_cfcov_33_ar_1dim_unc__) + \"}},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"theta_p\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(2) + \"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"tp_real\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"transformed_parameters\\\"},{\\\"name\\\":\\\"gq_r1\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_r2\\\",\\\"type\\\":{\\\"name\\\":\\\"real\\\"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_real_1d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_real_3d_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"real\\\"}}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_1d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_3d_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_1d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_3d_row_vec\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(N) + \"}}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_ar_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(4) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(2) + \",\\\"cols\\\":\" + std::to_string(3) + \"}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(gq_simplex_1dim_unc__) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_1d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(gq_1d_simplex_1dim_unc__) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_3d_simplex\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(N) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(M) + \",\\\"element_type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(gq_3d_simplex_1dim_unc__) + \"}}}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_cfcov_54\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(gq_cfcov_54_1dim_unc__) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_cfcov_33\\\",\\\"type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(gq_cfcov_33_1dim_unc__) + \"},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"gq_cfcov_33_ar\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(K) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(gq_cfcov_33_ar_1dim_unc__) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"indices\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"int\\\"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"indexing_mat\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res1\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res2\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res3\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(3) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res11\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res21\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(5) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res31\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"matrix\\\",\\\"rows\\\":\" + std::to_string(3) + \",\\\"cols\\\":\" + std::to_string(3) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res4\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(3) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(4) + \"}},\\\"block\\\":\\\"generated_quantities\\\"},{\\\"name\\\":\\\"idx_res5\\\",\\\"type\\\":{\\\"name\\\":\\\"array\\\",\\\"length\\\":\" + std::to_string(2) + \",\\\"element_type\\\":{\\\"name\\\":\\\"vector\\\",\\\"length\\\":\" + std::to_string(2) + \"}},\\\"block\\\":\\\"generated_quantities\\\"}]\""))))))))))
        (GlobalComment "Begin method overload boilerplate")
        (FunDef
         ((templates_init ((((Typename RNG))) false)) (inline true) (return_type Void)
@@ -19735,6 +19653,9 @@
            (Expression
             (FunCall stan::math::validate_positive_index ()
              ((Literal "\"p_simplex\"") (Literal "\"N\"") (Var N))))
+           (Expression
+            (Assign (Var p_simplex_1dim_unc__)
+             (Parens (BinOp (Var N) Subtract (Literal 1)))))
            (Expression (Assign (Var current_statement__) (Literal 531)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
@@ -19743,6 +19664,9 @@
            (Expression
             (FunCall stan::math::validate_positive_index ()
              ((Literal "\"p_1d_simplex\"") (Literal "\"N\"") (Var N))))
+           (Expression
+            (Assign (Var p_1d_simplex_1dim_unc__)
+             (Parens (BinOp (Var N) Subtract (Literal 1)))))
            (Expression (Assign (Var current_statement__) (Literal 533)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
@@ -19759,18 +19683,55 @@
            (Expression
             (FunCall stan::math::validate_positive_index ()
              ((Literal "\"p_3d_simplex\"") (Literal "\"N\"") (Var N))))
+           (Expression
+            (Assign (Var p_3d_simplex_1dim_unc__)
+             (Parens (BinOp (Var N) Subtract (Literal 1)))))
            (Expression (Assign (Var current_statement__) (Literal 537)))
            (Expression
             (FunCall stan::math::check_greater_or_equal ()
              ((Literal "\"cholesky_factor_cov p_cfcov_54\"")
               (Literal "\"num rows (must be greater or equal to num cols)\"") 
               (Literal 5) (Literal 4))))
+           (Expression
+            (Assign (Var p_cfcov_54_1dim_unc__)
+             (Parens
+              (BinOp
+               (Parens
+                (BinOp
+                 (Parens
+                  (BinOp
+                   (Parens
+                    (BinOp (Literal 4) Multiply
+                     (Parens (BinOp (Literal 4) Subtract (Literal 1)))))
+                   Divide (Literal 2)))
+                 Add (Literal 4)))
+               Add
+               (Parens
+                (BinOp (Parens (BinOp (Literal 5) Subtract (Literal 4))) Multiply
+                 (Literal 4)))))))
            (Expression (Assign (Var current_statement__) (Literal 538)))
            (Expression
             (FunCall stan::math::check_greater_or_equal ()
              ((Literal "\"cholesky_factor_cov p_cfcov_33\"")
               (Literal "\"num rows (must be greater or equal to num cols)\"") 
               (Literal 3) (Literal 3))))
+           (Expression
+            (Assign (Var p_cfcov_33_1dim_unc__)
+             (Parens
+              (BinOp
+               (Parens
+                (BinOp
+                 (Parens
+                  (BinOp
+                   (Parens
+                    (BinOp (Literal 3) Multiply
+                     (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
+                   Divide (Literal 2)))
+                 Add (Literal 3)))
+               Add
+               (Parens
+                (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
+                 (Literal 3)))))))
            (Expression (Assign (Var current_statement__) (Literal 539)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
@@ -19781,6 +19742,23 @@
              ((Literal "\"cholesky_factor_cov p_cfcov_33_ar\"")
               (Literal "\"num rows (must be greater or equal to num cols)\"") 
               (Literal 3) (Literal 3))))
+           (Expression
+            (Assign (Var p_cfcov_33_ar_1dim_unc__)
+             (Parens
+              (BinOp
+               (Parens
+                (BinOp
+                 (Parens
+                  (BinOp
+                   (Parens
+                    (BinOp (Literal 3) Multiply
+                     (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
+                   Divide (Literal 2)))
+                 Add (Literal 3)))
+               Add
+               (Parens
+                (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
+                 (Literal 3)))))))
            (Expression (Assign (Var current_statement__) (Literal 541)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
@@ -19857,6 +19835,9 @@
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
              ((Literal "\"tp_simplex\"") (Literal "\"N\"") (Var N))))
+           (Expression
+            (Assign (Var tp_simplex_1dim_unc__)
+             (Parens (BinOp (Var N) Subtract (Literal 1)))))
            (Expression (Assign (Var current_statement__) (Literal 560)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
@@ -19865,6 +19846,9 @@
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
              ((Literal "\"tp_1d_simplex\"") (Literal "\"N\"") (Var N))))
+           (Expression
+            (Assign (Var tp_1d_simplex_1dim_unc__)
+             (Parens (BinOp (Var N) Subtract (Literal 1)))))
            (Expression (Assign (Var current_statement__) (Literal 562)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
@@ -19881,10 +19865,64 @@
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
              ((Literal "\"tp_3d_simplex\"") (Literal "\"N\"") (Var N))))
+           (Expression
+            (Assign (Var tp_3d_simplex_1dim_unc__)
+             (Parens (BinOp (Var N) Subtract (Literal 1)))))
+           (Expression
+            (Assign (Var tp_cfcov_54_1dim_unc__)
+             (Parens
+              (BinOp
+               (Parens
+                (BinOp
+                 (Parens
+                  (BinOp
+                   (Parens
+                    (BinOp (Literal 4) Multiply
+                     (Parens (BinOp (Literal 4) Subtract (Literal 1)))))
+                   Divide (Literal 2)))
+                 Add (Literal 4)))
+               Add
+               (Parens
+                (BinOp (Parens (BinOp (Literal 5) Subtract (Literal 4))) Multiply
+                 (Literal 4)))))))
+           (Expression
+            (Assign (Var tp_cfcov_33_1dim_unc__)
+             (Parens
+              (BinOp
+               (Parens
+                (BinOp
+                 (Parens
+                  (BinOp
+                   (Parens
+                    (BinOp (Literal 3) Multiply
+                     (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
+                   Divide (Literal 2)))
+                 Add (Literal 3)))
+               Add
+               (Parens
+                (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
+                 (Literal 3)))))))
            (Expression (Assign (Var current_statement__) (Literal 566)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
              ((Literal "\"tp_cfcov_33_ar\"") (Literal "\"K\"") (Var K))))
+           (Expression
+            (Assign (Var tp_cfcov_33_ar_1dim_unc__)
+             (Parens
+              (BinOp
+               (Parens
+                (BinOp
+                 (Parens
+                  (BinOp
+                   (Parens
+                    (BinOp (Literal 3) Multiply
+                     (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
+                   Divide (Literal 2)))
+                 Add (Literal 3)))
+               Add
+               (Parens
+                (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
+                 (Literal 3)))))))
            (Expression (Assign (Var current_statement__) (Literal 567)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
@@ -19961,6 +19999,9 @@
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
              ((Literal "\"gq_simplex\"") (Literal "\"N\"") (Var N))))
+           (Expression
+            (Assign (Var gq_simplex_1dim_unc__)
+             (Parens (BinOp (Var N) Subtract (Literal 1)))))
            (Expression (Assign (Var current_statement__) (Literal 586)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
@@ -19969,6 +20010,9 @@
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
              ((Literal "\"gq_1d_simplex\"") (Literal "\"N\"") (Var N))))
+           (Expression
+            (Assign (Var gq_1d_simplex_1dim_unc__)
+             (Parens (BinOp (Var N) Subtract (Literal 1)))))
            (Expression (Assign (Var current_statement__) (Literal 588)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
@@ -19985,10 +20029,64 @@
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
              ((Literal "\"gq_3d_simplex\"") (Literal "\"N\"") (Var N))))
+           (Expression
+            (Assign (Var gq_3d_simplex_1dim_unc__)
+             (Parens (BinOp (Var N) Subtract (Literal 1)))))
+           (Expression
+            (Assign (Var gq_cfcov_54_1dim_unc__)
+             (Parens
+              (BinOp
+               (Parens
+                (BinOp
+                 (Parens
+                  (BinOp
+                   (Parens
+                    (BinOp (Literal 4) Multiply
+                     (Parens (BinOp (Literal 4) Subtract (Literal 1)))))
+                   Divide (Literal 2)))
+                 Add (Literal 4)))
+               Add
+               (Parens
+                (BinOp (Parens (BinOp (Literal 5) Subtract (Literal 4))) Multiply
+                 (Literal 4)))))))
+           (Expression
+            (Assign (Var gq_cfcov_33_1dim_unc__)
+             (Parens
+              (BinOp
+               (Parens
+                (BinOp
+                 (Parens
+                  (BinOp
+                   (Parens
+                    (BinOp (Literal 3) Multiply
+                     (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
+                   Divide (Literal 2)))
+                 Add (Literal 3)))
+               Add
+               (Parens
+                (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
+                 (Literal 3)))))))
            (Expression (Assign (Var current_statement__) (Literal 592)))
            (Expression
             (FunCall stan::math::validate_non_negative_index ()
-             ((Literal "\"gq_cfcov_33_ar\"") (Literal "\"K\"") (Var K)))))
+             ((Literal "\"gq_cfcov_33_ar\"") (Literal "\"K\"") (Var K))))
+           (Expression
+            (Assign (Var gq_cfcov_33_ar_1dim_unc__)
+             (Parens
+              (BinOp
+               (Parens
+                (BinOp
+                 (Parens
+                  (BinOp
+                   (Parens
+                    (BinOp (Literal 3) Multiply
+                     (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
+                   Divide (Literal 2)))
+                 Add (Literal 3)))
+               Add
+               (Parens
+                (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
+                 (Literal 3))))))))
           ((Const (Ref (TypeLiteral std::exception))) e)
           ((Expression
             (FunCall stan::lang::rethrow_located ()
@@ -20049,68 +20147,17 @@
                       (Parens
                        (BinOp (Literal 5) Multiply
                         (Parens (BinOp (Literal 2) Multiply (Literal 3))))))))
-                   Add (Parens (BinOp (Var N) Subtract (Literal 1))))
-                  Add
-                  (Parens
-                   (BinOp (Var N) Multiply (Parens (BinOp (Var N) Subtract (Literal 1))))))
+                   Add (Var p_simplex_1dim_unc__))
+                  Add (Parens (BinOp (Var N) Multiply (Var p_1d_simplex_1dim_unc__))))
                  Add
                  (Parens
                   (BinOp (Var N) Multiply
                    (Parens
                     (BinOp (Var M) Multiply
-                     (Parens
-                      (BinOp (Var K) Multiply
-                       (Parens (BinOp (Var N) Subtract (Literal 1))))))))))
-                Add
-                (Parens
-                 (BinOp
-                  (Parens
-                   (BinOp
-                    (Parens
-                     (BinOp
-                      (Parens
-                       (BinOp (Literal 4) Multiply
-                        (Parens (BinOp (Literal 4) Subtract (Literal 1)))))
-                      Divide (Literal 2)))
-                    Add (Literal 4)))
-                  Add
-                  (Parens
-                   (BinOp (Parens (BinOp (Literal 5) Subtract (Literal 4))) Multiply
-                    (Literal 4))))))
-               Add
-               (Parens
-                (BinOp
-                 (Parens
-                  (BinOp
-                   (Parens
-                    (BinOp
-                     (Parens
-                      (BinOp (Literal 3) Multiply
-                       (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
-                     Divide (Literal 2)))
-                   Add (Literal 3)))
-                 Add
-                 (Parens
-                  (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
-                   (Literal 3))))))
-              Add
-              (Parens
-               (BinOp (Var K) Multiply
-                (Parens
-                 (BinOp
-                  (Parens
-                   (BinOp
-                    (Parens
-                     (BinOp
-                      (Parens
-                       (BinOp (Literal 3) Multiply
-                        (Parens (BinOp (Literal 3) Subtract (Literal 1)))))
-                      Divide (Literal 2)))
-                    Add (Literal 3)))
-                  Add
-                  (Parens
-                   (BinOp (Parens (BinOp (Literal 3) Subtract (Literal 3))) Multiply
-                    (Literal 3))))))))
+                     (Parens (BinOp (Var K) Multiply (Var p_3d_simplex_1dim_unc__))))))))
+                Add (Var p_cfcov_54_1dim_unc__))
+               Add (Var p_cfcov_33_1dim_unc__))
+              Add (Parens (BinOp (Var K) Multiply (Var p_cfcov_33_ar_1dim_unc__))))
              Add (Literal 2))
             Add (Literal 2))))))))
      (destructor_body ())))))

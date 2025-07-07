@@ -299,6 +299,19 @@ let extract_transform_args var = function
    |TupleTransformation _ | StochasticRow | StochasticColumn ->
       []
 
+(** Store a size in a variable to avoid re-computing *)
+let cache_integer_size decl_id (e : Expr.Typed.t) =
+  let decl =
+    { Stmt.Fixed.pattern=
+        Decl
+          { decl_type= Sized SInt
+          ; decl_id
+          ; decl_adtype= DataOnly
+          ; initialize= Assign e }
+    ; meta= e.meta.loc } in
+  let var = Expr.{e with Fixed.pattern= Var decl_id} in
+  (decl, var)
+
 (** Allows [shrink_helper] to operate either on each dimension independently
    or on both matrix dimensions at once *)
 type size_change =
@@ -313,7 +326,13 @@ type size_change =
   - A matrix of size N x N is transformed to a vector of size (f N M)
   - Arrays of the above are handled recursively
 *)
-let rec shrink_helper (f : size_change) f_d2 st =
+let rec shrink_helper name (f : size_change) f_d2 st =
+  let decl_name =
+    name
+    |> String.substr_replace_all ~pattern:"[]" ~with_:"_brack"
+    |> String.substr_replace_all ~pattern:"." ~with_:"_dot" in
+  let decl_id n = Fmt.str "%s_%ddim_unc__" decl_name n in
+  let cache n (e : Expr.Typed.t) = cache_integer_size (decl_id n) e in
   let f_assert_univariate d =
     match f with
     | Univariate f -> f d
@@ -324,31 +343,41 @@ let rec shrink_helper (f : size_change) f_d2 st =
              function "
               (st : Expr.Typed.t SizedType.t)] in
   match st with
-  | SizedType.SArray (t, d) -> SizedType.SArray (shrink_helper f f_d2 t, d)
-  | SVector (mem_pattern, d) -> SVector (mem_pattern, f_assert_univariate d)
+  | SizedType.SArray (t, d) ->
+      let s, inner = shrink_helper name f f_d2 t in
+      (s, SizedType.SArray (inner, d))
+  | SVector (mem_pattern, d) ->
+      let s, d = cache 1 (f_assert_univariate d) in
+      ([s], SVector (mem_pattern, d))
   | SRowVector (mem_pattern, d) ->
-      SRowVector (mem_pattern, f_assert_univariate d)
+      let s, d = cache 2 (f_assert_univariate d) in
+      ([s], SRowVector (mem_pattern, d))
   | SMatrix (mem_pattern, d1, d2) -> (
       match f with
-      | Univariate f_d1 -> SMatrix (mem_pattern, f_d1 d1, f_d2 d2)
-      | Multivariate f -> SVector (mem_pattern, f d1 d2))
+      | Univariate f_d1 ->
+          let s, d1 = cache 1 (f_d1 d1) in
+          let s2, d2 = cache 2 (f_d2 d2) in
+          ([s; s2], SMatrix (mem_pattern, d1, d2))
+      | Multivariate f ->
+          let s, d = cache 1 (f d1 d2) in
+          ([s], SVector (mem_pattern, d)))
   | SInt | SReal | SComplex | STuple _ | SComplexRowVector _
    |SComplexVector _ | SComplexMatrix _ ->
       Common.ICE.internal_compiler_error
         [%message
           "Expecting SVector or SMatrix, got " (st : Expr.Typed.t SizedType.t)]
 
-let rec transform_sizedtype transformation sizedtype =
+let rec transform_sizedtype transformation name sizedtype =
   (* Functions for computing the new sizetype after some transformation *)
   let shrink_eigen_mat f st =
     (* Matrices become vectors, with size computed by [f] *)
-    shrink_helper (Multivariate f) Fn.id st in
+    shrink_helper name (Multivariate f) Fn.id st in
   let shrink_eigen_vec f st =
     (* Matrices are mapped to vectors, only depending on their first dimension for sizing *)
     shrink_eigen_mat (fun x _ -> f x) st in
   let shrink_eigen f1 f2 st =
     (* Types don't change, just sizes *)
-    shrink_helper (Univariate f1) f2 st in
+    shrink_helper name (Univariate f1) f2 st in
   (* Helper functions for computing the new sizes *)
   let minus_one d = Expr.Helpers.(binop d Minus (int 1)) in
   let k_choose_2 k =
@@ -360,15 +389,20 @@ let rec transform_sizedtype transformation sizedtype =
    |Offset _ | Multiplier _
    |OffsetMultiplier (_, _)
    |Ordered | PositiveOrdered | UnitVector ->
-      sizedtype
+      ([], sizedtype)
   | TupleTransformation tms ->
       let _, dims = SizedType.get_array_dims sizedtype in
       let subtypes_transforms = Utils.zip_stuple_trans_exn sizedtype tms in
       (* NB: [build_sarray] is a no-op if this was not originally an array *)
-      SizedType.build_sarray dims
-        (SizedType.STuple
-           (List.map subtypes_transforms ~f:(fun (st, trans) ->
-                transform_sizedtype trans st)))
+      let former_array_indices =
+        String.concat (List.init (List.length dims) ~f:(fun _ -> "[]")) in
+      let sizes, types =
+        List.mapi subtypes_transforms ~f:(fun ix (st, trans) ->
+            transform_sizedtype trans
+              (name ^ former_array_indices ^ "." ^ string_of_int (ix + 1))
+              st)
+        |> List.unzip in
+      (List.concat sizes, SizedType.build_sarray dims (SizedType.STuple types))
   | SumToZero -> shrink_eigen minus_one minus_one sizedtype
   | Simplex | StochasticColumn -> shrink_eigen minus_one Fn.id sizedtype
   | StochasticRow -> shrink_eigen Fn.id minus_one sizedtype
@@ -774,27 +808,8 @@ let rec trans_sizedtype_decl declc tr name st =
           |> String.substr_replace_all ~pattern:"[]" ~with_:"_brack"
           |> String.substr_replace_all ~pattern:"." ~with_:"_dot" in
         let decl_id = Fmt.str "%s_%ddim__" decl_name n in
-        let decl =
-          { Stmt.Fixed.pattern=
-              Decl
-                { decl_type= Sized SInt
-                ; decl_id
-                ; decl_adtype= DataOnly
-                ; initialize= Default }
-          ; meta= e.meta.loc } in
-        let assign =
-          { Stmt.Fixed.pattern=
-              Assignment (Stmt.Helpers.lvariable decl_id, UInt, e)
-          ; meta= e.meta.loc } in
-        let var =
-          Expr.
-            { Fixed.pattern= Var decl_id
-            ; meta=
-                Typed.Meta.
-                  { type_= s.Ast.emeta.Ast.type_
-                  ; adlevel= s.emeta.ad_level
-                  ; loc= s.emeta.loc } } in
-        ([decl; assign; check fn s var], var) in
+        let decl, var = cache_integer_size decl_id e in
+        ([decl; check fn s var], var) in
   let rec go n = function
     | SizedType.(SInt | SReal | SComplex) as t -> ([], t)
     | SVector (mem_pattern, s) ->
@@ -869,19 +884,20 @@ let trans_block ud_dists declc block prog =
                  let size, type_ =
                    trans_sizedtype_decl declc transform identifier.name type_
                  in
+                 let size2, type_unc =
+                   transform_sizedtype transform identifier.name type_ in
                  let outvar =
                    ( decl_id
                    , smeta.Ast.loc
                    , Program.
                        { out_constrained_st= type_
-                       ; out_unconstrained_st=
-                           transform_sizedtype transform type_
+                       ; out_unconstrained_st= type_unc
                        ; out_block= block
                        ; out_trans= transform } ) in
                  let stmts =
                    create_decl_with_assign decl_id declc (Sized type_)
                      initial_value transform smeta.loc in
-                 (outvar, size, stmts))
+                 (outvar, size @ size2, stmts))
                variables in
         ( outvars @ accum1
         , List.concat sizes @ accum2

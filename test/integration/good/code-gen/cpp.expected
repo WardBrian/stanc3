@@ -893,6 +893,7 @@ class builtin_constraint_model final : public model_base_crtp<builtin_constraint
  private:
   int K;
   int beta_raw_1dim__;
+  int beta_1dim_unc__;
   int beta_recovered_1dim__;
  public:
   ~builtin_constraint_model() {}
@@ -923,16 +924,13 @@ class builtin_constraint_model final : public model_base_crtp<builtin_constraint
       current_statement__ = 8;
       stan::math::check_greater_or_equal(function__, "K", K, 1);
       current_statement__ = 9;
-      beta_raw_1dim__ = std::numeric_limits<int>::min();
-      current_statement__ = 9;
       beta_raw_1dim__ = (K - 1);
       current_statement__ = 9;
       stan::math::validate_non_negative_index("beta_raw", "K - 1",
         beta_raw_1dim__);
       current_statement__ = 10;
       stan::math::validate_non_negative_index("beta", "K", K);
-      current_statement__ = 11;
-      beta_recovered_1dim__ = std::numeric_limits<int>::min();
+      beta_1dim_unc__ = (K - 1);
       current_statement__ = 11;
       beta_recovered_1dim__ = (K - 1);
       current_statement__ = 11;
@@ -1261,7 +1259,7 @@ class builtin_constraint_model final : public model_base_crtp<builtin_constraint
         std::to_string(sym1__));
     }
     if (emit_transformed_parameters__) {
-      for (int sym1__ = 1; sym1__ <= (K - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= beta_1dim_unc__; ++sym1__) {
         param_names__.emplace_back(std::string() + "beta" + '.' +
           std::to_string(sym1__));
       }
@@ -1277,7 +1275,7 @@ class builtin_constraint_model final : public model_base_crtp<builtin_constraint
     return std::string("[{\"name\":\"beta_raw\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(beta_raw_1dim__) + "},\"block\":\"parameters\"},{\"name\":\"beta\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(K) + "},\"block\":\"transformed_parameters\"},{\"name\":\"beta_recovered\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(beta_recovered_1dim__) + "},\"block\":\"generated_quantities\"}]");
   }
   inline std::string get_unconstrained_sizedtypes() const {
-    return std::string("[{\"name\":\"beta_raw\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(beta_raw_1dim__) + "},\"block\":\"parameters\"},{\"name\":\"beta\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string((K -1)) + "},\"block\":\"transformed_parameters\"},{\"name\":\"beta_recovered\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(beta_recovered_1dim__) + "},\"block\":\"generated_quantities\"}]");
+    return std::string("[{\"name\":\"beta_raw\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(beta_raw_1dim__) + "},\"block\":\"parameters\"},{\"name\":\"beta\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(beta_1dim_unc__) + "},\"block\":\"transformed_parameters\"},{\"name\":\"beta_recovered\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(beta_recovered_1dim__) + "},\"block\":\"generated_quantities\"}]");
   }
   // Begin method overload boilerplate
   template <typename RNG> inline void
@@ -20305,6 +20303,24 @@ class mother_model final : public model_base_crtp<mother_model> {
     transformed_data_row_vector_array_2d;
   std::vector<std::vector<std::vector<Eigen::Matrix<double,1,-1>>>>
     transformed_data_row_vector_array_3d;
+  int p_simplex_1dim_unc__;
+  int p_1d_simplex_1dim_unc__;
+  int p_3d_simplex_1dim_unc__;
+  int p_cfcov_54_1dim_unc__;
+  int p_cfcov_33_1dim_unc__;
+  int p_cfcov_33_ar_1dim_unc__;
+  int tp_simplex_1dim_unc__;
+  int tp_1d_simplex_1dim_unc__;
+  int tp_3d_simplex_1dim_unc__;
+  int tp_cfcov_54_1dim_unc__;
+  int tp_cfcov_33_1dim_unc__;
+  int tp_cfcov_33_ar_1dim_unc__;
+  int gq_simplex_1dim_unc__;
+  int gq_1d_simplex_1dim_unc__;
+  int gq_3d_simplex_1dim_unc__;
+  int gq_cfcov_54_1dim_unc__;
+  int gq_cfcov_33_1dim_unc__;
+  int gq_cfcov_33_ar_1dim_unc__;
   Eigen::Map<Eigen::Matrix<double,-1,1>> d_vec{nullptr, 0};
   Eigen::Map<Eigen::Matrix<double,1,-1>> d_row_vec{nullptr, 0};
   Eigen::Map<Eigen::Matrix<double,-1,1>> d_simplex{nullptr, 0};
@@ -22289,10 +22305,12 @@ class mother_model final : public model_base_crtp<mother_model> {
       stan::math::validate_non_negative_index("p_3d_row_vec", "N", N);
       current_statement__ = 530;
       stan::math::validate_positive_index("p_simplex", "N", N);
+      p_simplex_1dim_unc__ = (N - 1);
       current_statement__ = 531;
       stan::math::validate_non_negative_index("p_1d_simplex", "N", N);
       current_statement__ = 532;
       stan::math::validate_positive_index("p_1d_simplex", "N", N);
+      p_1d_simplex_1dim_unc__ = (N - 1);
       current_statement__ = 533;
       stan::math::validate_non_negative_index("p_3d_simplex", "N", N);
       current_statement__ = 534;
@@ -22301,17 +22319,21 @@ class mother_model final : public model_base_crtp<mother_model> {
       stan::math::validate_non_negative_index("p_3d_simplex", "K", K);
       current_statement__ = 536;
       stan::math::validate_positive_index("p_3d_simplex", "N", N);
+      p_3d_simplex_1dim_unc__ = (N - 1);
       current_statement__ = 537;
       stan::math::check_greater_or_equal("cholesky_factor_cov p_cfcov_54",
         "num rows (must be greater or equal to num cols)", 5, 4);
+      p_cfcov_54_1dim_unc__ = ((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) * 4));
       current_statement__ = 538;
       stan::math::check_greater_or_equal("cholesky_factor_cov p_cfcov_33",
         "num rows (must be greater or equal to num cols)", 3, 3);
+      p_cfcov_33_1dim_unc__ = ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) * 3));
       current_statement__ = 539;
       stan::math::validate_non_negative_index("p_cfcov_33_ar", "K", K);
       current_statement__ = 540;
       stan::math::check_greater_or_equal("cholesky_factor_cov p_cfcov_33_ar",
         "num rows (must be greater or equal to num cols)", 3, 3);
+      p_cfcov_33_ar_1dim_unc__ = ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) * 3));
       current_statement__ = 541;
       stan::math::validate_non_negative_index("tp_real_1d_ar", "N", N);
       current_statement__ = 542;
@@ -22350,10 +22372,12 @@ class mother_model final : public model_base_crtp<mother_model> {
       stan::math::validate_non_negative_index("tp_3d_row_vec", "N", N);
       current_statement__ = 559;
       stan::math::validate_non_negative_index("tp_simplex", "N", N);
+      tp_simplex_1dim_unc__ = (N - 1);
       current_statement__ = 560;
       stan::math::validate_non_negative_index("tp_1d_simplex", "N", N);
       current_statement__ = 561;
       stan::math::validate_non_negative_index("tp_1d_simplex", "N", N);
+      tp_1d_simplex_1dim_unc__ = (N - 1);
       current_statement__ = 562;
       stan::math::validate_non_negative_index("tp_3d_simplex", "N", N);
       current_statement__ = 563;
@@ -22362,8 +22386,13 @@ class mother_model final : public model_base_crtp<mother_model> {
       stan::math::validate_non_negative_index("tp_3d_simplex", "K", K);
       current_statement__ = 565;
       stan::math::validate_non_negative_index("tp_3d_simplex", "N", N);
+      tp_3d_simplex_1dim_unc__ = (N - 1);
+      tp_cfcov_54_1dim_unc__ = ((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) * 4));
+      tp_cfcov_33_1dim_unc__ = ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) * 3));
       current_statement__ = 566;
       stan::math::validate_non_negative_index("tp_cfcov_33_ar", "K", K);
+      tp_cfcov_33_ar_1dim_unc__ = ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *
+        3));
       current_statement__ = 567;
       stan::math::validate_non_negative_index("gq_real_1d_ar", "N", N);
       current_statement__ = 568;
@@ -22402,10 +22431,12 @@ class mother_model final : public model_base_crtp<mother_model> {
       stan::math::validate_non_negative_index("gq_3d_row_vec", "N", N);
       current_statement__ = 585;
       stan::math::validate_non_negative_index("gq_simplex", "N", N);
+      gq_simplex_1dim_unc__ = (N - 1);
       current_statement__ = 586;
       stan::math::validate_non_negative_index("gq_1d_simplex", "N", N);
       current_statement__ = 587;
       stan::math::validate_non_negative_index("gq_1d_simplex", "N", N);
+      gq_1d_simplex_1dim_unc__ = (N - 1);
       current_statement__ = 588;
       stan::math::validate_non_negative_index("gq_3d_simplex", "N", N);
       current_statement__ = 589;
@@ -22414,17 +22445,22 @@ class mother_model final : public model_base_crtp<mother_model> {
       stan::math::validate_non_negative_index("gq_3d_simplex", "K", K);
       current_statement__ = 591;
       stan::math::validate_non_negative_index("gq_3d_simplex", "N", N);
+      gq_3d_simplex_1dim_unc__ = (N - 1);
+      gq_cfcov_54_1dim_unc__ = ((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) * 4));
+      gq_cfcov_33_1dim_unc__ = ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) * 3));
       current_statement__ = 592;
       stan::math::validate_non_negative_index("gq_cfcov_33_ar", "K", K);
+      gq_cfcov_33_ar_1dim_unc__ = ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *
+        3));
     } catch (const std::exception& e) {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
     }
     num_params_r__ = 1 + 1 + 1 + 5 + 5 + 5 + N + (N * (M * K)) + N + (N * N)
       + (N * (M * (K * N))) + N + (N * N) + (N * (M * (K * N))) + (5 * 4) +
-      (4 * (5 * (2 * 3))) + (N - 1) + (N * (N - 1)) + (N * (M * (K * (N -
-      1)))) + ((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) * 4)) + ((((3 * (3 - 1))
-      / 2) + 3) + ((3 - 3) * 3)) + (K * ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3)
-      * 3))) + 2 + 2;
+      (4 * (5 * (2 * 3))) + p_simplex_1dim_unc__ + (N *
+      p_1d_simplex_1dim_unc__) + (N * (M * (K * p_3d_simplex_1dim_unc__))) +
+      p_cfcov_54_1dim_unc__ + p_cfcov_33_1dim_unc__ + (K *
+      p_cfcov_33_ar_1dim_unc__) + 2 + 2;
   }
   inline std::string model_name() const final {
     return "mother_model";
@@ -25908,17 +25944,17 @@ class mother_model final : public model_base_crtp<mother_model> {
         }
       }
     }
-    for (int sym1__ = 1; sym1__ <= (N - 1); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <= p_simplex_1dim_unc__; ++sym1__) {
       param_names__.emplace_back(std::string() + "p_simplex" + '.' +
         std::to_string(sym1__));
     }
-    for (int sym1__ = 1; sym1__ <= (N - 1); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <= p_1d_simplex_1dim_unc__; ++sym1__) {
       for (int sym2__ = 1; sym2__ <= N; ++sym2__) {
         param_names__.emplace_back(std::string() + "p_1d_simplex" + '.' +
           std::to_string(sym2__) + '.' + std::to_string(sym1__));
       }
     }
-    for (int sym1__ = 1; sym1__ <= (N - 1); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <= p_3d_simplex_1dim_unc__; ++sym1__) {
       for (int sym2__ = 1; sym2__ <= K; ++sym2__) {
         for (int sym3__ = 1; sym3__ <= M; ++sym3__) {
           for (int sym4__ = 1; sym4__ <= N; ++sym4__) {
@@ -25929,18 +25965,15 @@ class mother_model final : public model_base_crtp<mother_model> {
         }
       }
     }
-    for (int sym1__ = 1; sym1__ <= ((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *
-         4)); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <= p_cfcov_54_1dim_unc__; ++sym1__) {
       param_names__.emplace_back(std::string() + "p_cfcov_54" + '.' +
         std::to_string(sym1__));
     }
-    for (int sym1__ = 1; sym1__ <= ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *
-         3)); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <= p_cfcov_33_1dim_unc__; ++sym1__) {
       param_names__.emplace_back(std::string() + "p_cfcov_33" + '.' +
         std::to_string(sym1__));
     }
-    for (int sym1__ = 1; sym1__ <= ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *
-         3)); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <= p_cfcov_33_ar_1dim_unc__; ++sym1__) {
       for (int sym2__ = 1; sym2__ <= K; ++sym2__) {
         param_names__.emplace_back(std::string() + "p_cfcov_33_ar" + '.' +
           std::to_string(sym2__) + '.' + std::to_string(sym1__));
@@ -26027,17 +26060,17 @@ class mother_model final : public model_base_crtp<mother_model> {
           }
         }
       }
-      for (int sym1__ = 1; sym1__ <= (N - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= tp_simplex_1dim_unc__; ++sym1__) {
         param_names__.emplace_back(std::string() + "tp_simplex" + '.' +
           std::to_string(sym1__));
       }
-      for (int sym1__ = 1; sym1__ <= (N - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= tp_1d_simplex_1dim_unc__; ++sym1__) {
         for (int sym2__ = 1; sym2__ <= N; ++sym2__) {
           param_names__.emplace_back(std::string() + "tp_1d_simplex" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
         }
       }
-      for (int sym1__ = 1; sym1__ <= (N - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= tp_3d_simplex_1dim_unc__; ++sym1__) {
         for (int sym2__ = 1; sym2__ <= K; ++sym2__) {
           for (int sym3__ = 1; sym3__ <= M; ++sym3__) {
             for (int sym4__ = 1; sym4__ <= N; ++sym4__) {
@@ -26048,18 +26081,15 @@ class mother_model final : public model_base_crtp<mother_model> {
           }
         }
       }
-      for (int sym1__ = 1; sym1__ <= ((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *
-           4)); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= tp_cfcov_54_1dim_unc__; ++sym1__) {
         param_names__.emplace_back(std::string() + "tp_cfcov_54" + '.' +
           std::to_string(sym1__));
       }
-      for (int sym1__ = 1; sym1__ <= ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *
-           3)); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= tp_cfcov_33_1dim_unc__; ++sym1__) {
         param_names__.emplace_back(std::string() + "tp_cfcov_33" + '.' +
           std::to_string(sym1__));
       }
-      for (int sym1__ = 1; sym1__ <= ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *
-           3)); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= tp_cfcov_33_ar_1dim_unc__; ++sym1__) {
         for (int sym2__ = 1; sym2__ <= K; ++sym2__) {
           param_names__.emplace_back(std::string() + "tp_cfcov_33_ar" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
@@ -26140,17 +26170,17 @@ class mother_model final : public model_base_crtp<mother_model> {
           }
         }
       }
-      for (int sym1__ = 1; sym1__ <= (N - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= gq_simplex_1dim_unc__; ++sym1__) {
         param_names__.emplace_back(std::string() + "gq_simplex" + '.' +
           std::to_string(sym1__));
       }
-      for (int sym1__ = 1; sym1__ <= (N - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= gq_1d_simplex_1dim_unc__; ++sym1__) {
         for (int sym2__ = 1; sym2__ <= N; ++sym2__) {
           param_names__.emplace_back(std::string() + "gq_1d_simplex" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
         }
       }
-      for (int sym1__ = 1; sym1__ <= (N - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= gq_3d_simplex_1dim_unc__; ++sym1__) {
         for (int sym2__ = 1; sym2__ <= K; ++sym2__) {
           for (int sym3__ = 1; sym3__ <= M; ++sym3__) {
             for (int sym4__ = 1; sym4__ <= N; ++sym4__) {
@@ -26161,18 +26191,15 @@ class mother_model final : public model_base_crtp<mother_model> {
           }
         }
       }
-      for (int sym1__ = 1; sym1__ <= ((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *
-           4)); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= gq_cfcov_54_1dim_unc__; ++sym1__) {
         param_names__.emplace_back(std::string() + "gq_cfcov_54" + '.' +
           std::to_string(sym1__));
       }
-      for (int sym1__ = 1; sym1__ <= ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *
-           3)); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= gq_cfcov_33_1dim_unc__; ++sym1__) {
         param_names__.emplace_back(std::string() + "gq_cfcov_33" + '.' +
           std::to_string(sym1__));
       }
-      for (int sym1__ = 1; sym1__ <= ((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *
-           3)); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= gq_cfcov_33_ar_1dim_unc__; ++sym1__) {
         for (int sym2__ = 1; sym2__ <= K; ++sym2__) {
           param_names__.emplace_back(std::string() + "gq_cfcov_33_ar" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
@@ -26263,7 +26290,7 @@ class mother_model final : public model_base_crtp<mother_model> {
     return std::string("[{\"name\":\"p_real\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"p_upper\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"p_lower\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"offset_multiplier\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"no_offset_multiplier\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"offset_no_multiplier\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"p_real_1d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"p_real_3d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"real\"}}}},\"block\":\"parameters\"},{\"name\":\"p_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"parameters\"},{\"name\":\"p_1d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"parameters\"},{\"name\":\"p_3d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"parameters\"},{\"name\":\"p_row_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"parameters\"},{\"name\":\"p_1d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"parameters\"},{\"name\":\"p_3d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"parameters\"},{\"name\":\"p_mat\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "},\"block\":\"parameters\"},{\"name\":\"p_ar_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(4) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(3) + "}}},\"block\":\"parameters\"},{\"name\":\"p_simplex\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"parameters\"},{\"name\":\"p_1d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"parameters\"},{\"name\":\"p_3d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"parameters\"},{\"name\":\"p_cfcov_54\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "},\"block\":\"parameters\"},{\"name\":\"p_cfcov_33\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "},\"block\":\"parameters\"},{\"name\":\"p_cfcov_33_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "}},\"block\":\"parameters\"},{\"name\":\"x_p\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "},\"block\":\"parameters\"},{\"name\":\"y_p\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "},\"block\":\"parameters\"},{\"name\":\"tp_real_1d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_real_3d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"real\"}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_1d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_3d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_row_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_1d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_3d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_mat\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_ar_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(4) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(3) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_simplex\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_1d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_3d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_cfcov_54\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_cfcov_33\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_cfcov_33_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"theta_p\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_real\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"gq_r1\",\"type\":{\"name\":\"real\"},\"block\":\"generated_quantities\"},{\"name\":\"gq_r2\",\"type\":{\"name\":\"real\"},\"block\":\"generated_quantities\"},{\"name\":\"gq_real_1d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"generated_quantities\"},{\"name\":\"gq_real_3d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"real\"}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_1d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"generated_quantities\"},{\"name\":\"gq_3d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_row_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_1d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"generated_quantities\"},{\"name\":\"gq_3d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_ar_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(4) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(3) + "}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_simplex\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_1d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"generated_quantities\"},{\"name\":\"gq_3d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_cfcov_54\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_cfcov_33\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_cfcov_33_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "}},\"block\":\"generated_quantities\"},{\"name\":\"indices\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"int\"}},\"block\":\"generated_quantities\"},{\"name\":\"indexing_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res1\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res2\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res3\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res11\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res21\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res31\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res4\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res5\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "}},\"block\":\"generated_quantities\"}]");
   }
   inline std::string get_unconstrained_sizedtypes() const {
-    return std::string("[{\"name\":\"p_real\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"p_upper\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"p_lower\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"offset_multiplier\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"no_offset_multiplier\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"offset_no_multiplier\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"p_real_1d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"p_real_3d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"real\"}}}},\"block\":\"parameters\"},{\"name\":\"p_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"parameters\"},{\"name\":\"p_1d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"parameters\"},{\"name\":\"p_3d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"parameters\"},{\"name\":\"p_row_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"parameters\"},{\"name\":\"p_1d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"parameters\"},{\"name\":\"p_3d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"parameters\"},{\"name\":\"p_mat\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "},\"block\":\"parameters\"},{\"name\":\"p_ar_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(4) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(3) + "}}},\"block\":\"parameters\"},{\"name\":\"p_simplex\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string((N -1)) + "},\"block\":\"parameters\"},{\"name\":\"p_1d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string((N -1)) + "}},\"block\":\"parameters\"},{\"name\":\"p_3d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string((N -1)) + "}}}},\"block\":\"parameters\"},{\"name\":\"p_cfcov_54\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *4))) + "},\"block\":\"parameters\"},{\"name\":\"p_cfcov_33\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + "},\"block\":\"parameters\"},{\"name\":\"p_cfcov_33_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + "}},\"block\":\"parameters\"},{\"name\":\"x_p\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "},\"block\":\"parameters\"},{\"name\":\"y_p\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "},\"block\":\"parameters\"},{\"name\":\"tp_real_1d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_real_3d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"real\"}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_1d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_3d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_row_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_1d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_3d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_mat\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_ar_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(4) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(3) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_simplex\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string((N -1)) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_1d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string((N -1)) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_3d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string((N -1)) + "}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_cfcov_54\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *4))) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_cfcov_33\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_cfcov_33_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"theta_p\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_real\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"gq_r1\",\"type\":{\"name\":\"real\"},\"block\":\"generated_quantities\"},{\"name\":\"gq_r2\",\"type\":{\"name\":\"real\"},\"block\":\"generated_quantities\"},{\"name\":\"gq_real_1d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"generated_quantities\"},{\"name\":\"gq_real_3d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"real\"}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_1d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"generated_quantities\"},{\"name\":\"gq_3d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_row_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_1d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"generated_quantities\"},{\"name\":\"gq_3d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_ar_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(4) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(3) + "}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_simplex\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string((N -1)) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_1d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string((N -1)) + "}},\"block\":\"generated_quantities\"},{\"name\":\"gq_3d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string((N -1)) + "}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_cfcov_54\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *4))) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_cfcov_33\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_cfcov_33_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(((((3 * (3 - 1)) / 2) + 3) + ((3 - 3) *3))) + "}},\"block\":\"generated_quantities\"},{\"name\":\"indices\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"int\"}},\"block\":\"generated_quantities\"},{\"name\":\"indexing_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res1\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res2\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res3\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res11\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res21\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res31\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res4\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res5\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "}},\"block\":\"generated_quantities\"}]");
+    return std::string("[{\"name\":\"p_real\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"p_upper\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"p_lower\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"offset_multiplier\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"no_offset_multiplier\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"offset_no_multiplier\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"p_real_1d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"parameters\"},{\"name\":\"p_real_3d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"real\"}}}},\"block\":\"parameters\"},{\"name\":\"p_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"parameters\"},{\"name\":\"p_1d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"parameters\"},{\"name\":\"p_3d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"parameters\"},{\"name\":\"p_row_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"parameters\"},{\"name\":\"p_1d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"parameters\"},{\"name\":\"p_3d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"parameters\"},{\"name\":\"p_mat\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "},\"block\":\"parameters\"},{\"name\":\"p_ar_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(4) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(3) + "}}},\"block\":\"parameters\"},{\"name\":\"p_simplex\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(p_simplex_1dim_unc__) + "},\"block\":\"parameters\"},{\"name\":\"p_1d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(p_1d_simplex_1dim_unc__) + "}},\"block\":\"parameters\"},{\"name\":\"p_3d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(p_3d_simplex_1dim_unc__) + "}}}},\"block\":\"parameters\"},{\"name\":\"p_cfcov_54\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(p_cfcov_54_1dim_unc__) + "},\"block\":\"parameters\"},{\"name\":\"p_cfcov_33\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(p_cfcov_33_1dim_unc__) + "},\"block\":\"parameters\"},{\"name\":\"p_cfcov_33_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(p_cfcov_33_ar_1dim_unc__) + "}},\"block\":\"parameters\"},{\"name\":\"x_p\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "},\"block\":\"parameters\"},{\"name\":\"y_p\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "},\"block\":\"parameters\"},{\"name\":\"tp_real_1d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_real_3d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"real\"}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_1d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_3d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_row_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_1d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_3d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_mat\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_ar_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(4) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(3) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_simplex\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(tp_simplex_1dim_unc__) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_1d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(tp_1d_simplex_1dim_unc__) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_3d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(tp_3d_simplex_1dim_unc__) + "}}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_cfcov_54\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(tp_cfcov_54_1dim_unc__) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_cfcov_33\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(tp_cfcov_33_1dim_unc__) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_cfcov_33_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(tp_cfcov_33_ar_1dim_unc__) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"theta_p\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_real\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"gq_r1\",\"type\":{\"name\":\"real\"},\"block\":\"generated_quantities\"},{\"name\":\"gq_r2\",\"type\":{\"name\":\"real\"},\"block\":\"generated_quantities\"},{\"name\":\"gq_real_1d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"real\"}},\"block\":\"generated_quantities\"},{\"name\":\"gq_real_3d_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"real\"}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_1d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"generated_quantities\"},{\"name\":\"gq_3d_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_row_vec\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_1d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}},\"block\":\"generated_quantities\"},{\"name\":\"gq_3d_row_vec\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(N) + "}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_ar_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(4) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(3) + "}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_simplex\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(gq_simplex_1dim_unc__) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_1d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(gq_1d_simplex_1dim_unc__) + "}},\"block\":\"generated_quantities\"},{\"name\":\"gq_3d_simplex\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(N) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(M) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(gq_3d_simplex_1dim_unc__) + "}}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_cfcov_54\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(gq_cfcov_54_1dim_unc__) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_cfcov_33\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(gq_cfcov_33_1dim_unc__) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_cfcov_33_ar\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(K) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(gq_cfcov_33_ar_1dim_unc__) + "}},\"block\":\"generated_quantities\"},{\"name\":\"indices\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"int\"}},\"block\":\"generated_quantities\"},{\"name\":\"indexing_mat\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res1\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res2\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res3\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res11\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res21\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(5) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res31\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(3) + ",\"cols\":" + std::to_string(3) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res4\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(4) + "}},\"block\":\"generated_quantities\"},{\"name\":\"idx_res5\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(2) + "}},\"block\":\"generated_quantities\"}]");
   }
   // Begin method overload boilerplate
   template <typename RNG> inline void
@@ -39828,6 +39855,7 @@ class param_constraint_model final : public model_base_crtp<param_constraint_mod
  private:
   int nt;
   int NS;
+  int L_Omega_1dim_unc__;
  public:
   ~param_constraint_model() {}
   param_constraint_model(stan::io::var_context& context__, unsigned int
@@ -39862,12 +39890,13 @@ class param_constraint_model final : public model_base_crtp<param_constraint_mod
       NS = context__.vals_i("NS")[(1 - 1)];
       current_statement__ = 5;
       stan::math::validate_non_negative_index("L_Omega", "nt", nt);
+      L_Omega_1dim_unc__ = ((2 * (2 - 1)) / 2);
       current_statement__ = 6;
       stan::math::validate_non_negative_index("z1", "NS", NS);
     } catch (const std::exception& e) {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
     }
-    num_params_r__ = (nt * ((2 * (2 - 1)) / 2)) + NS;
+    num_params_r__ = (nt * L_Omega_1dim_unc__) + NS;
   }
   inline std::string model_name() const final {
     return "param_constraint_model";
@@ -40183,7 +40212,7 @@ class param_constraint_model final : public model_base_crtp<param_constraint_mod
   unconstrained_param_names(std::vector<std::string>& param_names__, bool
                             emit_transformed_parameters__ = true, bool
                             emit_generated_quantities__ = true) const final {
-    for (int sym1__ = 1; sym1__ <= ((2 * (2 - 1)) / 2); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <= L_Omega_1dim_unc__; ++sym1__) {
       for (int sym2__ = 1; sym2__ <= nt; ++sym2__) {
         param_names__.emplace_back(std::string() + "L_Omega" + '.' +
           std::to_string(sym2__) + '.' + std::to_string(sym1__));
@@ -40200,7 +40229,7 @@ class param_constraint_model final : public model_base_crtp<param_constraint_mod
     return std::string("[{\"name\":\"L_Omega\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(nt) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(2) + ",\"cols\":" + std::to_string(2) + "}},\"block\":\"parameters\"},{\"name\":\"z1\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(NS) + "},\"block\":\"parameters\"}]");
   }
   inline std::string get_unconstrained_sizedtypes() const {
-    return std::string("[{\"name\":\"L_Omega\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(nt) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(((2 * (2 - 1)) /2)) + "}},\"block\":\"parameters\"},{\"name\":\"z1\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(NS) + "},\"block\":\"parameters\"}]");
+    return std::string("[{\"name\":\"L_Omega\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(nt) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(L_Omega_1dim_unc__) + "}},\"block\":\"parameters\"},{\"name\":\"z1\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(NS) + "},\"block\":\"parameters\"}]");
   }
   // Begin method overload boilerplate
   template <typename RNG> inline void
@@ -51745,6 +51774,7 @@ rhs(const T0__& t, const T1__& y_arg__, const T2__& alpha, std::ostream*
 class shadowing_model final : public model_base_crtp<shadowing_model> {
  private:
   Eigen::Matrix<double,-1,1> x_data__;
+  int validate_positive_index_1dim_unc__;
   int result_1dim__;
   Eigen::Map<Eigen::Matrix<double,-1,1>> x{nullptr, 0};
  public:
@@ -51786,10 +51816,9 @@ class shadowing_model final : public model_base_crtp<shadowing_model> {
           pos__ = (pos__ + 1);
         }
       }
+      validate_positive_index_1dim_unc__ = (5 - 1);
       current_statement__ = 48;
       stan::math::validate_non_negative_index("called", "1", 1);
-      current_statement__ = 49;
-      result_1dim__ = std::numeric_limits<int>::min();
       current_statement__ = 49;
       result_1dim__ = stan::math::num_elements(x);
       current_statement__ = 49;
@@ -51799,8 +51828,8 @@ class shadowing_model final : public model_base_crtp<shadowing_model> {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
     }
     num_params_r__ = 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 +
-      1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + (5 - 1) + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
-      + 4 + 1 + 1;
+      1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + validate_positive_index_1dim_unc__ + 1
+      + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 4 + 1 + 1;
   }
   inline std::string model_name() const final {
     return "shadowing_model";
@@ -52899,7 +52928,8 @@ class shadowing_model final : public model_base_crtp<shadowing_model> {
     param_names__.emplace_back(std::string() + "read");
     param_names__.emplace_back(std::string() + "validate_non_negative_index");
     param_names__.emplace_back(std::string() + "length");
-    for (int sym1__ = 1; sym1__ <= (5 - 1); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <=
+         validate_positive_index_1dim_unc__; ++sym1__) {
       param_names__.emplace_back(std::string() + "validate_positive_index" +
         '.' + std::to_string(sym1__));
     }
@@ -52936,7 +52966,7 @@ class shadowing_model final : public model_base_crtp<shadowing_model> {
     return std::string("[{\"name\":\"e\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"pi\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"log2\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"log10\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sqrt2\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"not_a_number\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"positive_infinity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"negative_infinity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"machine_precision\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"inv_logit\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"logit\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"num_elements\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"pow\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"add\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sub\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"multiply\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"lchoose\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"binomial_coefficient_log\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"read_constrain_lb\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"read\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"validate_non_negative_index\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"length\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"validate_positive_index\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(5) + "},\"block\":\"parameters\"},{\"name\":\"profile_map\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"assign\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"rvalue\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"stan_print\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"model_base_crtp\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"index_uni\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"bernoulli_logit_glm_lpmf\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"reduce_sum\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"segment\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(4) + "},\"block\":\"parameters\"},{\"name\":\"ode_bdf\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"ode_bdf_tol\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"mu\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"called\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(1) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(4) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"result\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(result_1dim__) + "},\"block\":\"transformed_parameters\"}]");
   }
   inline std::string get_unconstrained_sizedtypes() const {
-    return std::string("[{\"name\":\"e\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"pi\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"log2\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"log10\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sqrt2\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"not_a_number\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"positive_infinity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"negative_infinity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"machine_precision\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"inv_logit\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"logit\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"num_elements\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"pow\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"add\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sub\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"multiply\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"lchoose\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"binomial_coefficient_log\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"read_constrain_lb\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"read\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"validate_non_negative_index\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"length\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"validate_positive_index\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string((5 -1)) + "},\"block\":\"parameters\"},{\"name\":\"profile_map\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"assign\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"rvalue\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"stan_print\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"model_base_crtp\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"index_uni\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"bernoulli_logit_glm_lpmf\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"reduce_sum\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"segment\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(4) + "},\"block\":\"parameters\"},{\"name\":\"ode_bdf\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"ode_bdf_tol\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"mu\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"called\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(1) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(4) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"result\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(result_1dim__) + "},\"block\":\"transformed_parameters\"}]");
+    return std::string("[{\"name\":\"e\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"pi\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"log2\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"log10\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sqrt2\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"not_a_number\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"positive_infinity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"negative_infinity\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"machine_precision\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"inv_logit\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"logit\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"num_elements\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"pow\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"add\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"sub\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"multiply\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"lchoose\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"binomial_coefficient_log\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"read_constrain_lb\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"read\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"validate_non_negative_index\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"length\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"validate_positive_index\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(validate_positive_index_1dim_unc__) + "},\"block\":\"parameters\"},{\"name\":\"profile_map\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"assign\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"rvalue\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"stan_print\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"model_base_crtp\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"index_uni\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"bernoulli_logit_glm_lpmf\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"reduce_sum\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"segment\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(4) + "},\"block\":\"parameters\"},{\"name\":\"ode_bdf\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"ode_bdf_tol\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"mu\",\"type\":{\"name\":\"real\"},\"block\":\"transformed_parameters\"},{\"name\":\"called\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(1) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(4) + "}},\"block\":\"transformed_parameters\"},{\"name\":\"result\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(result_1dim__) + "},\"block\":\"transformed_parameters\"}]");
   }
   // Begin method overload boilerplate
   template <typename RNG> inline void
@@ -53513,7 +53543,7 @@ namespace stochastic_matrices_model_namespace {
 using stan::model::model_base_crtp;
 using namespace stan::math;
 stan::math::profile_map profiles__;
-static constexpr std::array<const char*, 16> locations_array__ =
+static constexpr std::array<const char*, 25> locations_array__ =
   {" (found before start of program)",
   " (in 'stochastic_matrices.stan', line 13, column 3 to column 42)",
   " (in 'stochastic_matrices.stan', line 14, column 3 to column 39)",
@@ -53529,7 +53559,16 @@ static constexpr std::array<const char*, 16> locations_array__ =
   " (in 'stochastic_matrices.stan', line 4, column 3 to column 52)",
   " (in 'stochastic_matrices.stan', line 8, column 3 to column 51)",
   " (in 'stochastic_matrices.stan', line 9, column 3 to column 48)",
-  " (in 'stochastic_matrices.stan', line 10, column 3 to column 53)"};
+  " (in 'stochastic_matrices.stan', line 10, column 3 to column 53)",
+  " (in 'stochastic_matrices.stan', line 13, column 32 to column 34)",
+  " (in 'stochastic_matrices.stan', line 14, column 25 to column 27)",
+  " (in 'stochastic_matrices.stan', line 15, column 37 to column 39)",
+  " (in 'stochastic_matrices.stan', line 19, column 32 to column 34)",
+  " (in 'stochastic_matrices.stan', line 20, column 25 to column 27)",
+  " (in 'stochastic_matrices.stan', line 21, column 37 to column 39)",
+  " (in 'stochastic_matrices.stan', line 25, column 32 to column 34)",
+  " (in 'stochastic_matrices.stan', line 26, column 25 to column 27)",
+  " (in 'stochastic_matrices.stan', line 27, column 37 to column 39)"};
 class stochastic_matrices_model final : public model_base_crtp<stochastic_matrices_model> {
  private:
   Eigen::Matrix<double,-1,-1> d_csm_data__;
@@ -53538,6 +53577,24 @@ class stochastic_matrices_model final : public model_base_crtp<stochastic_matric
   Eigen::Matrix<double,-1,-1> td_csm_data__;
   Eigen::Matrix<double,-1,-1> td_rsm_data__;
   std::vector<std::vector<Eigen::Matrix<double,-1,-1>>> td_arsm;
+  int p_csm_1dim_unc__;
+  int p_csm_2dim_unc__;
+  int p_rsm_1dim_unc__;
+  int p_rsm_2dim_unc__;
+  int p_arsm_1dim_unc__;
+  int p_arsm_2dim_unc__;
+  int tp_csm_1dim_unc__;
+  int tp_csm_2dim_unc__;
+  int tp_rsm_1dim_unc__;
+  int tp_rsm_2dim_unc__;
+  int tp_arsm_1dim_unc__;
+  int tp_arsm_2dim_unc__;
+  int gq_csm_1dim_unc__;
+  int gq_csm_2dim_unc__;
+  int gq_rsm_1dim_unc__;
+  int gq_rsm_2dim_unc__;
+  int gq_arsm_1dim_unc__;
+  int gq_arsm_2dim_unc__;
   Eigen::Map<Eigen::Matrix<double,-1,-1>> d_csm{nullptr, 0, 0};
   Eigen::Map<Eigen::Matrix<double,-1,-1>> d_rsm{nullptr, 0, 0};
   Eigen::Map<Eigen::Matrix<double,-1,-1>> td_csm{nullptr, 0, 0};
@@ -53666,11 +53723,39 @@ class stochastic_matrices_model final : public model_base_crtp<stochastic_matric
       stan::math::check_stochastic_row(function__, "td_rsm", td_rsm);
       current_statement__ = 15;
       stan::math::check_stochastic_row(function__, "td_arsm", td_arsm);
+      p_csm_1dim_unc__ = (10 - 1);
+      current_statement__ = 16;
+      p_csm_2dim_unc__ = 10;
+      current_statement__ = 17;
+      p_rsm_1dim_unc__ = 10;
+      p_rsm_2dim_unc__ = (10 - 1);
+      current_statement__ = 18;
+      p_arsm_1dim_unc__ = 10;
+      p_arsm_2dim_unc__ = (10 - 1);
+      tp_csm_1dim_unc__ = (10 - 1);
+      current_statement__ = 19;
+      tp_csm_2dim_unc__ = 10;
+      current_statement__ = 20;
+      tp_rsm_1dim_unc__ = 10;
+      tp_rsm_2dim_unc__ = (10 - 1);
+      current_statement__ = 21;
+      tp_arsm_1dim_unc__ = 10;
+      tp_arsm_2dim_unc__ = (10 - 1);
+      gq_csm_1dim_unc__ = (10 - 1);
+      current_statement__ = 22;
+      gq_csm_2dim_unc__ = 10;
+      current_statement__ = 23;
+      gq_rsm_1dim_unc__ = 10;
+      gq_rsm_2dim_unc__ = (10 - 1);
+      current_statement__ = 24;
+      gq_arsm_1dim_unc__ = 10;
+      gq_arsm_2dim_unc__ = (10 - 1);
     } catch (const std::exception& e) {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
     }
-    num_params_r__ = ((10 - 1) * 10) + (10 * (10 - 1)) + (2 * (2 * (10 * (10
-      - 1))));
+    num_params_r__ = (p_csm_1dim_unc__ * p_csm_2dim_unc__) +
+      (p_rsm_1dim_unc__ * p_rsm_2dim_unc__) + (2 * (2 * (p_arsm_1dim_unc__ *
+      p_arsm_2dim_unc__)));
   }
   inline std::string model_name() const final {
     return "stochastic_matrices_model";
@@ -54248,20 +54333,20 @@ class stochastic_matrices_model final : public model_base_crtp<stochastic_matric
   unconstrained_param_names(std::vector<std::string>& param_names__, bool
                             emit_transformed_parameters__ = true, bool
                             emit_generated_quantities__ = true) const final {
-    for (int sym1__ = 1; sym1__ <= 10; ++sym1__) {
-      for (int sym2__ = 1; sym2__ <= (10 - 1); ++sym2__) {
+    for (int sym1__ = 1; sym1__ <= p_csm_2dim_unc__; ++sym1__) {
+      for (int sym2__ = 1; sym2__ <= p_csm_1dim_unc__; ++sym2__) {
         param_names__.emplace_back(std::string() + "p_csm" + '.' +
           std::to_string(sym2__) + '.' + std::to_string(sym1__));
       }
     }
-    for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
-      for (int sym2__ = 1; sym2__ <= 10; ++sym2__) {
+    for (int sym1__ = 1; sym1__ <= p_rsm_2dim_unc__; ++sym1__) {
+      for (int sym2__ = 1; sym2__ <= p_rsm_1dim_unc__; ++sym2__) {
         param_names__.emplace_back(std::string() + "p_rsm" + '.' +
           std::to_string(sym2__) + '.' + std::to_string(sym1__));
       }
     }
-    for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
-      for (int sym2__ = 1; sym2__ <= 10; ++sym2__) {
+    for (int sym1__ = 1; sym1__ <= p_arsm_2dim_unc__; ++sym1__) {
+      for (int sym2__ = 1; sym2__ <= p_arsm_1dim_unc__; ++sym2__) {
         for (int sym3__ = 1; sym3__ <= 2; ++sym3__) {
           for (int sym4__ = 1; sym4__ <= 2; ++sym4__) {
             param_names__.emplace_back(std::string() + "p_arsm" + '.' +
@@ -54272,20 +54357,20 @@ class stochastic_matrices_model final : public model_base_crtp<stochastic_matric
       }
     }
     if (emit_transformed_parameters__) {
-      for (int sym1__ = 1; sym1__ <= 10; ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= (10 - 1); ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= tp_csm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= tp_csm_1dim_unc__; ++sym2__) {
           param_names__.emplace_back(std::string() + "tp_csm" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
         }
       }
-      for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= 10; ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= tp_rsm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= tp_rsm_1dim_unc__; ++sym2__) {
           param_names__.emplace_back(std::string() + "tp_rsm" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
         }
       }
-      for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= 10; ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= tp_arsm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= tp_arsm_1dim_unc__; ++sym2__) {
           for (int sym3__ = 1; sym3__ <= 2; ++sym3__) {
             for (int sym4__ = 1; sym4__ <= 2; ++sym4__) {
               param_names__.emplace_back(std::string() + "tp_arsm" + '.' +
@@ -54297,20 +54382,20 @@ class stochastic_matrices_model final : public model_base_crtp<stochastic_matric
       }
     }
     if (emit_generated_quantities__) {
-      for (int sym1__ = 1; sym1__ <= 10; ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= (10 - 1); ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= gq_csm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= gq_csm_1dim_unc__; ++sym2__) {
           param_names__.emplace_back(std::string() + "gq_csm" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
         }
       }
-      for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= 10; ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= gq_rsm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= gq_rsm_1dim_unc__; ++sym2__) {
           param_names__.emplace_back(std::string() + "gq_rsm" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
         }
       }
-      for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= 10; ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= gq_arsm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= gq_arsm_1dim_unc__; ++sym2__) {
           for (int sym3__ = 1; sym3__ <= 2; ++sym3__) {
             for (int sym4__ = 1; sym4__ <= 2; ++sym4__) {
               param_names__.emplace_back(std::string() + "gq_arsm" + '.' +
@@ -54326,7 +54411,7 @@ class stochastic_matrices_model final : public model_base_crtp<stochastic_matric
     return std::string("[{\"name\":\"p_csm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string(10) + "},\"block\":\"parameters\"},{\"name\":\"p_rsm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string(10) + "},\"block\":\"parameters\"},{\"name\":\"p_arsm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string(10) + "}}},\"block\":\"parameters\"},{\"name\":\"tp_csm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string(10) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_rsm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string(10) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_arsm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string(10) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"gq_csm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string(10) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_rsm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string(10) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_arsm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string(10) + "}}},\"block\":\"generated_quantities\"}]");
   }
   inline std::string get_unconstrained_sizedtypes() const {
-    return std::string("[{\"name\":\"p_csm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string((10 -1)) + ",\"cols\":" + std::to_string(10) + "},\"block\":\"parameters\"},{\"name\":\"p_rsm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string((10 -1)) + "},\"block\":\"parameters\"},{\"name\":\"p_arsm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string((10 -1)) + "}}},\"block\":\"parameters\"},{\"name\":\"tp_csm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string((10 -1)) + ",\"cols\":" + std::to_string(10) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_rsm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string((10 -1)) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_arsm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string((10 -1)) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"gq_csm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string((10 -1)) + ",\"cols\":" + std::to_string(10) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_rsm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string((10 -1)) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_arsm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(10) + ",\"cols\":" + std::to_string((10 -1)) + "}}},\"block\":\"generated_quantities\"}]");
+    return std::string("[{\"name\":\"p_csm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(p_csm_1dim_unc__) + ",\"cols\":" + std::to_string(p_csm_2dim_unc__) + "},\"block\":\"parameters\"},{\"name\":\"p_rsm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(p_rsm_1dim_unc__) + ",\"cols\":" + std::to_string(p_rsm_2dim_unc__) + "},\"block\":\"parameters\"},{\"name\":\"p_arsm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(p_arsm_1dim_unc__) + ",\"cols\":" + std::to_string(p_arsm_2dim_unc__) + "}}},\"block\":\"parameters\"},{\"name\":\"tp_csm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(tp_csm_1dim_unc__) + ",\"cols\":" + std::to_string(tp_csm_2dim_unc__) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_rsm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(tp_rsm_1dim_unc__) + ",\"cols\":" + std::to_string(tp_rsm_2dim_unc__) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_arsm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(tp_arsm_1dim_unc__) + ",\"cols\":" + std::to_string(tp_arsm_2dim_unc__) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"gq_csm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(gq_csm_1dim_unc__) + ",\"cols\":" + std::to_string(gq_csm_2dim_unc__) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_rsm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(gq_rsm_1dim_unc__) + ",\"cols\":" + std::to_string(gq_rsm_2dim_unc__) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_arsm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(gq_arsm_1dim_unc__) + ",\"cols\":" + std::to_string(gq_arsm_2dim_unc__) + "}}},\"block\":\"generated_quantities\"}]");
   }
   // Begin method overload boilerplate
   template <typename RNG> inline void
@@ -54470,6 +54555,24 @@ class sum_to_zero_model final : public model_base_crtp<sum_to_zero_model> {
   std::vector<std::vector<Eigen::Matrix<double,-1,1>>> td_astzv;
   Eigen::Matrix<double,-1,-1> td_stzm_data__;
   std::vector<std::vector<Eigen::Matrix<double,-1,-1>>> td_astzm;
+  int p_stzv_1dim_unc__;
+  int p_astzv_1dim_unc__;
+  int p_stzm_1dim_unc__;
+  int p_stzm_2dim_unc__;
+  int p_astzm_1dim_unc__;
+  int p_astzm_2dim_unc__;
+  int tp_stzv_1dim_unc__;
+  int tp_astzv_1dim_unc__;
+  int tp_stzm_1dim_unc__;
+  int tp_stzm_2dim_unc__;
+  int tp_astzm_1dim_unc__;
+  int tp_astzm_2dim_unc__;
+  int gq_stzv_1dim_unc__;
+  int gq_astzv_1dim_unc__;
+  int gq_stzm_1dim_unc__;
+  int gq_stzm_2dim_unc__;
+  int gq_astzm_1dim_unc__;
+  int gq_astzm_2dim_unc__;
   Eigen::Map<Eigen::Matrix<double,-1,1>> d_stzv{nullptr, 0};
   Eigen::Map<Eigen::Matrix<double,-1,-1>> d_stzm{nullptr, 0, 0};
   Eigen::Map<Eigen::Matrix<double,-1,1>> td_stzv{nullptr, 0};
@@ -54629,11 +54732,30 @@ class sum_to_zero_model final : public model_base_crtp<sum_to_zero_model> {
       stan::math::check_sum_to_zero(function__, "td_stzm", td_stzm);
       current_statement__ = 20;
       stan::math::check_sum_to_zero(function__, "td_astzm", td_astzm);
+      p_stzv_1dim_unc__ = (10 - 1);
+      p_astzv_1dim_unc__ = (10 - 1);
+      p_stzm_1dim_unc__ = (4 - 1);
+      p_stzm_2dim_unc__ = (5 - 1);
+      p_astzm_1dim_unc__ = (4 - 1);
+      p_astzm_2dim_unc__ = (5 - 1);
+      tp_stzv_1dim_unc__ = (10 - 1);
+      tp_astzv_1dim_unc__ = (10 - 1);
+      tp_stzm_1dim_unc__ = (4 - 1);
+      tp_stzm_2dim_unc__ = (5 - 1);
+      tp_astzm_1dim_unc__ = (4 - 1);
+      tp_astzm_2dim_unc__ = (5 - 1);
+      gq_stzv_1dim_unc__ = (10 - 1);
+      gq_astzv_1dim_unc__ = (10 - 1);
+      gq_stzm_1dim_unc__ = (4 - 1);
+      gq_stzm_2dim_unc__ = (5 - 1);
+      gq_astzm_1dim_unc__ = (4 - 1);
+      gq_astzm_2dim_unc__ = (5 - 1);
     } catch (const std::exception& e) {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
     }
-    num_params_r__ = (10 - 1) + (2 * (3 * (10 - 1))) + ((4 - 1) * (5 - 1)) +
-      (2 * (3 * ((4 - 1) * (5 - 1))));
+    num_params_r__ = p_stzv_1dim_unc__ + (2 * (3 * p_astzv_1dim_unc__)) +
+      (p_stzm_1dim_unc__ * p_stzm_2dim_unc__) + (2 * (3 * (p_astzm_1dim_unc__
+      * p_astzm_2dim_unc__)));
   }
   inline std::string model_name() const final {
     return "sum_to_zero_model";
@@ -55356,11 +55478,11 @@ class sum_to_zero_model final : public model_base_crtp<sum_to_zero_model> {
   unconstrained_param_names(std::vector<std::string>& param_names__, bool
                             emit_transformed_parameters__ = true, bool
                             emit_generated_quantities__ = true) const final {
-    for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <= p_stzv_1dim_unc__; ++sym1__) {
       param_names__.emplace_back(std::string() + "p_stzv" + '.' +
         std::to_string(sym1__));
     }
-    for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
+    for (int sym1__ = 1; sym1__ <= p_astzv_1dim_unc__; ++sym1__) {
       for (int sym2__ = 1; sym2__ <= 3; ++sym2__) {
         for (int sym3__ = 1; sym3__ <= 2; ++sym3__) {
           param_names__.emplace_back(std::string() + "p_astzv" + '.' +
@@ -55369,14 +55491,14 @@ class sum_to_zero_model final : public model_base_crtp<sum_to_zero_model> {
         }
       }
     }
-    for (int sym1__ = 1; sym1__ <= (5 - 1); ++sym1__) {
-      for (int sym2__ = 1; sym2__ <= (4 - 1); ++sym2__) {
+    for (int sym1__ = 1; sym1__ <= p_stzm_2dim_unc__; ++sym1__) {
+      for (int sym2__ = 1; sym2__ <= p_stzm_1dim_unc__; ++sym2__) {
         param_names__.emplace_back(std::string() + "p_stzm" + '.' +
           std::to_string(sym2__) + '.' + std::to_string(sym1__));
       }
     }
-    for (int sym1__ = 1; sym1__ <= (5 - 1); ++sym1__) {
-      for (int sym2__ = 1; sym2__ <= (4 - 1); ++sym2__) {
+    for (int sym1__ = 1; sym1__ <= p_astzm_2dim_unc__; ++sym1__) {
+      for (int sym2__ = 1; sym2__ <= p_astzm_1dim_unc__; ++sym2__) {
         for (int sym3__ = 1; sym3__ <= 3; ++sym3__) {
           for (int sym4__ = 1; sym4__ <= 2; ++sym4__) {
             param_names__.emplace_back(std::string() + "p_astzm" + '.' +
@@ -55387,11 +55509,11 @@ class sum_to_zero_model final : public model_base_crtp<sum_to_zero_model> {
       }
     }
     if (emit_transformed_parameters__) {
-      for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= tp_stzv_1dim_unc__; ++sym1__) {
         param_names__.emplace_back(std::string() + "tp_stzv" + '.' +
           std::to_string(sym1__));
       }
-      for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= tp_astzv_1dim_unc__; ++sym1__) {
         for (int sym2__ = 1; sym2__ <= 3; ++sym2__) {
           for (int sym3__ = 1; sym3__ <= 2; ++sym3__) {
             param_names__.emplace_back(std::string() + "tp_astzv" + '.' +
@@ -55400,14 +55522,14 @@ class sum_to_zero_model final : public model_base_crtp<sum_to_zero_model> {
           }
         }
       }
-      for (int sym1__ = 1; sym1__ <= (5 - 1); ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= (4 - 1); ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= tp_stzm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= tp_stzm_1dim_unc__; ++sym2__) {
           param_names__.emplace_back(std::string() + "tp_stzm" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
         }
       }
-      for (int sym1__ = 1; sym1__ <= (5 - 1); ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= (4 - 1); ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= tp_astzm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= tp_astzm_1dim_unc__; ++sym2__) {
           for (int sym3__ = 1; sym3__ <= 3; ++sym3__) {
             for (int sym4__ = 1; sym4__ <= 2; ++sym4__) {
               param_names__.emplace_back(std::string() + "tp_astzm" + '.' +
@@ -55419,11 +55541,11 @@ class sum_to_zero_model final : public model_base_crtp<sum_to_zero_model> {
       }
     }
     if (emit_generated_quantities__) {
-      for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= gq_stzv_1dim_unc__; ++sym1__) {
         param_names__.emplace_back(std::string() + "gq_stzv" + '.' +
           std::to_string(sym1__));
       }
-      for (int sym1__ = 1; sym1__ <= (10 - 1); ++sym1__) {
+      for (int sym1__ = 1; sym1__ <= gq_astzv_1dim_unc__; ++sym1__) {
         for (int sym2__ = 1; sym2__ <= 3; ++sym2__) {
           for (int sym3__ = 1; sym3__ <= 2; ++sym3__) {
             param_names__.emplace_back(std::string() + "gq_astzv" + '.' +
@@ -55432,14 +55554,14 @@ class sum_to_zero_model final : public model_base_crtp<sum_to_zero_model> {
           }
         }
       }
-      for (int sym1__ = 1; sym1__ <= (5 - 1); ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= (4 - 1); ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= gq_stzm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= gq_stzm_1dim_unc__; ++sym2__) {
           param_names__.emplace_back(std::string() + "gq_stzm" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__));
         }
       }
-      for (int sym1__ = 1; sym1__ <= (5 - 1); ++sym1__) {
-        for (int sym2__ = 1; sym2__ <= (4 - 1); ++sym2__) {
+      for (int sym1__ = 1; sym1__ <= gq_astzm_2dim_unc__; ++sym1__) {
+        for (int sym2__ = 1; sym2__ <= gq_astzm_1dim_unc__; ++sym2__) {
           for (int sym3__ = 1; sym3__ <= 3; ++sym3__) {
             for (int sym4__ = 1; sym4__ <= 2; ++sym4__) {
               param_names__.emplace_back(std::string() + "gq_astzm" + '.' +
@@ -55455,7 +55577,7 @@ class sum_to_zero_model final : public model_base_crtp<sum_to_zero_model> {
     return std::string("[{\"name\":\"p_stzv\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(10) + "},\"block\":\"parameters\"},{\"name\":\"p_astzv\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(10) + "}}},\"block\":\"parameters\"},{\"name\":\"p_stzm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(4) + ",\"cols\":" + std::to_string(5) + "},\"block\":\"parameters\"},{\"name\":\"p_astzm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(4) + ",\"cols\":" + std::to_string(5) + "}}},\"block\":\"parameters\"},{\"name\":\"tp_stzv\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(10) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_astzv\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(10) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_stzm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(4) + ",\"cols\":" + std::to_string(5) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_astzm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(4) + ",\"cols\":" + std::to_string(5) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"gq_stzv\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(10) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_astzv\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(10) + "}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_stzm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(4) + ",\"cols\":" + std::to_string(5) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_astzm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(4) + ",\"cols\":" + std::to_string(5) + "}}},\"block\":\"generated_quantities\"}]");
   }
   inline std::string get_unconstrained_sizedtypes() const {
-    return std::string("[{\"name\":\"p_stzv\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string((10 -1)) + "},\"block\":\"parameters\"},{\"name\":\"p_astzv\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string((10 -1)) + "}}},\"block\":\"parameters\"},{\"name\":\"p_stzm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string((4 -1)) + ",\"cols\":" + std::to_string((5 -1)) + "},\"block\":\"parameters\"},{\"name\":\"p_astzm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string((4 -1)) + ",\"cols\":" + std::to_string((5 -1)) + "}}},\"block\":\"parameters\"},{\"name\":\"tp_stzv\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string((10 -1)) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_astzv\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string((10 -1)) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_stzm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string((4 -1)) + ",\"cols\":" + std::to_string((5 -1)) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_astzm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string((4 -1)) + ",\"cols\":" + std::to_string((5 -1)) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"gq_stzv\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string((10 -1)) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_astzv\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string((10 -1)) + "}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_stzm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string((4 -1)) + ",\"cols\":" + std::to_string((5 -1)) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_astzm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string((4 -1)) + ",\"cols\":" + std::to_string((5 -1)) + "}}},\"block\":\"generated_quantities\"}]");
+    return std::string("[{\"name\":\"p_stzv\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(p_stzv_1dim_unc__) + "},\"block\":\"parameters\"},{\"name\":\"p_astzv\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(p_astzv_1dim_unc__) + "}}},\"block\":\"parameters\"},{\"name\":\"p_stzm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(p_stzm_1dim_unc__) + ",\"cols\":" + std::to_string(p_stzm_2dim_unc__) + "},\"block\":\"parameters\"},{\"name\":\"p_astzm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(p_astzm_1dim_unc__) + ",\"cols\":" + std::to_string(p_astzm_2dim_unc__) + "}}},\"block\":\"parameters\"},{\"name\":\"tp_stzv\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(tp_stzv_1dim_unc__) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_astzv\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(tp_astzv_1dim_unc__) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"tp_stzm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(tp_stzm_1dim_unc__) + ",\"cols\":" + std::to_string(tp_stzm_2dim_unc__) + "},\"block\":\"transformed_parameters\"},{\"name\":\"tp_astzm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(tp_astzm_1dim_unc__) + ",\"cols\":" + std::to_string(tp_astzm_2dim_unc__) + "}}},\"block\":\"transformed_parameters\"},{\"name\":\"gq_stzv\",\"type\":{\"name\":\"vector\",\"length\":" + std::to_string(gq_stzv_1dim_unc__) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_astzv\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"vector\",\"length\":" + std::to_string(gq_astzv_1dim_unc__) + "}}},\"block\":\"generated_quantities\"},{\"name\":\"gq_stzm\",\"type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(gq_stzm_1dim_unc__) + ",\"cols\":" + std::to_string(gq_stzm_2dim_unc__) + "},\"block\":\"generated_quantities\"},{\"name\":\"gq_astzm\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"matrix\",\"rows\":" + std::to_string(gq_astzm_1dim_unc__) + ",\"cols\":" + std::to_string(gq_astzm_2dim_unc__) + "}}},\"block\":\"generated_quantities\"}]");
   }
   // Begin method overload boilerplate
   template <typename RNG> inline void

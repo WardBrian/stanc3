@@ -2211,6 +2211,10 @@ model {
   Fmt.str "@[<v>%a@]" Program.Typed.pp mir |> print_endline;
   [%expect
     {|
+      prepare_data {
+        data int x_cov_1dim_unc__ = 3;
+      }
+
       log_prob {
         matrix[3, 2] x_matrix;
         matrix[2, 4] y_matrix;
@@ -2394,7 +2398,7 @@ model {
         parameters matrix[4, 2] z_matrix; //matrix[4, 2]
         parameters vector[2] x_vector; //vector[2]
         parameters vector[3] y_vector; //vector[3]
-        parameters matrix[2, 2] x_cov; //vector[3]
+        parameters matrix[2, 2] x_cov; //vector[x_cov_1dim_unc__]
         parameters real theta_u; //real
         parameters real phi_u; //real
       } |}]

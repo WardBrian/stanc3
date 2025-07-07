@@ -6033,7 +6033,10 @@ std::tuple<double, double> foo(std::ostream* pstream__) {
 class tuple_constraints_params_model final : public model_base_crtp<tuple_constraints_params_model> {
  private:
   int indicator;
+  int ps2_brack_brack_dot2_1dim_unc__;
   int complicated_brack_dot2_1dim__;
+  int complicated_brack_dot2_brack_dot2_1dim_unc__;
+  int complicated_brack_dot2_brack_dot3_1dim_unc__;
  public:
   ~tuple_constraints_params_model() {}
   tuple_constraints_params_model(stan::io::var_context& context__,
@@ -6066,8 +6069,7 @@ class tuple_constraints_params_model final : public model_base_crtp<tuple_constr
         0);
       current_statement__ = 5;
       stan::math::check_less_or_equal(function__, "indicator", indicator, 1);
-      current_statement__ = 6;
-      complicated_brack_dot2_1dim__ = std::numeric_limits<int>::min();
+      ps2_brack_brack_dot2_1dim_unc__ = (4 - 1);
       current_statement__ = 6;
       complicated_brack_dot2_1dim__ = (indicator ? 3 : 0);
       current_statement__ = 6;
@@ -6077,12 +6079,17 @@ class tuple_constraints_params_model final : public model_base_crtp<tuple_constr
       stan::math::check_greater_or_equal(
         "cholesky_factor_cov complicated[].2[].3",
         "num rows (must be greater or equal to num cols)", 5, 4);
+      complicated_brack_dot2_brack_dot2_1dim_unc__ = (5 - 1);
+      complicated_brack_dot2_brack_dot3_1dim_unc__ = ((((4 * (4 - 1)) / 2) +
+        4) + ((5 - 4) * 4));
     } catch (const std::exception& e) {
       stan::lang::rethrow_located(e, locations_array__[current_statement__]);
     }
-    num_params_r__ = (1 + 1) + (3 * (2 * (1 + (4 - 1)))) + 1 + (2 * (1 +
-      (complicated_brack_dot2_1dim__ * ((1 + (5 - 1)) + ((((4 * (4 - 1)) / 2)
-      + 4) + ((5 - 4) * 4))))));
+    num_params_r__ = (1 + 1) + (3 * (2 * (1 +
+      ps2_brack_brack_dot2_1dim_unc__))) + 1 + (2 * (1 +
+      (complicated_brack_dot2_1dim__ * ((1 +
+      complicated_brack_dot2_brack_dot2_1dim_unc__) +
+      complicated_brack_dot2_brack_dot3_1dim_unc__))));
   }
   inline std::string model_name() const final {
     return "tuple_constraints_params_model";
@@ -7002,7 +7009,8 @@ class tuple_constraints_params_model final : public model_base_crtp<tuple_constr
         param_names__.emplace_back(std::string() + "ps2" + '.' +
           std::to_string(sym2__) + '.' + std::to_string(sym1__) + ':' +
           std::to_string(1));
-        for (int sym3__ = 1; sym3__ <= (4 - 1); ++sym3__) {
+        for (int sym3__ = 1; sym3__ <=
+             ps2_brack_brack_dot2_1dim_unc__; ++sym3__) {
           param_names__.emplace_back(std::string() + "ps2" + '.' +
             std::to_string(sym2__) + '.' + std::to_string(sym1__) + ':' +
             std::to_string(2) + '.' + std::to_string(sym3__));
@@ -7017,14 +7025,15 @@ class tuple_constraints_params_model final : public model_base_crtp<tuple_constr
         param_names__.emplace_back(std::string() + "complicated" + '.' +
           std::to_string(sym1__) + ':' + std::to_string(2) + '.' +
           std::to_string(sym2__) + ':' + std::to_string(1));
-        for (int sym3__ = 1; sym3__ <= (5 - 1); ++sym3__) {
+        for (int sym3__ = 1; sym3__ <=
+             complicated_brack_dot2_brack_dot2_1dim_unc__; ++sym3__) {
           param_names__.emplace_back(std::string() + "complicated" + '.' +
             std::to_string(sym1__) + ':' + std::to_string(2) + '.' +
             std::to_string(sym2__) + ':' + std::to_string(2) + '.' +
             std::to_string(sym3__));
         }
-        for (int sym3__ = 1; sym3__ <= ((((4 * (4 - 1)) / 2) + 4) + ((5 - 4)
-             * 4)); ++sym3__) {
+        for (int sym3__ = 1; sym3__ <=
+             complicated_brack_dot2_brack_dot3_1dim_unc__; ++sym3__) {
           param_names__.emplace_back(std::string() + "complicated" + '.' +
             std::to_string(sym1__) + ':' + std::to_string(2) + '.' +
             std::to_string(sym2__) + ':' + std::to_string(3) + '.' +
@@ -7039,7 +7048,7 @@ class tuple_constraints_params_model final : public model_base_crtp<tuple_constr
     return std::string("[{\"name\":\"ps\",\"type\":{\"name\":\"tuple\",\"num_elements\":\"2\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"real\"}]},\"block\":\"parameters\"},{\"name\":\"ps2\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"tuple\",\"num_elements\":\"2\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"vector\",\"length\":" + std::to_string(4) + "}]}}},\"block\":\"parameters\"},{\"name\":\"t\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"complicated\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"tuple\",\"num_elements\":\"2\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"array\",\"length\":" + std::to_string(complicated_brack_dot2_1dim__) + ",\"element_type\":{\"name\":\"tuple\",\"num_elements\":\"3\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"vector\",\"length\":" + std::to_string(5) + "},{\"name\":\"matrix\",\"rows\":" + std::to_string(5) + ",\"cols\":" + std::to_string(4) + "}]}}]}},\"block\":\"parameters\"}]");
   }
   inline std::string get_unconstrained_sizedtypes() const {
-    return std::string("[{\"name\":\"ps\",\"type\":{\"name\":\"tuple\",\"num_elements\":\"2\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"real\"}]},\"block\":\"parameters\"},{\"name\":\"ps2\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"tuple\",\"num_elements\":\"2\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"vector\",\"length\":" + std::to_string((4 -1)) + "}]}}},\"block\":\"parameters\"},{\"name\":\"t\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"complicated\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"tuple\",\"num_elements\":\"2\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"array\",\"length\":" + std::to_string(complicated_brack_dot2_1dim__) + ",\"element_type\":{\"name\":\"tuple\",\"num_elements\":\"3\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"vector\",\"length\":" + std::to_string((5 -1)) + "},{\"name\":\"vector\",\"length\":" + std::to_string(((((4 * (4 - 1)) / 2) + 4) + ((5 - 4) *4))) + "}]}}]}},\"block\":\"parameters\"}]");
+    return std::string("[{\"name\":\"ps\",\"type\":{\"name\":\"tuple\",\"num_elements\":\"2\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"real\"}]},\"block\":\"parameters\"},{\"name\":\"ps2\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(3) + ",\"element_type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"tuple\",\"num_elements\":\"2\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"vector\",\"length\":" + std::to_string(ps2_brack_brack_dot2_1dim_unc__) + "}]}}},\"block\":\"parameters\"},{\"name\":\"t\",\"type\":{\"name\":\"real\"},\"block\":\"parameters\"},{\"name\":\"complicated\",\"type\":{\"name\":\"array\",\"length\":" + std::to_string(2) + ",\"element_type\":{\"name\":\"tuple\",\"num_elements\":\"2\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"array\",\"length\":" + std::to_string(complicated_brack_dot2_1dim__) + ",\"element_type\":{\"name\":\"tuple\",\"num_elements\":\"3\",\"element_types\":[{\"name\":\"real\"},{\"name\":\"vector\",\"length\":" + std::to_string(complicated_brack_dot2_brack_dot2_1dim_unc__) + "},{\"name\":\"vector\",\"length\":" + std::to_string(complicated_brack_dot2_brack_dot3_1dim_unc__) + "}]}}]}},\"block\":\"parameters\"}]");
   }
   // Begin method overload boilerplate
   template <typename RNG> inline void

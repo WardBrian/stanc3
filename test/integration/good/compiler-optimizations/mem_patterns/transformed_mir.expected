@@ -2796,6 +2796,29 @@ vector[N] means_ordered: SoA
        ((pattern (Var N)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
     (meta <opaque>))
    ((pattern
+     (Decl (decl_adtype DataOnly) (decl_id corr_matrix_test_1dim_unc__)
+      (decl_type (Sized SInt))
+      (initialize
+       (Assign
+        ((pattern
+          (FunApp (StanLib Divide__ FnPlain AoS)
+           (((pattern
+              (FunApp (StanLib Times__ FnPlain AoS)
+               (((pattern (Var N))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                ((pattern
+                  (FunApp (StanLib Minus__ FnPlain AoS)
+                   (((pattern (Var N))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                    ((pattern (Lit Int 1))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+             (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+            ((pattern (Lit Int 2))
+             (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+    (meta <opaque>))
+   ((pattern
      (NRFunApp (CompilerInternal FnValidateSize)
       (((pattern (Lit Str cov_matrix_test))
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
@@ -2808,6 +2831,33 @@ vector[N] means_ordered: SoA
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
        ((pattern (Lit Str N)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
        ((pattern (Var N)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+    (meta <opaque>))
+   ((pattern
+     (Decl (decl_adtype DataOnly) (decl_id cov_matrix_test_1dim_unc__)
+      (decl_type (Sized SInt))
+      (initialize
+       (Assign
+        ((pattern
+          (FunApp (StanLib Plus__ FnPlain AoS)
+           (((pattern (Var N)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+            ((pattern
+              (FunApp (StanLib Divide__ FnPlain AoS)
+               (((pattern
+                  (FunApp (StanLib Times__ FnPlain AoS)
+                   (((pattern (Var N))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                    ((pattern
+                      (FunApp (StanLib Minus__ FnPlain AoS)
+                       (((pattern (Var N))
+                         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                        ((pattern (Lit Int 1))
+                         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                ((pattern (Lit Int 2))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+             (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
     (meta <opaque>))
    ((pattern
      (NRFunApp (CompilerInternal FnValidateSize)
@@ -2833,6 +2883,49 @@ vector[N] means_ordered: SoA
        ((pattern (Var K)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
     (meta <opaque>))
    ((pattern
+     (Decl (decl_adtype DataOnly) (decl_id chol_fac_cov_test_1dim_unc__)
+      (decl_type (Sized SInt))
+      (initialize
+       (Assign
+        ((pattern
+          (FunApp (StanLib Plus__ FnPlain AoS)
+           (((pattern
+              (FunApp (StanLib Plus__ FnPlain AoS)
+               (((pattern
+                  (FunApp (StanLib Divide__ FnPlain AoS)
+                   (((pattern
+                      (FunApp (StanLib Times__ FnPlain AoS)
+                       (((pattern (Var K))
+                         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                        ((pattern
+                          (FunApp (StanLib Minus__ FnPlain AoS)
+                           (((pattern (Var K))
+                             (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                            ((pattern (Lit Int 1))
+                             (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+                         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                    ((pattern (Lit Int 2))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                ((pattern (Var K))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+             (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+            ((pattern
+              (FunApp (StanLib Times__ FnPlain AoS)
+               (((pattern
+                  (FunApp (StanLib Minus__ FnPlain AoS)
+                   (((pattern (Var K))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                    ((pattern (Var K))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                ((pattern (Var K))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+             (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
+    (meta <opaque>))
+   ((pattern
      (NRFunApp (CompilerInternal FnValidateSize)
       (((pattern (Lit Str chol_fac_corr_test))
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
@@ -2845,6 +2938,29 @@ vector[N] means_ordered: SoA
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
        ((pattern (Lit Str K)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
        ((pattern (Var K)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+    (meta <opaque>))
+   ((pattern
+     (Decl (decl_adtype DataOnly) (decl_id chol_fac_corr_test_1dim_unc__)
+      (decl_type (Sized SInt))
+      (initialize
+       (Assign
+        ((pattern
+          (FunApp (StanLib Divide__ FnPlain AoS)
+           (((pattern
+              (FunApp (StanLib Times__ FnPlain AoS)
+               (((pattern (Var K))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                ((pattern
+                  (FunApp (StanLib Minus__ FnPlain AoS)
+                   (((pattern (Var K))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+                    ((pattern (Lit Int 1))
+                     (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+                 (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+             (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
+            ((pattern (Lit Int 2))
+             (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))))
     (meta <opaque>))
    ((pattern
      (NRFunApp (CompilerInternal FnValidateSize)
@@ -8990,22 +9106,7 @@ vector[N] means_ordered: SoA
       ((filename constraints.stan) (line_num 38) (col_num 34) (included_from ()))))
     ((out_unconstrained_st
       (SVector AoS
-       ((pattern
-         (FunApp (StanLib Divide__ FnPlain AoS)
-          (((pattern
-             (FunApp (StanLib Times__ FnPlain AoS)
-              (((pattern (Var N))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-               ((pattern
-                 (FunApp (StanLib Minus__ FnPlain AoS)
-                  (((pattern (Var N))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-                   ((pattern (Lit Int 1))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-            (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-           ((pattern (Lit Int 2))
-            (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+       ((pattern (Var corr_matrix_test_1dim_unc__))
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_constrained_st
       (SMatrix AoS
@@ -9019,26 +9120,7 @@ vector[N] means_ordered: SoA
       ((filename constraints.stan) (line_num 39) (col_num 32) (included_from ()))))
     ((out_unconstrained_st
       (SVector AoS
-       ((pattern
-         (FunApp (StanLib Plus__ FnPlain AoS)
-          (((pattern (Var N)) (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-           ((pattern
-             (FunApp (StanLib Divide__ FnPlain AoS)
-              (((pattern
-                 (FunApp (StanLib Times__ FnPlain AoS)
-                  (((pattern (Var N))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-                   ((pattern
-                     (FunApp (StanLib Minus__ FnPlain AoS)
-                      (((pattern (Var N))
-                        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-                       ((pattern (Lit Int 1))
-                        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-               ((pattern (Lit Int 2))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-            (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+       ((pattern (Var cov_matrix_test_1dim_unc__))
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_constrained_st
       (SMatrix AoS
@@ -9052,42 +9134,7 @@ vector[N] means_ordered: SoA
       ((filename constraints.stan) (line_num 40) (col_num 43) (included_from ()))))
     ((out_unconstrained_st
       (SVector AoS
-       ((pattern
-         (FunApp (StanLib Plus__ FnPlain AoS)
-          (((pattern
-             (FunApp (StanLib Plus__ FnPlain AoS)
-              (((pattern
-                 (FunApp (StanLib Divide__ FnPlain AoS)
-                  (((pattern
-                     (FunApp (StanLib Times__ FnPlain AoS)
-                      (((pattern (Var K))
-                        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-                       ((pattern
-                         (FunApp (StanLib Minus__ FnPlain AoS)
-                          (((pattern (Var K))
-                            (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-                           ((pattern (Lit Int 1))
-                            (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-                        (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-                   ((pattern (Lit Int 2))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-               ((pattern (Var K))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-            (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-           ((pattern
-             (FunApp (StanLib Times__ FnPlain AoS)
-              (((pattern
-                 (FunApp (StanLib Minus__ FnPlain AoS)
-                  (((pattern (Var K))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-                   ((pattern (Var K))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-               ((pattern (Var K))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-            (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+       ((pattern (Var chol_fac_cov_test_1dim_unc__))
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_constrained_st
       (SMatrix AoS
@@ -9101,22 +9148,7 @@ vector[N] means_ordered: SoA
       ((filename constraints.stan) (line_num 41) (col_num 45) (included_from ()))))
     ((out_unconstrained_st
       (SVector AoS
-       ((pattern
-         (FunApp (StanLib Divide__ FnPlain AoS)
-          (((pattern
-             (FunApp (StanLib Times__ FnPlain AoS)
-              (((pattern (Var K))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-               ((pattern
-                 (FunApp (StanLib Minus__ FnPlain AoS)
-                  (((pattern (Var K))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-                   ((pattern (Lit Int 1))
-                    (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-                (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
-            (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))
-           ((pattern (Lit Int 2))
-            (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly)))))))
+       ((pattern (Var chol_fac_corr_test_1dim_unc__))
         (meta ((type_ UInt) (loc <opaque>) (adlevel DataOnly))))))
      (out_constrained_st
       (SMatrix AoS
