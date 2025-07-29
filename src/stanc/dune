@@ -1,12 +1,5 @@
 (executable
  (name stanc)
- (modes
-  (byte c)
-  (best exe))
- (libraries core fmt cmdliner driver stan_math_signatures)
- (instrumentation
-  (backend bisect_ppx))
- (modules Stanc CLI)
- (public_name stanc)
- (preprocess
-  (pps ppx_jane)))
+
+ (libraries driver)
+ (public_name stanc))

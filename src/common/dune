@@ -1,6 +1,0 @@
-(library
- (name common)
- (public_name stanc.common)
- (libraries core fmt)
- (instrumentation
-  (backend bisect_ppx)))
