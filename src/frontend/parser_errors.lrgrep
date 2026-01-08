@@ -1,0 +1,20 @@
+
+{
+
+let ill_formed_program : _ format6 = "@{<light_red>Ill-formed program.@} "
+
+}
+
+rule error_message = parse error (program)
+
+| / . program
+    (* Nothing has been read, and `file` is expected. This means that
+       begins with an unacceptable token. (This token cannot be EOF,
+       which in this state is acceptable.) *)
+    {
+
+        ill_formed_program ^^ {|Expected @{<green>"functions {"@}, @{<green>"transformed data {"@}, @{<green>"parameters {"@},
+@{<green>"transformed parameters {"@}, @{<green>"model {"@}, or @{<green>"generated quantities {"@}.
+|}
+
+    }
