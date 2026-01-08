@@ -1,7 +1,7 @@
 (library
  (name frontend)
  (public_name stanc.frontend)
- (libraries core menhirLib yojson fmt middle stan_math_signatures)
+ (libraries core menhirLib yojson fmt middle stan_math_signatures lrgrep.runtime)
  (instrumentation
   (backend bisect_ppx))
  (modules :standard \ parser_messages_add_type parser_strip_redundant_state)
@@ -13,7 +13,20 @@
 
 (menhir
  (modules parser)
- (flags :standard --table --strict --require-aliases))
+ (flags :standard --inspection --table --strict --require-aliases --cmly))
+
+(rule
+ (targets parser_errors.ml)
+ (action
+  (run
+   lrgrep
+   compile
+   -s
+   %{dep:parser_errors.lrgrep}
+   -g
+   %{dep:parser.cmly}
+   -o
+   parser_errors.ml)))
 
 (executable
  (name parser_messages_add_type)

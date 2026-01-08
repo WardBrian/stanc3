@@ -5,24 +5,53 @@ open Core
 open Common.Let_syntax.Result
 module Interp = Parser.MenhirInterpreter
 
+let remember (type a b) (next : a -> b) : (a -> b) * (unit -> b) =
+  let cell : b option ref = ref None in
+  let next a =
+    let b = next a in
+    cell := Some b;
+    b
+  and last () =
+    match !cell with
+    | Some b -> b
+    | None ->
+        (* [last] must not be called until [next] has been called once. *)
+        assert false in
+  (next, last)
+
 let drive_parser parse_fun =
   let input () =
     Interp.lexer_lexbuf_to_supplier Lexer.token
       (Preprocessor.current_buffer ())
       () in
+  (* annoying, wish we just had a version of Interp.positions that gave the
+     whole triple *)
+  let input, last = remember input in
   let success prog = {prog with Ast.comments= Preprocessor.get_comments ()} in
-  let failure prev error_state =
+  let failure previous_state error_state =
     (* see the Menhir manual for the description of error messages support *)
     let env =
       match error_state with
       | Interp.HandlingError env -> env
       | _ ->
           Common.ICE.internal_compiler_error
-            [%message "Parser failed but is not in an error state "] in
+            [%message "Parser failed but is not in an error state"] in
+    let prev_env =
+      match previous_state with
+      | Interp.InputNeeded env -> env
+      | _ ->
+          Common.ICE.internal_compiler_error
+            [%message "Parser failed but was not previously expecting input"]
+    in
+    let triple = last () in
+    (* lrgrep's error_message takes _prev_env and triple
+
+       https://cambium.inria.fr/~fpottier/publis/bour-pottier-lrgrep-2026.pdf
+       $5 *)
     let message =
       let state = Interp.current_state_number env in
       try
-        Parsing_errors.message state
+        Option.value_exn (Parser_errors.error_message prev_env triple)
         ^^
         if !Debugging.grammar_logging then
           Scanf.format_from_string
@@ -30,18 +59,16 @@ let drive_parser parse_fun =
             ""
         else ""
       with _ ->
-        Common.ICE.internal_compiler_error
-          [%message
-            "Failed to find error for parser error state " (state : int)] in
+        Scanf.format_from_string
+          ("Syntax error (Parse error state " ^ string_of_int state ^ ")\n")
+          "" in
     let location =
       let env =
-        match prev with
         (* if we errored because of one of our UNREACHABLE token, use the
            location immediately preceding for a more informative error *)
-        | Interp.InputNeeded prev_env
-          when Interp.acceptable prev Parser.UNREACHABLE Lexing.dummy_pos ->
-            prev_env
-        | _ -> env in
+        if Interp.acceptable previous_state Parser.UNREACHABLE Lexing.dummy_pos then
+          prev_env
+        else env in
       Preprocessor.location_span_of_positions (Interp.positions env) in
     Syntax_error.parse_error message location in
   let startp = (Preprocessor.current_buffer ()).lex_curr_p in
