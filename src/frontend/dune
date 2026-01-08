@@ -1,7 +1,14 @@
 (library
  (name frontend)
  (public_name stanc.frontend)
- (libraries core menhirLib yojson fmt middle stan_math_signatures lrgrep.runtime)
+ (libraries
+  core
+  menhirLib
+  yojson
+  fmt
+  middle
+  stan_math_signatures
+  lrgrep.runtime)
  (instrumentation
   (backend bisect_ppx))
  (modules :standard \ parser_messages_add_type parser_strip_redundant_state)
@@ -21,6 +28,8 @@
   (run
    lrgrep
    compile
+   -v
+   -v
    -s
    %{dep:parser_errors.lrgrep}
    -g

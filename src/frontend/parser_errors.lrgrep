@@ -1,6 +1,12 @@
 
 {
 
+
+(* could also have each case generate a sum type variant, closer
+to how semantic_errors work?
+
+ c.f. https://github.com/SquidDev/illuaminate/blob/master/src/parser/parse_errors.mlyl
+ *)
 let ill_formed_program : _ format6 = "@{<light_red>Ill-formed program.@} "
 
 }
