@@ -59,7 +59,8 @@ let drive_parser parse_fun =
             ""
         else ""
       with _ ->
-        (* fallback to previous parser.messages? illuaminate does this for lua *)
+        (* fallback to previous parser.messages? illuaminate does this for
+           lua *)
         Scanf.format_from_string
           ("Syntax error (Parse error state " ^ string_of_int state ^ ")\n")
           "" in
