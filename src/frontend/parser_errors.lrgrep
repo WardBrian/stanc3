@@ -1,56 +1,54 @@
+rule error_messages = parse error
+  (*  This file is used by Menhir to generate error messages for bad
+      parser states.
 
-{
+      It is highly recommended to read the Menhir manual, section 11.1:
+       https://gallium.inria.fr/~fpottier/menhir/manual.html#sec73
+      Notably, each example program below is just that -- ONE example of a
+      program ending in that state.
 
+      When the parser is updated, the command `dune build @update_messages` will
+      automatically update this file, leaving new placeholder messages for new states.
 
-(* could also have each case generate a sum type variant, closer
-to how semantic_errors work?
-
- c.f. https://github.com/SquidDev/illuaminate/blob/master/src/parser/parse_errors.mlyl
- *)
-let ill_formed_program : _ format6 = "@{<light_red>Ill-formed program.@} "
-
-}
-
-rule error_message = parse error (program)
-
-| / . program
-    (* Nothing has been read, and `file` is expected. This means that
-       begins with an unacceptable token. (This token cannot be EOF,
-       which in this state is acceptable.) *)
-    {
-
-        ill_formed_program ^^ {|Expected @{<green>"functions {"@}, @{<green>"transformed data {"@}, @{<green>"parameters {"@},
-@{<green>"transformed parameters {"@}, @{<green>"model {"@}, or @{<green>"generated quantities {"@}.
-|}
-
-    }
+      The messages below can use formatting indicators like OCaml's format strings,
+      with the additional use of semantic tags for colors and text styling.
+      In short, @{<red>Text@} will be red, @{<b>This @{<green>Text@}@} will be bold,
+      with the second word also being green, etc.
+      As a general rule, we start each message with a short description in red. Quoted
+      examples are in green, and non-quoted examples like 'expression' are italicized.
+      See the `styled_text` function in Syntax_error.ml for how this is done and the full
+      list of styles.
+      *)
+| /program': . program
+  { "@{<light_red>Ill-formed program.@} Expected @{<green>\"functions {\"@}, @{<green>\"transformed data {\"@}, @{<green>\"parameters {\"@},\n\
+     @{<green>\"transformed parameters {\"@}, @{<green>\"model {\"@}, or @{<green>\"generated quantities {\"@}." : _ format6 }
 
 | /functions_only': . functions_only
 | [_* /functions_only: list(function_def) . EOF]
-  {  ill_formed_program ^^ "Only function definitions/declarations are expected in @{<light_blue>'.stanfunctions'@} files." }
+  { "@{<light_red>Ill-formed program.@} Only function definitions/declarations are expected in @{<light_blue>'.stanfunctions'@} files." }
 
-| /function_block: FUNCTIONBLOCK LBRACE list(function_def) RBRACE .
+| [_* /program: option(function_block) . option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block) option(generated_quantities_block) EOF]
   { "@{<light_red>Ill-formed program.@} Expected @{<green>\"data {\"@}, @{<green>\"transformed data {\"@}, @{<green>\"parameters {\"@},\n\
      @{<green>\"transformed parameters {\"@}, @{<green>\"model {\"@}, @{<green>\"generated quantities {\"@}, or end-of-file." }
 
-| /data_block: DATABLOCK LBRACE list(top_var_decl_no_assign) RBRACE .
+| [_* /program: option(function_block) option(data_block) . option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block) option(generated_quantities_block) EOF]
   { "@{<light_red>Ill-formed program.@} Expected @{<green>\"transformed data {\"@}, @{<green>\"parameters {\"@},\n\
      @{<green>\"transformed parameters {\"@}, @{<green>\"model {\"@}, @{<green>\"generated quantities {\"@}, or end-of-file." }
 
-| /transformed_data_block: TRANSFORMEDDATABLOCK LBRACE list(top_vardecl_or_statement) RBRACE .
+| [_* /program: option(function_block) option(data_block) option(transformed_data_block) . option(parameters_block) option(transformed_parameters_block) option(model_block) option(generated_quantities_block) EOF]
   { "@{<light_red>Ill-formed program.@} Expected @{<green>\"parameters {\"@}, @{<green>\"transformed parameters {\"@},\n\
      @{<green>\"model {\"@}, @{<green>\"generated quantities {\"@}, or end-of-file." }
 
-| /parameters_block: PARAMETERSBLOCK LBRACE list(top_var_decl_no_assign) RBRACE .
+| [_* /program: option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) . option(transformed_parameters_block) option(model_block) option(generated_quantities_block) EOF]
   { "@{<light_red>Ill-formed program.@} Expected @{<green>\"transformed parameters {\"@}, @{<green>\"model {\"@} or @{<green>\"generated quantities {\"@} after end of parameters block." }
 
-| /transformed_parameters_block: TRANSFORMEDPARAMETERSBLOCK LBRACE list(top_vardecl_or_statement) RBRACE .
+| [_* /program: option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) . option(model_block) option(generated_quantities_block) EOF]
   { "@{<light_red>Ill-formed program.@} Expected @{<green>\"model {\"@} or @{<green>\"generated quantities {\"@} after end of transformed parameters block." }
 
-| /model_block: MODELBLOCK LBRACE list(vardecl_or_statement) RBRACE .
+| [_* /program: option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block) . option(generated_quantities_block) EOF]
   { "@{<light_red>Ill-formed program.@} Expected @{<green>\"generated quantities {\"@} or end of file after end of model block." }
 
-| /generated_quantities_block: GENERATEDQUANTITIESBLOCK LBRACE list(top_vardecl_or_statement) RBRACE .
+| [_* /program: option(function_block) option(data_block) option(transformed_data_block) option(parameters_block) option(transformed_parameters_block) option(model_block) option(generated_quantities_block) . EOF]
   { "@{<light_red>Ill-formed program.@} Expected end of file after end of generated quantities block." }
 
 | [_* /top_var_type: CHOLESKYFACTORCORR LBRACK expression . RBRACK]
@@ -114,7 +112,7 @@ rule error_message = parse error (program)
 | /top_var_type: POSITIVEORDERED . LBRACK expression RBRACK
   { "@{<light_red>Ill-formed type.@} Expected @{<green>\"[\"@} @{<i>expression@} @{<green>\"]\"@} for size of positive_ordered." }
 
-| /decl(top_var_type,no_assign): top_var_type id_and_optional_assignment(no_assign,decl_identifier) option(remaining_declarations(no_assign)) SEMICOLON .
+| [_* /list(top_var_decl_no_assign): top_var_decl_no_assign . list(top_var_decl_no_assign)]
   { "@{<light_red>Ill-formed statement.@} Only top-level variable declarations are allowed in the @{<green>\"data\"@} and @{<green>\"parameters\"@} blocks." }
 
 | /top_var_type: REAL . type_constraint
@@ -138,7 +136,7 @@ rule error_message = parse error (program)
 | /offset_mult: OFFSET ASSIGN constr_expression COMMA MULTIPLIER ASSIGN . constr_expression
   { "@{<light_red>Ill-formed constraint.@} Expected @{<green>\"multiplier = \"@} @{<i>expression@} (not containing binary logical operators)." }
 
-| /constr_expression: constr_expression TRANSPOSE .
+| [_* /offset_mult: OFFSET ASSIGN constr_expression . _*]
 | /offset_mult: OFFSET ASSIGN constr_expression COMMA . MULTIPLIER ASSIGN constr_expression
   { "@{<light_red>Ill-formed constraint.@} Expected @{<green>\">\"@} or @{<green>\", multiplier = \"@} @{<i>expression@}\n\
      (not containing binary logical operators) @{<green>\">\"@} after @{<green>\"offset = \"@} @{<i>expression@}." }
@@ -147,20 +145,20 @@ rule error_message = parse error (program)
 | /offset_mult: OFFSET . _*
   { "@{<light_red>Ill-formed constraint.@} Expected @{<green>\"offset = \"@} @{<i>expression@} (not containing binary logical operators)." }
 
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
-| /constr_expression: constr_expression TRANSPOSE .
+| [_* /constr_expression: constr_expression DIVIDE constr_expression .]
+| [_* /constr_expression: constr_expression ELTDIVIDE constr_expression .]
+| [_* /constr_expression: constr_expression ELTPOW constr_expression .]
+| [_* /constr_expression: constr_expression ELTTIMES constr_expression .]
+| [_* /constr_expression: constr_expression HAT constr_expression .]
+| [_* /constr_expression: constr_expression IDIVIDE constr_expression .]
+| [_* /constr_expression: constr_expression LDIVIDE constr_expression .]
+| [_* /constr_expression: constr_expression MINUS constr_expression .]
+| [_* /constr_expression: constr_expression MODULO constr_expression .]
+| [_* /constr_expression: constr_expression PLUS constr_expression .]
+| [_* /constr_expression: constr_expression TIMES constr_expression .]
+| [_* /range: UPPER ASSIGN constr_expression . _*]
+| [_* /constr_expression: PLUS constr_expression .]
+| [_* /constr_expression: MINUS constr_expression .]
 | [_* /range: LOWER ASSIGN constr_expression COMMA UPPER ASSIGN constr_expression .]
   { "@{<light_red>Ill-formed constraint.@} Expected @{<green>\">\"@} after @{<green>\"upper = \"@} @{<i>expression@}." }
 
@@ -180,7 +178,7 @@ rule error_message = parse error (program)
   { "@{<light_red>Ill-formed constraint.@} Expected @{<green>\"=\"@} @{<i>expression@}\n\
      (not containing binary logical operators) after @{<green>\"lower\"@}." }
 
-| /constr_expression: constr_expression TRANSPOSE .
+| [_* /range: LOWER ASSIGN constr_expression . _*]
 | /range: LOWER ASSIGN . _*
 | /range: UPPER ASSIGN constr_expression COMMA LOWER ASSIGN . constr_expression
   { "@{<light_red>Ill-formed constraint.@} Expected an expression (not containing binary logical operators)\n\
@@ -189,7 +187,7 @@ rule error_message = parse error (program)
 | [_* /range: UPPER ASSIGN constr_expression COMMA LOWER ASSIGN constr_expression .]
   { "@{<light_red>Ill-formed constraint.@} Expected @{<green>\">\"@} after @{<green>\"lower = \"@} @{<i>expression@}." }
 
-| /constr_expression: constr_expression TRANSPOSE .
+| [_* /offset_mult: MULTIPLIER ASSIGN constr_expression . _*]
 | /offset_mult: MULTIPLIER ASSIGN constr_expression COMMA . OFFSET ASSIGN constr_expression
   { "@{<light_red>Ill-formed constraint.@} Expected @{<green>\">\"@} or @{<green>\", offset = \"@} @{<i>expression@}\n\
      (not containing binary logical operators) @{<green>\">\"@} after @{<green>\"multiplier = \"@} @{<i>expression@}." }
@@ -218,7 +216,7 @@ rule error_message = parse error (program)
      (not containing binary logical operators) @{<green>\">\"@} after @{<green>\"multiplier\"@}." }
 
 | /constr_expression: MINUS . constr_expression
-| /common_expression: REALNUMERAL .
+| [_* /constr_expression: common_expression .]
 | /constr_expression: BANG . constr_expression
 | /constr_expression: PLUS . constr_expression
 | /constr_expression: constr_expression DIVIDE . constr_expression
@@ -232,7 +230,7 @@ rule error_message = parse error (program)
 | /constr_expression: constr_expression TIMES . constr_expression
   { "@{<light_red>Ill-formed constraint.@} Expected an expression (not containing binary logical operators)." }
 
-| /constr_expression: constr_expression TRANSPOSE .
+| [_* /constr_expression: BANG constr_expression .]
 | /range: LOWER ASSIGN constr_expression COMMA UPPER ASSIGN . constr_expression
 | /range: UPPER ASSIGN . _*
   { "@{<light_red>Ill-formed constraint.@} Expected an expression (not containing binary logical operators)\n\
@@ -245,30 +243,30 @@ rule error_message = parse error (program)
   /type_constraint: LABRACK . offset_mult RABRACK
   { "@{<light_red>Ill-formed constraint.@} Expected @{<green>\"lower =\"@}, @{<green>\"upper =\"@}, @{<green>\"offset =\"@} or @{<green>\"multiplier =\"@} followed by an expression after @{<green>\"<\"@}." }
 
-| /tuple_type(top_var_type): TUPLE LPAREN top_var_type COMMA separated_nonempty_list(COMMA,higher_type(top_var_type)) RPAREN .
-| /top_var_type: VECTOR type_constraint LBRACK expression RBRACK .
+| [_* /decl(top_var_type,no_assign): tuple_type(top_var_type) . id_and_optional_assignment(no_assign,decl_identifier) option(remaining_declarations(no_assign)) SEMICOLON]
+| [_* /decl(top_var_type,no_assign): array_type(top_var_type) . id_and_optional_assignment(no_assign,decl_identifier) option(remaining_declarations(no_assign)) SEMICOLON]
 | /top_var_type: COMPLEX . type_constraint
-| /top_var_type: VECTOR type_constraint LBRACK expression RBRACK .
+| [_* /decl(top_var_type,no_assign): top_var_type . _*]
   { "@{<light_red>Ill-formed declaration.@} Expected identifier after type in variable declaration." }
 
-| /tuple_type(top_var_type): TUPLE LPAREN top_var_type COMMA separated_nonempty_list(COMMA,higher_type(top_var_type)) RPAREN .
-| /tuple_type(sized_basic_type): TUPLE LPAREN sized_basic_type COMMA separated_nonempty_list(COMMA,higher_type(sized_basic_type)) RPAREN .
-| /top_var_type: VECTOR type_constraint LBRACK expression RBRACK .
-| /sized_basic_type: REAL .
-| /top_var_type: VECTOR type_constraint LBRACK expression RBRACK .
+| [_* /decl(top_var_type,expression): tuple_type(top_var_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
+| [_* /decl(sized_basic_type,expression): tuple_type(sized_basic_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
+| [_* /decl(top_var_type,expression): array_type(top_var_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
+| [_* /decl(sized_basic_type,expression): array_type(sized_basic_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
+| [_* /decl(top_var_type,expression): top_var_type . _*]
   { "@{<light_red>Ill-formed declaration.@} Expected an identifier and optional assignment after type in variable declaration." }
 
-| /no_assign: UNREACHABLE .
-| /no_assign: UNREACHABLE .
-| /no_assign: UNREACHABLE .
+| [_* /decl(top_var_type,no_assign): array_type(top_var_type) id_and_optional_assignment(no_assign,decl_identifier) . option(remaining_declarations(no_assign)) SEMICOLON]
+| [_* /separated_nonempty_list(COMMA,id_and_optional_assignment(no_assign,decl_identifier_after_comma)): id_and_optional_assignment(no_assign,decl_identifier_after_comma) . _*]
+| [_* /decl(top_var_type,no_assign): tuple_type(top_var_type) id_and_optional_assignment(no_assign,decl_identifier) . option(remaining_declarations(no_assign)) SEMICOLON]
 | /option(pair(ASSIGN,no_assign)): ASSIGN . no_assign
-| /no_assign: UNREACHABLE .
+| [_* /decl(top_var_type,no_assign): top_var_type id_and_optional_assignment(no_assign,decl_identifier) . option(remaining_declarations(no_assign)) SEMICOLON]
   { "@{<light_red>Ill-formed declaration.@} Cannot assign to variables in the @{<green>\"data\"@} or @{<green>\"parameters\"@} blocks.\n\
      Expected @{<green>\";\"@} after variable declaration." }
 
 | /separated_nonempty_list(COMMA,id_and_optional_assignment(no_assign,decl_identifier_after_comma)): id_and_optional_assignment(no_assign,decl_identifier_after_comma) COMMA . separated_nonempty_list(COMMA,id_and_optional_assignment(no_assign,decl_identifier_after_comma))
-| /reserved_word: INT .
-| /reserved_word: INT .
+| [_* /id_and_optional_assignment(expression,decl_identifier_after_comma): decl_identifier_after_comma . optional_assignment(expression)]
+| [_* /id_and_optional_assignment(no_assign,decl_identifier_after_comma): decl_identifier_after_comma . optional_assignment(no_assign)]
 | /remaining_declarations(no_assign): COMMA . separated_nonempty_list(COMMA,id_and_optional_assignment(no_assign,decl_identifier_after_comma))
 | /remaining_declarations(expression): COMMA . separated_nonempty_list(COMMA,id_and_optional_assignment(expression,decl_identifier_after_comma))
   { "@{<light_red>Ill-formed declaration.@} Expected a new identifier after comma in declaration.\n\
@@ -283,28 +281,31 @@ rule error_message = parse error (program)
     \  tuple(@{<f>...@})\n\
      optionally preceded by a @{<u>single@} array[@{<f>...@}]" }
 
-| /identifier: IDENTIFIER .
-| /identifier: IDENTIFIER .
+| [_* /decl(top_var_type,expression): top_var_type decl_identifier . LBRACK separated_nonempty_list(COMMA,expression) RBRACK
+      /id_and_optional_assignment(expression,decl_identifier): decl_identifier . optional_assignment(expression)]
+| [_* /id_and_optional_assignment(expression,decl_identifier): decl_identifier . optional_assignment(expression)]
 | /separated_nonempty_list(COMMA,id_and_optional_assignment(expression,decl_identifier_after_comma)): id_and_optional_assignment(expression,decl_identifier_after_comma) COMMA . separated_nonempty_list(COMMA,id_and_optional_assignment(expression,decl_identifier_after_comma))
-| /identifier: IDENTIFIER .
+| [_* /decl(sized_basic_type,expression): sized_basic_type decl_identifier . LBRACK separated_nonempty_list(COMMA,expression) RBRACK
+      /id_and_optional_assignment(expression,decl_identifier): decl_identifier . optional_assignment(expression)]
   { "@{<light_red>Ill-formed declaration.@} Expected @{<green>\";\"@} or plain assignment after variable declaration." }
 
-| /identifier: IDENTIFIER .
-| /identifier: IDENTIFIER .
+| [_* /id_and_optional_assignment(no_assign,decl_identifier): decl_identifier . optional_assignment(no_assign)]
+| [_* /decl(top_var_type,no_assign): top_var_type decl_identifier . LBRACK separated_nonempty_list(COMMA,expression) RBRACK
+      /id_and_optional_assignment(no_assign,decl_identifier): decl_identifier . optional_assignment(no_assign)]
   { "@{<light_red>Ill-formed declaration.@} Expected @{<green>\";\"@} after variable declaration." }
 
 | /data_block: DATABLOCK . LBRACE list(top_var_decl_no_assign) RBRACE
   { "@{<light_red>Ill-formed block.@} Expected @{<green>\"{\"@} followed by a list of top-level variable declarations after @{<green>\"data\"@}." }
 
 | [_* /function_block: FUNCTIONBLOCK LBRACE list(function_def) . RBRACE]
-| [_* /function_def: return_type decl_identifier LPAREN loption(separated_nonempty_list(COMMA,arg_decl)) RPAREN statement .]
+| [_* /list(function_def): function_def . list(function_def)]
   { "@{<light_red>Ill-formed block.@} Expected a @{<green>\"}\"@} or a function definition or declaration." }
 
 | [_* /arg_decl: option(DATABLOCK) unsized_type . decl_identifier]
-| /basic_type: COMPLEX .
+| [_* /unsized_type: basic_type . _*]
   { "@{<light_red>Ill-formed function argument.@} Expected an identifier after the type for the function argument name." }
 
-| /option(DATABLOCK): DATABLOCK .
+| [_* /arg_decl: option(DATABLOCK) . unsized_type decl_identifier]
   { "@{<light_red>Ill-formed function argument.@} Expected a type after the @{<green>\"data\"@} specifier." }
 
 | /function_def: return_type decl_identifier LPAREN loption(separated_nonempty_list(COMMA,arg_decl)) RPAREN . statement
@@ -314,13 +315,13 @@ rule error_message = parse error (program)
 | /separated_nonempty_list(COMMA,arg_decl): arg_decl COMMA . separated_nonempty_list(COMMA,arg_decl)
   { "@{<light_red>Ill-formed function argument.@} Expected an argument declaration (unsized and unconstrained type followed by identifier)." }
 
-| /identifier: IDENTIFIER .
+| [_* /separated_nonempty_list(COMMA,arg_decl): arg_decl . _*]
   { "@{<light_red>Ill-formed function argument.@} Expected @{<green>\",\"@} or @{<green>\")\"@} after function argument declaration." }
 
-| /identifier: IDENTIFIER .
+| [_* /function_def: return_type decl_identifier . LPAREN loption(separated_nonempty_list(COMMA,arg_decl)) RPAREN statement]
   { "@{<light_red>Ill-formed function.@} Expected @{<green>\"(\"@} after function name." }
 
-| /return_type: VOID .
+| [_* /function_def: return_type . decl_identifier LPAREN loption(separated_nonempty_list(COMMA,arg_decl)) RPAREN statement]
   { "@{<light_red>Ill-formed function.@} Expected an identifier as a function name." }
 
 | /function_block: FUNCTIONBLOCK LBRACE . list(function_def) RBRACE
@@ -360,7 +361,7 @@ rule error_message = parse error (program)
 | /option(pair(ASSIGN,expression)): ASSIGN . expression
   { "@{<light_red>Ill-formed statement.@} Expected an expression followed by @{<green>\";\"@} after @{<green>\"=\"@}." }
 
-| /sized_basic_type: REAL .
+| [_* /decl(sized_basic_type,expression): sized_basic_type . _*]
   { "@{<light_red>Ill-formed declaration.@} Expected an identifier after sized type in local (or model block) variable declaration.\n\
      (No transformations/constraints allowed.)" }
 
@@ -411,7 +412,7 @@ rule error_message = parse error (program)
 | /parameters_block: PARAMETERSBLOCK . LBRACE list(top_var_decl_no_assign) RBRACE
   { "@{<light_red>Ill-formed block.@} Expected @{<green>\"{\"@} after @{<green>\"parameters\"@}." }
 
-| /expression: expression TRANSPOSE .
+| [_* /expression: BANG expression .]
 | /expression: BANG . expression
   { "@{<light_red>Ill-formed expression.@} Expected an expression after @{<green>\"!\"@}." }
 
@@ -433,7 +434,7 @@ rule error_message = parse error (program)
 | [_* /nested_statement: FOR LPAREN identifier IN expression . _*]
   { "@{<light_red>Ill-formed expression.@} Expected an expression followed by @{<green>\")\"@} or @{<green>\":\"@} after @{<green>\"for (\"@} @{<i>identifier@} @{<green>\"in\"@}." }
 
-| /identifier: IDENTIFIER .
+| [_* /nested_statement: FOR LPAREN identifier . _*]
   { "@{<light_red>Ill-formed statement.@} Expected @{<green>\"in\"@} after loop identifier." }
 
 | /nested_statement: FOR LPAREN . _*
@@ -442,8 +443,8 @@ rule error_message = parse error (program)
 | /nested_statement: FOR . _*
   { "@{<light_red>Ill-formed statement.@} Expected @{<green>\"(\"@} after @{<green>\"for\"@}." }
 
-| [_* /top_vardecl_or_statement: statement .]
-| /atomic_statement: SEMICOLON .
+| [_* /list(top_vardecl_or_statement): top_vardecl_or_statement . list(top_vardecl_or_statement)]
+| [_* /nested_statement: IF LPAREN expression RPAREN vardecl_or_statement . _*]
   { "@{<light_red>Ill-formed block.@} Expected a statement, variable declaration, or just @{<green>\"}\"@}." }
 
 | /nested_statement: IF LPAREN expression RPAREN . _*
@@ -488,7 +489,7 @@ rule error_message = parse error (program)
 | /atomic_statement: PRINT LPAREN printables RPAREN . SEMICOLON
   { "@{<light_red>Ill-formed statement.@} Expected a @{<green>\";\"@} after @{<green>\"print(@{<r>@{<f>...@}@})\"@}." }
 
-| /string_literal: STRINGLITERAL .
+| [_* /atomic_statement: PRINT LPAREN printables . RPAREN SEMICOLON]
 | /atomic_statement: PRINT LPAREN . printables RPAREN SEMICOLON
   { "@{<light_red>Ill-formed statement.@} Expected a comma separated list of expressions or\n\
      strings followed by @{<green>\");\"@} after @{<green>\"print(\"@}." }
@@ -498,29 +499,29 @@ rule error_message = parse error (program)
      strings followed by @{<green>\");\"@} after @{<green>\"print\"@}." }
 
 | [_* /common_expression: LBRACE separated_nonempty_list(COMMA,expression) . RBRACE]
-| /identifier: IDENTIFIER .
+| [_* /common_expression: identifier . _*]
 | [_* /separated_nonempty_list(COMMA,expression): expression . _*]
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
-| /common_expression: common_expression LBRACK indexes RBRACK .
+| [_* /expression: expression QMARK expression COLON expression .]
+| [_* /expression: expression ELTPOW expression .]
+| [_* /expression: expression ELTTIMES expression .]
+| [_* /expression: expression RABRACK expression .]
+| [_* /expression: expression TIMES expression .]
+| [_* /expression: expression EQUALS expression .]
+| [_* /expression: expression GEQ expression .]
+| [_* /expression: expression HAT expression .]
+| [_* /expression: expression IDIVIDE expression .]
+| [_* /expression: expression LDIVIDE expression .]
+| [_* /expression: expression LABRACK expression .]
+| [_* /expression: expression LEQ expression .]
+| [_* /expression: expression ELTDIVIDE expression .]
+| [_* /expression: expression AND expression .]
+| [_* /expression: expression MINUS expression .]
+| [_* /expression: expression MODULO expression .]
+| [_* /expression: expression NEQUALS expression .]
+| [_* /expression: expression OR expression .]
+| [_* /expression: expression PLUS expression .]
+| [_* /expression: expression DIVIDE expression .]
+| [_* /expression: common_expression .]
   { "@{<light_red>Ill-formed expression.@} Unexpected input after the conclusion of a valid expression.\n\
      You may be missing a @{<green>\",\"@} between expressions, an operator, or a terminating @{<green>\"}\"@}, @{<green>\")\"@}, @{<green>\"]\"@}, or @{<green>\";\"@}." }
 
@@ -560,8 +561,8 @@ rule error_message = parse error (program)
 | [_* /indexes: COLON expression .]
   { "@{<light_red>Ill-formed phrase.@} Found @{<green>\":\"@} @{<i>expression@}. Expected either an infix or postfix operator, or @{<green>\",\"@} or @{<green>\"[\"@} or @{<green>\"]\"@} next." }
 
-| /expression: expression TRANSPOSE .
-| /expression: expression TRANSPOSE .
+| [_* /expression: MINUS expression .]
+| [_* /expression: PLUS expression .]
   { "@{<light_red>Ill-formed expression.@} Found an expression. Expected an infix or postfix operator or @{<green>\"[\"@}" }
 
 | /indexes: COLON . _*
@@ -574,7 +575,7 @@ rule error_message = parse error (program)
 | /indexes: expression COLON . _*
   { "@{<light_red>Ill-formed index.@} Expected an expression or @{<green>\"]\"@} or @{<green>\",\"@} after @{<green>\":\"@}." }
 
-| /truncation: TRUNCATE LBRACK option(expression) COMMA option(expression) RBRACK .
+| [_* /atomic_statement: expression TILDE identifier LPAREN loption(separated_nonempty_list(COMMA,expression)) RPAREN option(truncation) . SEMICOLON]
   { "@{<light_red>Ill-formed statement.@} Expected @{<green>\";\"@} after truncated @{<green>\"~\"@}-statement." }
 
 | /truncation: TRUNCATE LBRACK option(expression) COMMA . option(expression) RBRACK
@@ -592,7 +593,7 @@ rule error_message = parse error (program)
 | [_* /atomic_statement: expression TILDE identifier LPAREN loption(separated_nonempty_list(COMMA,expression)) . RPAREN option(truncation) SEMICOLON]
   { "@{<light_red>Ill-formed @{<green>\"~\"@}-statement.@} Expected a comma separated list of expressions for arguments to the distribution, followed by @{<green>\")\"@}." }
 
-| /identifier: IDENTIFIER .
+| [_* /atomic_statement: expression TILDE identifier . LPAREN loption(separated_nonempty_list(COMMA,expression)) RPAREN option(truncation) SEMICOLON]
   { "@{<light_red>Ill-formed @{<green>\"~\"@}-statement.@} Expected @{<green>\"(\"@} after distribution name, followed by a comma separated list of expressions for arguments to the distribution, followed by @{<green>\")\"@}." }
 
 | /atomic_statement: expression TILDE . identifier LPAREN loption(separated_nonempty_list(COMMA,expression)) RPAREN option(truncation) SEMICOLON
@@ -600,17 +601,17 @@ rule error_message = parse error (program)
 
 | /printables: printables COMMA . printables
 | [_* /printables: expression .]
-| /string_literal: STRINGLITERAL .
+| [_* /printables: printables COMMA printables .]
   { "@{<light_red>Ill-formed statement.@} Expected a comma separated list of either expressions or strings, followed by @{<green>\");\"@}." }
 
 | /atomic_statement: REJECT . LPAREN printables RPAREN SEMICOLON
-| /string_literal: STRINGLITERAL .
+| [_* /atomic_statement: REJECT LPAREN printables . RPAREN SEMICOLON]
 | /atomic_statement: REJECT LPAREN printables RPAREN . SEMICOLON
 | /atomic_statement: REJECT LPAREN . printables RPAREN SEMICOLON
   { "@{<light_red>Ill-formed statement.@} Expected a comma separated list of either expressions or strings followed by @{<green>\");\"@} after @{<green>\"reject(\"@},." }
 
 | /atomic_statement: FATAL_ERROR LPAREN printables RPAREN . SEMICOLON
-| /string_literal: STRINGLITERAL .
+| [_* /atomic_statement: FATAL_ERROR LPAREN printables . RPAREN SEMICOLON]
 | /atomic_statement: FATAL_ERROR LPAREN . printables RPAREN SEMICOLON
 | /atomic_statement: FATAL_ERROR . LPAREN printables RPAREN SEMICOLON
   { "@{<light_red>Ill-formed statement.@} Expected a comma separated list of either expressions or strings followed by @{<green>\");\"@} after @{<green>\"fatal_error(\"@}." }
@@ -664,7 +665,8 @@ rule error_message = parse error (program)
       "3" is a valid start of a ~ but not of an assignment. *)
 | [_* /atomic_statement: identifier . LPAREN loption(separated_nonempty_list(COMMA,expression)) RPAREN SEMICOLON
       /common_expression: identifier . _*]
-| /expression: expression TRANSPOSE .
+| [_* /atomic_statement: expression . TILDE identifier LPAREN loption(separated_nonempty_list(COMMA,expression)) RPAREN option(truncation) SEMICOLON
+      /separated_nonempty_list(COMMA,expression): expression . _*]
 | [_* /atomic_statement: expression . TILDE identifier LPAREN loption(separated_nonempty_list(COMMA,expression)) RPAREN option(truncation) SEMICOLON]
 | [_* /atomic_statement: common_expression . _*
       /expression: common_expression .]
@@ -716,7 +718,7 @@ rule error_message = parse error (program)
 | /nested_statement: PROFILE . LPAREN string_literal RPAREN LBRACE list(vardecl_or_statement) RBRACE
   { "@{<light_red>Ill-formed statement.@} Expected profile name as string in parenthesis" }
 
-| /string_literal: STRINGLITERAL .
+| [_* /nested_statement: PROFILE LPAREN string_literal . RPAREN LBRACE list(vardecl_or_statement) RBRACE]
   { "@{<light_red>Ill-formed statement.@} Expected @{<green>\")\"@} after profile name." }
 
 | /nested_statement: PROFILE LPAREN string_literal RPAREN . LBRACE list(vardecl_or_statement) RBRACE
@@ -779,8 +781,8 @@ rule error_message = parse error (program)
   { "@{<light_red>Ill-formed expression.@} Expected an expression or comma separated list of expressions followed by @{<green>\")\"@} after @{<green>\"(\"@}." }
 
 | [_* /unsized_type: ARRAY unsized_dims . _*]
-| /arr_dims: ARRAY LBRACK separated_nonempty_list(COMMA,expression) RBRACK .
-| /arr_dims: ARRAY LBRACK separated_nonempty_list(COMMA,expression) RBRACK .
+| [_* /array_type(sized_basic_type): arr_dims . _*]
+| [_* /array_type(top_var_type): arr_dims . _*]
   { "@{<light_red>Ill-formed type.@} Expected non-array type after @{<green>\"array\"@} declaration." }
 
 | /arr_dims: ARRAY LBRACK . separated_nonempty_list(COMMA,expression) RBRACK
