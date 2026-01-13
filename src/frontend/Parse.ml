@@ -51,7 +51,7 @@ let drive_parser parse_fun =
     let message =
       let state = Interp.current_state_number env in
       try
-        Option.value_exn (Parser_errors.error_message prev_env triple)
+        Option.value_exn (Parser_errors.error_messages prev_env triple)
         ^^
         if !Debugging.grammar_logging then
           Scanf.format_from_string
