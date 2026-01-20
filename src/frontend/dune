@@ -37,6 +37,21 @@
    -o
    parser_errors.ml)))
 
+(rule
+ ; temporary - re-import the .messages file
+ (targets generated.lrgrep)
+ (mode
+  (promote (until-clean)))
+ (action
+  (run
+   lrgrep
+   import-messages
+   %{dep:parser.messages}
+   -g
+   %{dep:parser.cmly}
+   -o
+   generated.lrgrep)))
+
 (executable
  (name parser_messages_add_type)
  (modules parser_messages_add_type)

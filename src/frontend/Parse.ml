@@ -68,8 +68,8 @@ let drive_parser parse_fun =
       let env =
         (* if we errored because of one of our UNREACHABLE token, use the
            location immediately preceding for a more informative error *)
-        if Interp.acceptable previous_state Parser.UNREACHABLE Lexing.dummy_pos then
-          prev_env
+        if Interp.acceptable previous_state Parser.UNREACHABLE Lexing.dummy_pos
+        then prev_env
         else env in
       Preprocessor.location_span_of_positions (Interp.positions env) in
     Syntax_error.parse_error message location in

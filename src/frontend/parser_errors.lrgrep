@@ -7,8 +7,9 @@ rule error_messages = parse error
       Notably, each example program below is just that -- ONE example of a
       program ending in that state.
 
-      When the parser is updated, the command `dune build @update_messages` will
-      automatically update this file, leaving new placeholder messages for new states.
+      When the parser is updated, building the compiler will check this file
+      for completeness and allow you to automatically update it with `dune promote`,
+      leaving new placeholder messages for new states.
 
       The messages below can use formatting indicators like OCaml's format strings,
       with the additional use of semantic tags for colors and text styling.
@@ -20,7 +21,7 @@ rule error_messages = parse error
       list of styles.
       *)
 | /program': . program
-  { "@{<light_red>Ill-formed program.@} Expected @{<green>\"functions {\"@}, @{<green>\"transformed data {\"@}, @{<green>\"parameters {\"@},\n\
+  { "@{<light_red>Ill-formed program.@} Expected @{<green>\"functions {\"@}, @{<green>\"data {\"@}, @{<green>\"transformed data {\"@}, @{<green>\"parameters {\"@},\n\
      @{<green>\"transformed parameters {\"@}, @{<green>\"model {\"@}, or @{<green>\"generated quantities {\"@}." : _ format6 }
 
 | /functions_only': . functions_only
@@ -250,9 +251,7 @@ rule error_messages = parse error
   { "@{<light_red>Ill-formed declaration.@} Expected identifier after type in variable declaration." }
 
 | [_* /decl(top_var_type,expression): tuple_type(top_var_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
-| [_* /decl(sized_basic_type,expression): tuple_type(sized_basic_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
 | [_* /decl(top_var_type,expression): array_type(top_var_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
-| [_* /decl(sized_basic_type,expression): array_type(sized_basic_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
 | [_* /decl(top_var_type,expression): top_var_type . _*]
   { "@{<light_red>Ill-formed declaration.@} Expected an identifier and optional assignment after type in variable declaration." }
 
@@ -301,19 +300,30 @@ rule error_messages = parse error
 | [_* /list(function_def): function_def . list(function_def)]
   { "@{<light_red>Ill-formed block.@} Expected a @{<green>\"}\"@} or a function definition or declaration." }
 
-| [_* /arg_decl: option(DATABLOCK) unsized_type . decl_identifier]
-| [_* /unsized_type: basic_type . _*]
-  { "@{<light_red>Ill-formed function argument.@} Expected an identifier after the type for the function argument name." }
-
 | [_* /arg_decl: option(DATABLOCK) . unsized_type decl_identifier]
   { "@{<light_red>Ill-formed function argument.@} Expected a type after the @{<green>\"data\"@} specifier." }
 
 | /function_def: return_type decl_identifier LPAREN loption(separated_nonempty_list(COMMA,arg_decl)) RPAREN . statement
   { "@{<light_red>Ill-formed function.@} Expected either @{<green>\"{\"@} @{<i>statement@} @{<green>\"}\"@} for a function definition or @{<green>\";\"@} for a function forward declaration." }
 
+| [_* /basic_type: constrained_vector . UNREACHABLE]
+  { "@{<light_red>Ill-formed type.@} Functions do not enforce type constraints.\n\
+    \  @{<i>Use @{<r>@{<green>\"vector\"@}@} instead@}." }
+
+| [_* /basic_type: constrained_matrix . UNREACHABLE]
+  { "@{<light_red>Ill-formed type.@} Functions do not enforce type constraints.\n\
+    \  @{<i>Use @{<r>@{<green>\"matrix\"@}@} instead@}." }
+
+| [_* /unsized_type: ARRAY unsized_dims basic_type .]
+| /basic_type: basic_type LABRACK . UNREACHABLE
+  { "@{<light_red>Ill-formed type.@} Did not expect @{<green>\"<\"@}. Functions do not support type constraints." }
+
 | /function_def: return_type decl_identifier LPAREN . loption(separated_nonempty_list(COMMA,arg_decl)) RPAREN statement
 | /separated_nonempty_list(COMMA,arg_decl): arg_decl COMMA . separated_nonempty_list(COMMA,arg_decl)
-  { "@{<light_red>Ill-formed function argument.@} Expected an argument declaration (unsized and unconstrained type followed by identifier)." }
+  { "@{<light_red>Ill-formed function argument.@} Expected an argument declaration (@{<i>@{<light_yellow>unsized@}@} and @{<i>@{<light_yellow>unconstrained@}@} type followed by identifier).\n\
+    \  @{<i>For example, this means a type like @{<r>@{<green>\"matrix\"@}@}, not @{<r>@{<green>\"corr_matrix\"@}@} or @{<r>@{<green>\"matrix[3,4]\"@}@}.\n\
+    \  See the complete table of types at:@}\n\
+    \  @{<light_blue>https://mc-stan.org/docs/reference-manual/types.html#variable-declaration.section@}" }
 
 | [_* /separated_nonempty_list(COMMA,arg_decl): arg_decl . _*]
   { "@{<light_red>Ill-formed function argument.@} Expected @{<green>\",\"@} or @{<green>\")\"@} after function argument declaration." }
@@ -321,8 +331,10 @@ rule error_messages = parse error
 | [_* /function_def: return_type decl_identifier . LPAREN loption(separated_nonempty_list(COMMA,arg_decl)) RPAREN statement]
   { "@{<light_red>Ill-formed function.@} Expected @{<green>\"(\"@} after function name." }
 
+| [_* /arg_decl: option(DATABLOCK) unsized_type . decl_identifier]
+| [_* /unsized_type: basic_type . _*]
 | [_* /function_def: return_type . decl_identifier LPAREN loption(separated_nonempty_list(COMMA,arg_decl)) RPAREN statement]
-  { "@{<light_red>Ill-formed function.@} Expected an identifier as a function name." }
+  { "@{<light_red>Ill-formed function.@} Expected an identifier after the type." }
 
 | /function_block: FUNCTIONBLOCK LBRACE . list(function_def) RBRACE
   { "@{<light_red>Ill-formed block.@} Expected a function forward declaration, definition, or @{<green>\"}\"@} after @{<green>\"functions {\"@}." }
@@ -349,21 +361,57 @@ rule error_messages = parse error
 | /sized_basic_type: COMPLEXMATRIX LBRACK expression COMMA . expression RBRACK
 | [_* /sized_basic_type: COMPLEXMATRIX LBRACK expression . COMMA expression RBRACK]
 | /sized_basic_type: COMPLEXMATRIX LBRACK . expression COMMA expression RBRACK
-| /sized_basic_type: COMPLEXMATRIX . LBRACK expression COMMA expression RBRACK
+| /basic_type: COMPLEXMATRIX .
+  /sized_basic_type: COMPLEXMATRIX . LBRACK expression COMMA expression RBRACK
 | [_* /sized_basic_type: MATRIX LBRACK expression COMMA expression . RBRACK]
 | /sized_basic_type: MATRIX LBRACK expression COMMA . expression RBRACK
 | [_* /sized_basic_type: MATRIX LBRACK expression . COMMA expression RBRACK]
 | /sized_basic_type: MATRIX LBRACK . expression COMMA expression RBRACK
-| /sized_basic_type: MATRIX . LBRACK expression COMMA expression RBRACK
+| /basic_type: MATRIX .
+  /sized_basic_type: MATRIX . LBRACK expression COMMA expression RBRACK
   { "@{<light_red>Ill-formed type.@} Expected @{<green>\"[\"@} @{<i>expression@} @{<green>\",\"@} @{<i>expression@} @{<green>\"]\"@} for matrix sizes." }
 
 | [_* /option(pair(ASSIGN,expression)): ASSIGN expression .]
-| /option(pair(ASSIGN,expression)): ASSIGN . expression
-  { "@{<light_red>Ill-formed statement.@} Expected an expression followed by @{<green>\";\"@} after @{<green>\"=\"@}." }
+  { "@{<light_red>Ill-formed declaration.@} Expected a @{<green>\";\"@} to complete the definition or a @{<green>\",\"@} to start a new declaration of the same type." }
 
+| /option(pair(ASSIGN,expression)): ASSIGN . expression
+  { "@{<light_red>Ill-formed declaration.@} Expected an expression followed by @{<green>\";\"@} after @{<green>\"=\"@}." }
+
+| [_* /decl(sized_basic_type,expression): tuple_type(sized_basic_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
+| [_* /decl(sized_basic_type,expression): array_type(sized_basic_type) . id_and_optional_assignment(expression,decl_identifier) option(remaining_declarations(expression)) SEMICOLON]
 | [_* /decl(sized_basic_type,expression): sized_basic_type . _*]
-  { "@{<light_red>Ill-formed declaration.@} Expected an identifier after sized type in local (or model block) variable declaration.\n\
-     (No transformations/constraints allowed.)" }
+| /basic_type: REAL .
+  /sized_basic_type: REAL .
+  { "@{<light_red>Ill-formed declaration.@} Expected an identifier after type in local (or model block) variable declaration." }
+
+| /basic_type: constrained_vector UNREACHABLE .
+  /sized_basic_type: constrained_vector UNREACHABLE .
+| [_* /basic_type: constrained_vector . UNREACHABLE
+      /sized_basic_type: constrained_vector . UNREACHABLE]
+  { "@{<light_red>Ill-formed type.@} Constrained types are not supported in local (or model block) variable declarations.\n\
+    \  @{<i>Use @{<r>@{<green>\"vector\"@}@} instead@}." }
+
+| /basic_type: constrained_matrix UNREACHABLE .
+  /sized_basic_type: constrained_matrix UNREACHABLE .
+| [_* /basic_type: constrained_matrix . UNREACHABLE
+      /sized_basic_type: constrained_matrix . UNREACHABLE]
+  { "@{<light_red>Ill-formed type.@} Constrained types are not supported in local (or model block) variable declarations.\n\
+    \  @{<i>Use @{<r>@{<green>\"matrix\"@}@} instead@}." }
+
+| /basic_type: INT .
+  /sized_basic_type: INT .
+| /basic_type: COMPLEX .
+  /sized_basic_type: COMPLEX .
+| /basic_type: basic_type LABRACK UNREACHABLE .
+  /sized_basic_type: basic_type LABRACK UNREACHABLE .
+| /basic_type: basic_type LABRACK . UNREACHABLE
+  /sized_basic_type: basic_type LABRACK . UNREACHABLE
+  { "@{<light_red>Ill-formed type.@} Did not expect @{<green>\"<\"@}. Constrained types are not supported in local (or model block) variable declarations." }
+
+| /decl(top_var_type,expression): DATABLOCK . UNREACHABLE
+| /decl(top_var_type,no_assign): DATABLOCK . UNREACHABLE
+| /decl(sized_basic_type,expression): DATABLOCK . UNREACHABLE
+  { "@{<light_red>Ill-formed declaration.@} The @{<green>\"data\"@} specifier is only valid in function arguments, not declarations." }
 
 | /top_var_type: ROWVECTOR type_constraint LBRACK . expression RBRACK
 | /top_var_type: ROWVECTOR . type_constraint LBRACK expression RBRACK
@@ -374,18 +422,28 @@ rule error_messages = parse error
 | /top_var_type: COMPLEXROWVECTOR . type_constraint LBRACK expression RBRACK
 | [_* /sized_basic_type: COMPLEXROWVECTOR LBRACK expression . RBRACK]
 | /sized_basic_type: COMPLEXROWVECTOR LBRACK . expression RBRACK
-| /sized_basic_type: COMPLEXROWVECTOR . LBRACK expression RBRACK
+| /basic_type: COMPLEXROWVECTOR .
+  /sized_basic_type: COMPLEXROWVECTOR . LBRACK expression RBRACK
 | [_* /top_var_type: ROWVECTOR type_constraint LBRACK expression . RBRACK]
 | [_* /sized_basic_type: ROWVECTOR LBRACK expression . RBRACK]
-| /sized_basic_type: ROWVECTOR . LBRACK expression RBRACK
+| /basic_type: ROWVECTOR .
+  /sized_basic_type: ROWVECTOR . LBRACK expression RBRACK
 | /sized_basic_type: ROWVECTOR LBRACK . expression RBRACK
   { "@{<light_red>Ill-formed type.@} Expected @{<green>\"[\"@} @{<i>expression@} @{<green>\"]\"@} for row_vector size." }
 
+| /transformed_parameters_block: TRANSFORMEDPARAMETERSBLOCK LBRACE . list(top_vardecl_or_statement) RBRACE
+| /transformed_data_block: TRANSFORMEDDATABLOCK LBRACE . list(top_vardecl_or_statement) RBRACE
+| [_* /list(top_vardecl_or_statement): top_vardecl_or_statement . list(top_vardecl_or_statement)]
+| /generated_quantities_block: GENERATEDQUANTITIESBLOCK LBRACE . list(top_vardecl_or_statement) RBRACE
+  { "@{<light_red>Ill-formed block.@} Expected top-level variable declaration, statement, or @{<green>\"}\"@}." }
+
+| [_* /nested_statement: IF LPAREN expression RPAREN vardecl_or_statement . _*]
+| /common_expression: LBRACE . separated_nonempty_list(COMMA,expression) RBRACE
+  /nested_statement: LBRACE . list(vardecl_or_statement) RBRACE
 | /nested_statement: PROFILE LPAREN string_literal RPAREN LBRACE . list(vardecl_or_statement) RBRACE
 | /model_block: MODELBLOCK LBRACE . list(vardecl_or_statement) RBRACE
-| /generated_quantities_block: GENERATEDQUANTITIESBLOCK LBRACE . list(top_vardecl_or_statement) RBRACE
 | [_* /list(vardecl_or_statement): vardecl_or_statement . list(vardecl_or_statement)]
-  { "@{<light_red>Ill-formed block.@} Expected variable declaration, statement or @{<green>\"}\"@}." }
+  { "@{<light_red>Ill-formed block.@} Expected unconstrained variable declaration, statement, or @{<green>\"}\"@}." }
 
 | [_* /top_var_type: COMPLEXVECTOR type_constraint . LBRACK expression RBRACK]
 | [_* /top_var_type: COMPLEXVECTOR type_constraint LBRACK expression . RBRACK]
@@ -399,8 +457,10 @@ rule error_messages = parse error
 | [_* /sized_basic_type: VECTOR LBRACK expression . RBRACK]
 | /sized_basic_type: COMPLEXVECTOR LBRACK . expression RBRACK
 | /sized_basic_type: VECTOR LBRACK . expression RBRACK
-| /sized_basic_type: COMPLEXVECTOR . LBRACK expression RBRACK
-| /sized_basic_type: VECTOR . LBRACK expression RBRACK
+| /basic_type: COMPLEXVECTOR .
+  /sized_basic_type: COMPLEXVECTOR . LBRACK expression RBRACK
+| /basic_type: VECTOR .
+  /sized_basic_type: VECTOR . LBRACK expression RBRACK
   { "@{<light_red>Ill-formed type.@} Expected @{<green>\"[\"@} @{<i>expression@} @{<green>\"]\"@} for vector size." }
 
 | /model_block: MODELBLOCK . LBRACE list(vardecl_or_statement) RBRACE
@@ -443,10 +503,6 @@ rule error_messages = parse error
 | /nested_statement: FOR . _*
   { "@{<light_red>Ill-formed statement.@} Expected @{<green>\"(\"@} after @{<green>\"for\"@}." }
 
-| [_* /list(top_vardecl_or_statement): top_vardecl_or_statement . list(top_vardecl_or_statement)]
-| [_* /nested_statement: IF LPAREN expression RPAREN vardecl_or_statement . _*]
-  { "@{<light_red>Ill-formed block.@} Expected a statement, variable declaration, or just @{<green>\"}\"@}." }
-
 | /nested_statement: IF LPAREN expression RPAREN . _*
   { "@{<light_red>Ill-formed statement.@} Expected a statement for the true branch of conditional." }
 
@@ -460,10 +516,6 @@ rule error_messages = parse error
 | /nested_statement: IF . _*
 | /nested_statement: IF LPAREN . _*
   { "@{<light_red>Ill-formed statement.@} Expected @{<green>\"(\"@} @{<i>expression@} @{<green>\")\"@} for the test of the if statement." }
-
-| /common_expression: LBRACE . separated_nonempty_list(COMMA,expression) RBRACE
-  /nested_statement: LBRACE . list(vardecl_or_statement) RBRACE
-  { "@{<light_red>Ill-formed block.@} Expected a statement, variable declaration, or just @{<green>\"}\"@} after @{<green>\"{\"@}." }
 
 | /separated_nonempty_list(COMMA,expression): expression COMMA . separated_nonempty_list(COMMA,expression)
   { "@{<light_red>Ill-formed expression.@} Expected a comma separated list of expressions." }
@@ -694,10 +746,6 @@ rule error_messages = parse error
 | /atomic_statement: common_expression ASSIGN . expression SEMICOLON
   { "@{<light_red>Ill-formed assignment statement.@} Expected an expression followed by @{<green>\";\"@} next." }
 
-| /transformed_parameters_block: TRANSFORMEDPARAMETERSBLOCK LBRACE . list(top_vardecl_or_statement) RBRACE
-| /transformed_data_block: TRANSFORMEDDATABLOCK LBRACE . list(top_vardecl_or_statement) RBRACE
-  { "@{<light_red>Ill-formed block.@} Expected a statement or top-level variable declaration." }
-
 | /nested_statement: WHILE LPAREN expression RPAREN . vardecl_or_statement
   { "@{<light_red>Ill-formed statement.@} Expected a statement after @{<green>\")\"@} for the body of the @{<green>\"while\"@} loop." }
 
@@ -780,17 +828,28 @@ rule error_messages = parse error
 | /common_expression: LPAREN expression COMMA . separated_nonempty_list(COMMA,expression) RPAREN
   { "@{<light_red>Ill-formed expression.@} Expected an expression or comma separated list of expressions followed by @{<green>\")\"@} after @{<green>\"(\"@}." }
 
-| [_* /unsized_type: ARRAY unsized_dims . _*]
-| [_* /array_type(sized_basic_type): arr_dims . _*]
 | [_* /array_type(top_var_type): arr_dims . _*]
-  { "@{<light_red>Ill-formed type.@} Expected non-array type after @{<green>\"array\"@} declaration." }
+  { "@{<light_red>Ill-formed type.@} Expected a non-array type after @{<green>\"array\"@} declaration." }
+
+  (*  same as above but the type additionally cannot be constrained *)
+| [_* /array_type(sized_basic_type): arr_dims . _*]
+  { "@{<light_red>Ill-formed type.@} Expected an @{<i>@{<light_yellow>unconstrained@}@}, non-array type after @{<green>\"array\"@} declaration.\n\
+    \  @{<i>For example, this means a type like @{<r>@{<green>\"matrix\"@}@}, not @{<r>@{<green>\"corr_matrix\"@}@}.\n\
+    \  See the complete table of types at:@}\n\
+    \  @{<light_blue>https://mc-stan.org/docs/reference-manual/types.html#variable-declaration.section@}" }
+
+| [_* /unsized_type: ARRAY unsized_dims . _*]
+  { "@{<light_red>Ill-formed type.@} Expected an @{<i>@{<light_yellow>unconstrained@}@}, non-array type after @{<green>\"array\"@} declaration.\n\
+    \  @{<i>For example, this means a type like @{<r>@{<green>\"matrix\"@}@}, not @{<r>@{<green>\"corr_matrix\"@}@} or @{<r>@{<green>\"matrix[3,4]\"@}@}.\n\
+    \  See the complete table of types at:@}\n\
+    \  @{<light_blue>https://mc-stan.org/docs/reference-manual/types.html#variable-declaration.section@}" }
 
 | /arr_dims: ARRAY LBRACK . separated_nonempty_list(COMMA,expression) RBRACK
   { "@{<light_red>Ill-formed type.@} Expected expressions for size of array." }
 
 | /list(COMMA): COMMA . list(COMMA)
 | /unsized_dims: LBRACK . list(COMMA) RBRACK
-  { "@{<light_red>Ill-formed type.@} Expected @{<green>\"[\"@} @{<i>(list of commas)@} @{<green>\"]\"@} in unsized return type of function definition." }
+  { "@{<light_red>Ill-formed type.@} Expected @{<green>\"[\"@} @{<i>(list of commas)@} @{<green>\"]\"@} in an @{<i>@{<light_yellow>unsized@}@} type in a function signature." }
 
 | [_* /decl(top_var_type,expression): top_var_type decl_identifier LBRACK separated_nonempty_list(COMMA,expression) . RBRACK]
 | /decl(top_var_type,expression): top_var_type decl_identifier LBRACK . separated_nonempty_list(COMMA,expression) RBRACK
@@ -799,6 +858,13 @@ rule error_messages = parse error
 | [_* /decl(sized_basic_type,expression): sized_basic_type decl_identifier LBRACK separated_nonempty_list(COMMA,expression) . RBRACK]
 | /decl(sized_basic_type,expression): sized_basic_type decl_identifier LBRACK . separated_nonempty_list(COMMA,expression) RBRACK
   { "@{<light_red>Ill-formed declaration.@} Expected @{<green>\";\"@} after variable declaration.\n\
-     @{<light_yellow>It looks like you are trying to use the old array syntax.\n\
-     Please use the new syntax:@}\n\
-     https://mc-stan.org/docs/reference-manual/types.html#array-data-types.section" }
+    \  @{<i>It looks like you are trying to use the old array syntax.\n\
+    \  Please use the new syntax, see:@}\n\
+    \  @{<light_blue>https://mc-stan.org/docs/reference-manual/types.html#array-data-types.section@}" }
+
+| /unsized_type: basic_type LBRACK . UNREACHABLE
+  { "@{<light_red>Ill-formed type.@} Expected an @{<i>@{<light_yellow>unsized@}@} type in function signature.\n\
+    \  @{<i>For example, this means a type like @{<r>@{<green>\"matrix\"@}@}, not @{<r>@{<green>\"matrix[3,4]\"@}@}.\n\
+    \  If you are trying to use the old array syntax, you will need to use\n\
+    \  the new syntax, see:@}\n\
+    \  @{<light_blue>https://mc-stan.org/docs/reference-manual/types.html#array-data-types.section@}" }
