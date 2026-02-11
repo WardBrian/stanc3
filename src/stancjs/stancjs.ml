@@ -1,12 +1,13 @@
 open Core
+open Js_of_ocaml
 open Frontend
 open Analysis_and_optimization
-open Js_of_ocaml
+open Common.Let_syntax.Context
 
 let invoke_driver model_name model flags =
   let warnings = ref [] in
   let compilation_result =
-    With_return.with_return @@ fun {return} ->
+    let@ {return} = With_return.with_return in
     let output_callback : Driver.Entry.other_output -> unit = function
       | Warnings w -> warnings := !warnings @ w
       | Formatted s
@@ -225,8 +226,8 @@ let stan2cpp_wrapped name code flags includes =
     let* code = checked_to_string ~name:"code" code in
     let* {driver_flags; color_output} = process_flags flags includes in
     let+ result, warnings =
-      Common.ICE.with_exn_message (fun () ->
-          invoke_driver name code driver_flags) in
+      let@ () = Common.ICE.with_exn_message in
+      invoke_driver name code driver_flags in
     (result, warnings, driver_flags.filename_in_msg, color_output) in
   match compilation_result with
   | Ok (result, warnings, printed_filename, color_output) ->

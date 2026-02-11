@@ -1,6 +1,7 @@
 (** Setup of our compiler errors *)
 
 open Core
+open Common.Let_syntax.Context
 
 type t =
   | FileNotFound of string
@@ -9,7 +10,7 @@ type t =
   | DebugDataError of (Middle.Location_span.t * string)
 
 let get_context ?code Middle.Location.{filename; included_from; _} =
-  Option.try_with @@ fun () ->
+  let@ () = Option.try_with in
   match (included_from, code) with
   | None, Some code ->
       (* If the location is not included from anywhere, and we have code

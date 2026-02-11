@@ -1,7 +1,8 @@
 (** stanc console application *)
-open Core
 
+open Core
 open Frontend
+open Common.Let_syntax.Context
 
 let exit_ok = CLI.exit_ok
 let exit_err = CLI.exit_err
@@ -62,7 +63,7 @@ let stanc ?tty_colors ?(debug_lex : bool = false) ?(debug_parse : bool = false)
       , `Code (In_channel.input_all In_channel.stdin)
       , Option.first_some flags.filename_in_msg (Some "stdin") )
     else (model_file, `File model_file, flags.filename_in_msg) in
-  With_return.with_return @@ fun {return} ->
+  let@ {return} = With_return.with_return in
   match
     Driver.Entry.stan2cpp
       (Option.value ~default:model_file_name name)

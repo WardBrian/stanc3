@@ -1,4 +1,5 @@
 open Core
+open Common.Let_syntax.Context
 
 type styled_text = (unit, Format.formatter, unit) format
 
@@ -86,13 +87,12 @@ let pp_styled_text : styled_text Fmt.t =
       let marks = Format.pp_get_mark_tags ppf () in
       Format.pp_set_formatter_stag_functions ppf (ansi_stags former);
       Format.pp_set_mark_tags ppf true;
-      Fun.protect
-        (fun () ->
-          Fmt.pf ppf format_string;
-          Fmt.flush ppf ())
-        ~finally:(fun () ->
-          Format.pp_set_formatter_stag_functions ppf former;
-          Format.pp_set_mark_tags ppf marks)
+      let finally () =
+        Format.pp_set_formatter_stag_functions ppf former;
+        Format.pp_set_mark_tags ppf marks in
+      let@ () = Fun.protect ~finally in
+      Fmt.pf ppf format_string;
+      Fmt.flush ppf ()
 
 let pp ppf (_, err) =
   match err with
