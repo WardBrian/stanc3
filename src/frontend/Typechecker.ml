@@ -128,11 +128,14 @@ let verify_identifier id : unit =
 let verify_name_fresh_var loc tenv name =
   if Utils.is_unnormalized_distribution name then
     Semantic_error.ident_has_unnormalized_suffix loc name |> error
-  else if
-    List.exists (Env.find tenv name) ~f:(function
-      | {kind= `Variable _; _} -> true
-      | _ -> false (* user variables can shadow function names *))
-  then Semantic_error.ident_in_use loc name |> error
+  else
+    match
+      List.filter_map (Env.find tenv name) ~f:(function
+        | {kind= `Variable _; location; _} -> Some location
+        | _ -> None (* user variables can shadow function names *))
+    with
+    | [] -> ()
+    | prev :: _ -> Semantic_error.ident_in_use loc name prev |> error
 
 (** verify that the variable being declared is previous unused. *)
 let verify_name_fresh_udf loc tenv name =
@@ -143,13 +146,16 @@ let verify_name_fresh_udf loc tenv name =
   then Semantic_error.ident_is_stanmath_name loc name |> error
   else if Utils.is_unnormalized_distribution name then
     Semantic_error.udf_is_unnormalized_fn loc name |> error
-  else if
+  else
     (* if a variable is already defined with this name - not really possible as
        all functions are defined before data, but future-proofing is good *)
-    List.exists
-      ~f:(function {kind= `Variable _; _} -> true | _ -> false)
-      (Env.find tenv name)
-  then Semantic_error.ident_in_use loc name |> error
+    match
+      List.filter_map (Env.find tenv name) ~f:(function
+        | {kind= `Variable _; location; _} -> Some location
+        | _ -> None)
+    with
+    | [] -> ()
+    | prev :: _ -> Semantic_error.ident_in_use loc name prev |> error
 
 (** Checks that a variable/function name:
     - a function/identifier does not have the _lupdf/_lupmf suffix
@@ -280,16 +286,17 @@ let check_id cf loc tenv id =
               ((in_udf_distribution cf || in_lp_function cf)
               || cf.current_block = Model) ->
       Semantic_error.invalid_unnormalized_fn loc |> error
-  | {kind= `Variable {origin; _}; type_} :: _ ->
+  | {kind= `Variable {origin; _}; type_; _} :: _ ->
       (calculate_autodifftype cf origin type_, type_)
   | { kind= `UserDefined | `UserDeclared _
-    ; type_= UFun (args, rt, (FnLpdf _ | FnLpmf _), mem_pattern) }
+    ; type_= UFun (args, rt, (FnLpdf _ | FnLpmf _), mem_pattern)
+    ; _ }
     :: _ ->
       let type_ =
         UnsizedType.UFun
           (args, rt, Fun_kind.suffix_from_name id.name, mem_pattern) in
       (calculate_autodifftype cf Functions type_, type_)
-  | {kind= `UserDefined | `UserDeclared _; type_} :: _ ->
+  | {kind= `UserDefined | `UserDeclared _; type_; _} :: _ ->
       (calculate_autodifftype cf Functions type_, type_)
 
 let check_variable cf loc tenv id =
@@ -580,7 +587,12 @@ let find_matching_first_order_fn tenv matches fname =
   | Ok a -> SignatureMismatch.UniqueMatch a
   | Error (Some promotions) ->
       List.filter_map promotions ~f:(function
-        | UnsizedType.UFun (args, rt, _, _) -> Some (rt, args)
+        | UnsizedType.UFun (args, rt, _, _) ->
+            Some
+              ( rt
+              , args
+              , None (* todo(grace): updates `matches` to persist this info *)
+              )
         | _ -> None)
       |> AmbiguousMatch
   | Error None -> SignatureMismatch.SignatureErrors (List.hd_exn errs)
@@ -1775,7 +1787,7 @@ and check_loop_body cf tenv loop_var loop_var_ty loop_body =
   (* Add to type environment as readonly. Check that function args and loop
      identifiers are not modified in function. (passed by const ref) *)
   let tenv =
-    Env.add tenv loop_var.name loop_var_ty
+    Env.add_id tenv loop_var loop_var_ty
       (`Variable {origin= cf.current_block; global= false; readonly= true})
   in
   snd (check_statement {cf with loop_depth= cf.loop_depth + 1} tenv loop_body)
@@ -1917,7 +1929,7 @@ and check_var_decl loc cf tenv sized_ty trans
         verify_identifier identifier;
         verify_name_fresh tenv' identifier ~is_udf:false;
         let tenv'' =
-          Env.add tenv' identifier.name unsized_type
+          Env.add_id tenv' identifier unsized_type
             (`Variable
                {origin= cf.current_block; global= is_global; readonly= false})
         in
@@ -1938,7 +1950,10 @@ and check_var_decl loc cf tenv sized_ty trans
 and exists_matching_fn_declared tenv id arg_tys rt =
   let options = Env.find tenv id.name in
   let f = function
-    | Env.{kind= `UserDeclared _; type_= UFun (listedtypes, rt', _, _)}
+    | Env.
+        { kind= `UserDeclared _
+        ; type_= UFun (listedtypes, rt', _, _)
+        ; _ (*todo(grace) check if loc should be used*) }
       when arg_tys = listedtypes && rt = rt' ->
         true
     | _ -> false in
@@ -2011,21 +2026,21 @@ and verify_fundef_return_tys loc return_type body =
   then ()
   else Semantic_error.incompatible_return_types loc |> error
 
-and add_function tenv name type_ defined =
+and add_function tenv id type_ defined =
   (* if we're providing a definition, we remove prior declarations to simplify
      the environment *)
   if defined = `UserDefined then
-    let existing_defns = Env.find tenv name in
+    let existing_defns = Env.find tenv id.name in
     let defns =
       List.filter
         ~f:(function
-          | Env.{kind= `UserDeclared _; type_= type'} when type' = type_ ->
+          | Env.{kind= `UserDeclared _; type_= type'; _} when type' = type_ ->
               false
           | _ -> true)
         existing_defns in
-    let new_fn = Env.{kind= `UserDefined; type_} in
-    Env.set_raw tenv name (new_fn :: defns)
-  else Env.add tenv name type_ defined
+    let new_fn = Env.{kind= `UserDefined; type_; location= Some id.id_loc} in
+    Env.set_raw tenv id.name (new_fn :: defns)
+  else Env.add_id tenv id type_ defined
 
 and check_fundef loc cf tenv return_ty id args body =
   List.iter args ~f:(fun (_, _, id) -> verify_identifier id);
@@ -2052,9 +2067,9 @@ and check_fundef loc cf tenv return_ty id args body =
               [%message "TupleAD in function definition, this is unexpected!"])
       arg_types in
   let tenv_body =
-    List.fold2_exn arg_names arg_types_internal ~init:tenv
+    List.fold2_exn arg_identifiers arg_types_internal ~init:tenv
       ~f:(fun env name (origin, typ) ->
-        Env.add env name typ
+        Env.add_id env name typ
           (* readonly so that function args and loop identifiers are not
              modified in function. (passed by const ref) *)
           (`Variable {origin; readonly= true; global= false})) in
@@ -2143,7 +2158,7 @@ let add_userdefined_functions tenv stmts_opt =
             let defined =
               get_fn_decl_or_defn loc tenv funname arg_types returntype body
             in
-            add_function tenv funname.name
+            add_function tenv funname
               (UFun
                  ( arg_types
                  , returntype

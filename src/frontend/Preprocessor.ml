@@ -39,6 +39,7 @@ let location_of_position {Lexing.pos_fname; pos_lnum; pos_cnum; pos_bol} =
     else (pos_fname, None) in
   { Middle.Location.line_num= pos_lnum
   ; col_num= pos_cnum - pos_bol
+  ; bol_offset= pos_bol
   ; filename
   ; included_from }
 

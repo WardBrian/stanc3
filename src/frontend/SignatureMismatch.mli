@@ -19,7 +19,11 @@ type signature_error =
 
 type ('unique, 'error) generic_match_result =
   | UniqueMatch of 'unique
-  | AmbiguousMatch of (UnsizedType.returntype * UnsizedType.argumentlist) list
+  | AmbiguousMatch of
+      (UnsizedType.returntype
+      * UnsizedType.argumentlist
+      * Location_span.t option)
+      list
   | SignatureErrors of 'error
 
 (** The match result for general (non-variadic) functions *)

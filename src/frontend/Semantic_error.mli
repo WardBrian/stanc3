@@ -56,7 +56,10 @@ val ambiguous_function_promotion :
      Location_span.t
   -> string
   -> UnsizedType.t list option
-  -> (UnsizedType.returntype * UnsizedType.argumentlist) list
+  -> (UnsizedType.returntype
+     * UnsizedType.argumentlist
+     * Location_span.t option)
+     list
   -> t
 
 val illtyped_variadic :
@@ -128,7 +131,7 @@ val not_indexable : Location_span.t -> UnsizedType.t -> int -> t
 val ident_is_keyword : Location_span.t -> string -> t
 val ident_is_model_name : Location_span.t -> string -> t
 val ident_is_stanmath_name : Location_span.t -> string -> t
-val ident_in_use : Location_span.t -> string -> t
+val ident_in_use : Location_span.t -> string -> Location_span.t option -> t
 val ident_not_in_scope : Location_span.t -> string -> string option -> t
 val invalid_decl_rng_fn : Location_span.t -> t
 val invalid_rng_fn : Location_span.t -> t

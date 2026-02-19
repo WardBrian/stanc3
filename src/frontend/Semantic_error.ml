@@ -66,7 +66,10 @@ module TypeError = struct
     | AmbiguousFunctionPromotion of
         string
         * UnsizedType.t list option
-        * (UnsizedType.returntype * UnsizedType.argumentlist) list
+        * (UnsizedType.returntype
+          * UnsizedType.argumentlist
+          * Location_span.t option)
+          list
     | ReturningFnExpectedNonReturningFound of string
     | ReturningFnExpectedNonFnFound of string
     | ReturningFnExpectedUndeclaredDistSuffixFound of string * string
@@ -310,7 +313,8 @@ module TypeError = struct
           (laplace_tolerance_arg_name n)
           quoted name expected_types [expected] found_type found
     | AmbiguousFunctionPromotion (name, arg_tys, signatures) ->
-        let pp_sig ppf (rt, args) =
+        (* todo(grace): use secondary locations *)
+        let pp_sig ppf (rt, args, _) =
           Fmt.pf ppf "@[<hov>(@[<hov>%a@]) => %a@]"
             Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
             args UnsizedType.pp_returntype rt in
@@ -915,7 +919,8 @@ let ident_is_model_name loc name =
 let ident_is_stanmath_name loc name =
   (loc, IdentifierError (IdentifierError.IsStanMathName name))
 
-let ident_in_use loc name = (loc, IdentifierError (IdentifierError.InUse name))
+let ident_in_use loc name _prev (* todo(grace): use prev *) =
+  (loc, IdentifierError (IdentifierError.InUse name))
 
 let ident_not_in_scope loc name sug =
   (loc, IdentifierError (IdentifierError.NotInScope (name, sug)))

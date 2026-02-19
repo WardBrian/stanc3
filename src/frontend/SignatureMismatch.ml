@@ -81,7 +81,11 @@ type signature_error =
 
 type ('unique, 'error) generic_match_result =
   | UniqueMatch of 'unique
-  | AmbiguousMatch of (UnsizedType.returntype * UnsizedType.argumentlist) list
+  | AmbiguousMatch of
+      (UnsizedType.returntype
+      * UnsizedType.argumentlist
+      * Location_span.t option)
+      list
   | SignatureErrors of 'error
 [@@deriving sexp]
 
@@ -221,10 +225,11 @@ let max_n_errors = 5
 
 let extract_function_types f =
   match f with
-  | Environment.{type_= UFun (args, return, _, mem); kind= `StanMath} ->
-      Some (return, args, (fun x -> Ast.StanLib x), mem)
-  | {type_= UFun (args, return, _, mem); _} ->
-      Some (return, args, (fun x -> UserDefined x), mem)
+  | Environment.{type_= UFun (args, return, _, mem); kind= `StanMath; location}
+    ->
+      Some (return, args, (fun x -> Ast.StanLib x), mem, location)
+  | {type_= UFun (args, return, _, mem); location; _} ->
+      Some (return, args, (fun x -> UserDefined x), mem, location)
   | _ -> None
 
 let unique_minimum_promotion promotion_options =
@@ -251,12 +256,12 @@ let find_compatible_rt function_types args =
      here *)
   let matches, errors =
     List.partition_map function_types
-      ~f:(fun (rt, tys, funkind_constructor, _) ->
+      ~f:(fun (rt, tys, funkind_constructor, _, loc) ->
         match check_compatible_arguments 0 tys args with
-        | Ok p -> Either.First (((rt, tys), funkind_constructor), p)
+        | Ok p -> Either.First (((rt, tys, loc), funkind_constructor), p)
         | Error e -> Second ((rt, tys), e)) in
   match unique_minimum_promotion matches with
-  | Ok (((rt, _), funkind_constructor), p) ->
+  | Ok (((rt, _, _), funkind_constructor), p) ->
       UniqueMatch (rt, funkind_constructor, p)
   | Error (Some e) ->
       AmbiguousMatch (List.map ~f:fst e)
@@ -273,7 +278,7 @@ let matching_function env name args =
   let function_types =
     Environment.find env name
     |> List.filter_map ~f:extract_function_types
-    |> List.sort ~compare:(fun (ret1, _, _, _) (ret2, _, _, _) ->
+    |> List.sort ~compare:(fun (ret1, _, _, _, _) (ret2, _, _, _, _) ->
         UnsizedType.compare_returntype ret1 ret2) in
   find_compatible_rt function_types args
 

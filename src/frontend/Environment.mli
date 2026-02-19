@@ -23,7 +23,8 @@ type info =
       [ `Variable of varinfo
       | `UserDeclared of Location_span.t
       | `StanMath
-      | `UserDefined ] }
+      | `UserDefined ]
+  ; location: Location_span.t option }
 
 type t
 
@@ -32,9 +33,9 @@ val stan_math_environment : t
 
 val find : t -> string -> info list
 
-val add :
+val add_id :
      t
-  -> string
+  -> Ast.identifier
   -> Middle.UnsizedType.t
   -> [ `UserDeclared of Location_span.t
      | `StanMath

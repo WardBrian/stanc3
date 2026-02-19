@@ -20,7 +20,8 @@ type info =
       [ `Variable of varinfo
       | `UserDeclared of Location_span.t
       | `StanMath
-      | `UserDefined ] }
+      | `UserDefined ]
+  ; location: Location_span.t option }
 
 type t = info list String.Map.t
 
@@ -30,11 +31,13 @@ let stan_math_environment =
     |> List.map ~f:(fun (key, values) ->
         ( key
         , List.map values ~f:(fun s ->
-              {type_= UnsizedType.UFun s; kind= `StanMath}) ))
+              {type_= UnsizedType.UFun s; kind= `StanMath; location= None}) ))
     |> String.Map.of_alist_exn in
   functions
 
-let add env key type_ kind = Map.add_multi env ~key ~data:{type_; kind}
+let add_id env Ast.{name; id_loc} type_ kind =
+  Map.add_multi env ~key:name ~data:{type_; kind; location= Some id_loc}
+
 let set_raw env key data = Map.set env ~key ~data
 let find env key = Map.find_multi env key
 let mem env key = Map.mem env key
