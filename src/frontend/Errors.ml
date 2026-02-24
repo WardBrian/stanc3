@@ -40,9 +40,13 @@ let range_of_loc_span ?printed_filename ?code
     ({begin_loc; end_loc} : Middle.Location_span.t) =
   let open Grace in
   let source = get_source ?printed_filename ?code begin_loc in
-  let start = begin_loc.bol_offset + begin_loc.col_num in
-  let end_ = end_loc.bol_offset + end_loc.col_num in
-  let end_ = Int.clamp_exn ~min:start ~max:(Source.length source) end_ in
+  let max = Source.length source in
+  let start =
+    (* clamp handles errors at end of source *)
+    Int.clamp_exn ~min:0 ~max (begin_loc.bol_offset + begin_loc.col_num) in
+  let end_ =
+    (* especially possible if error crosses include boundary *)
+    Int.clamp_exn ~min:start ~max (end_loc.bol_offset + end_loc.col_num) in
   Range.create ~source (Byte_index.of_int start) (Byte_index.of_int end_)
 
 let rec included_diagnostic ?printed_filename ?code
@@ -74,6 +78,7 @@ let syntax_error_to_grace ?printed_filename ?code err =
       (* We'd need more locations to really do much -- hard from parser, easy
          from typechecker *)
       createf
+        ~notes:(Syntax_error.notes err |> List.map ~f:Message.create)
         ~labels:
           Label.
             [ primaryf

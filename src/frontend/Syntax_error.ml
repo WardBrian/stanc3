@@ -3,7 +3,11 @@ open Core
 type styled_text = (unit, Format.formatter, unit) format
 
 (** Our type of syntax error information *)
-type err = Lexing | UnexpectedEOF | Include of string | Parsing of styled_text
+type err =
+  | Lexing
+  | UnexpectedEOF
+  | Include of (string * string option)
+  | Parsing of styled_text
 
 type t = Middle.Location_span.t * err
 
@@ -99,16 +103,18 @@ let pp ppf (_, err) =
   | Parsing message -> pp_styled_text ppf message
   | Lexing -> Fmt.pf ppf "Invalid character found.@."
   | UnexpectedEOF -> Fmt.pf ppf "Unexpected end of input.@."
-  | Include message -> Fmt.pf ppf "%s@." message
+  | Include (message, _) -> Fmt.pf ppf "%s@." message
+
+let notes = function _, Include (_, Some note) -> [note] | _ -> []
 
 exception ParserException of styled_text * Middle.Location_span.t
 exception UnexpectedEOF of Middle.Location_span.t
 exception UnexpectedCharacter of Middle.Location_span.t
-exception IncludeError of string * Middle.Location_span.t
+exception IncludeError of string * string option * Middle.Location_span.t
 
 let unexpected_eof loc = raise (UnexpectedEOF loc)
 let unexpected_character loc = raise (UnexpectedCharacter loc)
-let include_error msg loc = raise (IncludeError (msg, loc))
+let include_error ?note msg loc = raise (IncludeError (msg, note, loc))
 let parse_error msg loc = raise (ParserException (msg, loc))
 
 let try_with f =
@@ -116,7 +122,7 @@ let try_with f =
   | ParserException (msg, loc) -> Error (loc, Parsing msg)
   | UnexpectedEOF loc -> Error (loc, UnexpectedEOF)
   | UnexpectedCharacter loc -> Error (loc, Lexing)
-  | IncludeError (msg, loc) -> Error (loc, Include msg)
+  | IncludeError (msg, note, loc) -> Error (loc, Include (msg, note))
 
 module Tests = struct
   (** tip: view this file using `cat` to see the styling in the test output *)

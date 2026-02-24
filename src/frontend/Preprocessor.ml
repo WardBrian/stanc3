@@ -83,21 +83,20 @@ let restore_prior_lexbuf () =
   lexbuf.lex_start_p <- old_pos;
   old_lexbuf
 
-let include_error msg = Syntax_error.include_error msg (current_location ())
+let include_error ?note msg =
+  Syntax_error.include_error ?note msg (current_location ())
 
 let find_include_fs lookup_paths fname =
   let rec loop paths =
     match paths with
     | [] ->
-        let message =
+        let note =
           let pp_list ppf l =
             if List.is_empty l then Fmt.string ppf "None"
             else Fmt.(list ~sep:comma string) ppf l in
-          Fmt.str
-            "Could not find include file '%s' in specified include paths.@\n\
-             @[Current include paths: %a@]"
-            fname pp_list lookup_paths in
-        include_error message
+          Fmt.str "@[Current include paths: %a@]" pp_list lookup_paths in
+        let message = Fmt.str "Could not find include file '%s'." fname in
+        include_error ~note message
     | path :: rest_of_paths -> (
         try
           let full_path = path ^ "/" ^ fname in
@@ -108,16 +107,15 @@ let find_include_fs lookup_paths fname =
 let find_include_inmemory map fname =
   match Map.find map fname with
   | None ->
-      let message =
+      let note =
         let pp_list ppf l =
           let keys = Map.keys l in
           if List.is_empty keys then Fmt.string ppf "None"
           else Fmt.(list ~sep:comma string) ppf keys in
-        Fmt.str
-          "Could not find include file '%s'.@ stanc was given information \
-           about the following files:@ %a"
-          fname pp_list map in
-      include_error message
+        Fmt.str "@[stanc was given information about the following files: %a@]"
+          pp_list map in
+      let message = Fmt.str "Could not find include file '%s'." fname in
+      include_error ~note message
   | Some s -> (Lexing.from_string s, fname)
 
 let find_include fname =
@@ -141,7 +139,7 @@ let try_get_new_lexbuf fname =
           if is_dup filename then true else go included_from in
     go included_from in
   if dup_exists (location_of_position lexbuf.lex_start_p) then
-    include_error (Printf.sprintf "File %s recursively included itself." fname);
+    include_error (Fmt.str "File '%s' recursively included itself." fname);
   Stack.push include_stack new_lexbuf;
   update_start_positions new_lexbuf.lex_curr_p;
   included_files := file :: !included_files;
