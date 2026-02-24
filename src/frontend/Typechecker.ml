@@ -585,15 +585,11 @@ let find_matching_first_order_fn tenv matches fname =
   let ok, errs = List.partition_map candidates ~f:Result.to_either in
   match SignatureMismatch.unique_minimum_promotion ok with
   | Ok a -> SignatureMismatch.UniqueMatch a
-  | Error (Some promotions) ->
-      List.filter_map promotions ~f:(function
-        | UnsizedType.UFun (args, rt, _, _) ->
-            Some
-              ( rt
-              , args
-              , None (* todo(grace): updates `matches` to persist this info *)
-              )
-        | _ -> None)
+  | Error (Some tys) ->
+      List.filter_map tys ~f:(fun (ty, loc) ->
+          match ty with
+          | UnsizedType.UFun (args, rt, _, _) -> Some (rt, args, loc)
+          | _ -> None)
       |> AmbiguousMatch
   | Error None -> SignatureMismatch.SignatureErrors (List.hd_exn errs)
 
@@ -670,7 +666,10 @@ let check_function_callable_with_tuple cf tenv caller_id fname
   let required_arg_names, required_arg_types = List.unzip required_args in
   let required = required_arg_types @ arg_types in
   let matches = function
-    | Env.{type_= UnsizedType.UFun (args, return_type, sfx, _) as fn_type; _} ->
+    | Env.
+        { type_= UnsizedType.UFun (args, return_type, sfx, _) as fn_type
+        ; location
+        ; _ } ->
         let open SignatureMismatch in
         let open Common.Let_syntax.Result in
         if return_type <> required_fn_return_type then
@@ -698,10 +697,10 @@ let check_function_callable_with_tuple cf tenv caller_id fname
             check_compatible_arguments_mod_conv args required
             |> Result.map_error ~f:(fun x ->
                 `SuppliedArgsMismatch (InputMismatch x)) in
-          (fn_type, promotions)
+          ((fn_type, location), promotions)
     | _ -> Error `NonFunction in
   match find_matching_first_order_fn tenv matches fname with
-  | SignatureMismatch.UniqueMatch (ftype, promotions) ->
+  | SignatureMismatch.UniqueMatch ((ftype, _), promotions) ->
       let fn = make_function_variable cf fname.id_loc fname ftype in
       let args =
         Promotion.promote arg_tupl
@@ -789,11 +788,13 @@ and check_reduce_sum ~is_cond_dist loc cf tenv id tes =
       UnsizedType.
         [(AutoDiffable, UArray UReal); (DataOnly, UInt); (DataOnly, UInt)] in
     SignatureMismatch.check_variadic_args ~allow_lpdf:true mandatory_args
-      mandatory_fun_args UReal (get_arg_types tes) in
+      mandatory_fun_args None UReal (get_arg_types tes) in
   let matching remaining_es fn =
     match fn with
-    | Env.{type_= UnsizedType.UFun (sliced_arg_fun :: _, _, _, _) as ftype; _}
-      ->
+    | Env.
+        { type_= UnsizedType.UFun (sliced_arg_fun :: _, _, _, _) as ftype
+        ; location
+        ; _ } ->
         let mandatory_args = [sliced_arg_fun; (AutoDiffable, UInt)] in
         let mandatory_fun_args =
           [sliced_arg_fun; (DataOnly, UInt); (DataOnly, UInt)] in
@@ -801,7 +802,7 @@ and check_reduce_sum ~is_cond_dist loc cf tenv id tes =
           (calculate_autodifftype cf Functions ftype, ftype)
           :: get_arg_types remaining_es in
         SignatureMismatch.check_variadic_args ~allow_lpdf:true mandatory_args
-          mandatory_fun_args UReal arg_types
+          mandatory_fun_args location UReal arg_types
     | _ -> basic_mismatch () in
   match tes with
   | {expr= Variable fname; _}
@@ -818,7 +819,7 @@ and check_reduce_sum ~is_cond_dist loc cf tenv id tes =
       then
         Semantic_error.illtyped_reduce_sum_slice slice_loc slice_type |> error;
       match find_matching_first_order_fn tenv (matching remaining_es) fname with
-      | SignatureMismatch.UniqueMatch (ftype, promotions) ->
+      | SignatureMismatch.UniqueMatch ((ftype, _), promotions) ->
           (* a valid signature exists *)
           let tes = make_function_variable cf loc fname ftype :: remaining_es in
           mk_fun_app ~is_cond_dist ~loc (StanLib FnPlain) id
@@ -929,16 +930,16 @@ and check_variadic ~is_cond_dist loc cf tenv id tes =
       =
     Stan_math_signatures.lookup_stan_math_variadic_function id.name
     |> Option.value_exn in
-  let matching remaining_es Env.{type_= ftype; _} =
+  let matching remaining_es Env.{type_= ftype; location; _} =
     let arg_types =
       (calculate_autodifftype cf Functions ftype, ftype)
       :: get_arg_types remaining_es in
     SignatureMismatch.check_variadic_args ~allow_lpdf:false control_args
-      required_fn_args required_fn_rt arg_types in
+      required_fn_args location required_fn_rt arg_types in
   match tes with
   | {expr= Variable fname; _} :: remaining_es -> (
       match find_matching_first_order_fn tenv (matching remaining_es) fname with
-      | SignatureMismatch.UniqueMatch (ftype, promotions) ->
+      | SignatureMismatch.UniqueMatch ((ftype, _), promotions) ->
           let tes = make_function_variable cf loc fname ftype :: remaining_es in
           mk_fun_app ~is_cond_dist ~loc (StanLib FnPlain) id
             (Promotion.promote_list tes promotions)
@@ -955,7 +956,7 @@ and check_variadic ~is_cond_dist loc cf tenv id tes =
   | _ ->
       let expected_args, err =
         SignatureMismatch.check_variadic_args ~allow_lpdf:false control_args
-          required_fn_args required_fn_rt (get_arg_types tes)
+          required_fn_args None required_fn_rt (get_arg_types tes)
         |> Result.error |> Option.value_exn in
       let loc = specialize_loc ~loc err tes in
       Semantic_error.illtyped_variadic loc id.name
@@ -1950,14 +1951,11 @@ and check_var_decl loc cf tenv sized_ty trans
 and exists_matching_fn_declared tenv id arg_tys rt =
   let options = Env.find tenv id.name in
   let f = function
-    | Env.
-        { kind= `UserDeclared _
-        ; type_= UFun (listedtypes, rt', _, _)
-        ; _ (*todo(grace) check if loc should be used*) }
+    | Env.{kind= `UserDeclared _; type_= UFun (listedtypes, rt', _, _); location}
       when arg_tys = listedtypes && rt = rt' ->
-        true
-    | _ -> false in
-  List.exists ~f options
+        Some location
+    | _ -> None in
+  List.find_map ~f options
 
 and verify_unique_signature tenv loc id arg_tys rt =
   let existing = Env.find tenv id.name in
@@ -1976,7 +1974,7 @@ and verify_unique_signature tenv loc id arg_tys rt =
       |> error
 
 and verify_fundef_overloaded loc tenv id arg_tys rt =
-  if exists_matching_fn_declared tenv id arg_tys rt then
+  if Option.is_some (exists_matching_fn_declared tenv id arg_tys rt) then
     (* this is the definition to an existing forward declaration *)
     ()
   else
@@ -1986,10 +1984,10 @@ and verify_fundef_overloaded loc tenv id arg_tys rt =
 
 and get_fn_decl_or_defn loc tenv id arg_tys rt body =
   match body with
-  | {stmt= Skip; _} ->
-      if exists_matching_fn_declared tenv id arg_tys rt then
-        Semantic_error.fn_decl_exists loc id.name |> error
-      else `UserDeclared id.id_loc
+  | {stmt= Skip; _} -> (
+      match exists_matching_fn_declared tenv id arg_tys rt with
+      | Some prev -> Semantic_error.fn_decl_exists loc id.name prev |> error
+      | None -> `UserDeclared id.id_loc)
   | _ -> `UserDefined
 
 and verify_fundef_dist_rt loc id return_ty =

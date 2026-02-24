@@ -286,7 +286,7 @@ let matching_stanlib_function =
   matching_function Environment.stan_math_environment
 
 let check_variadic_args ~allow_lpdf mandatory_arg_tys mandatory_fun_arg_tys
-    fun_return args =
+    location fun_return args =
   let minimal_func_type =
     UnsizedType.UFun (mandatory_fun_arg_tys, ReturnType fun_return, FnPlain, AoS)
   in
@@ -320,7 +320,7 @@ let check_variadic_args ~allow_lpdf mandatory_arg_tys mandatory_fun_arg_tys
                   ((UnsizedType.AutoDiffable, func_type) :: mandatory_arg_tys)
                   @ variadic_arg_tys in
                 check_compatible_arguments 0 expected_args args
-                |> Result.map ~f:(fun x -> (func_type, x))
+                |> Result.map ~f:(fun x -> ((func_type, location), x))
                 |> Result.map_error ~f:(fun x -> (expected_args, x)))
       else wrap_func_error (SuffixMismatch (FnPlain, suffix))
   | (_, x) :: _ -> TypeMismatch (minimal_func_type, x, None) |> wrap_err
@@ -343,7 +343,7 @@ let index_str = function
 
 let data_only_msg ppf () =
   let open Fmt in
-  pf ppf "(%a@ %a.)" text
+  pf ppf "@[(%a@ %a.)@]" text
     "Local variables are assumed to depend on parameters; same goes for \
      function inputs unless they are marked with the keyword"
     (styled (`Fg `Green) (quote string))

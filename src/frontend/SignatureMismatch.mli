@@ -64,9 +64,10 @@ val check_variadic_args :
      allow_lpdf:bool
   -> UnsizedType.argumentlist
   -> UnsizedType.argumentlist
+  -> Location_span.t option
   -> UnsizedType.t
   -> UnsizedType.argumentlist
-  -> ( UnsizedType.t * Promotion.t list
+  -> ( (UnsizedType.t * Location_span.t option) * Promotion.t list
      , UnsizedType.argumentlist * function_mismatch )
      result
 (** Check variadic function arguments. If a match is found, returns [Ok] of the

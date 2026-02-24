@@ -1,5 +1,6 @@
 open Core
 open Middle
+open Grace.Diagnostic
 
 (* The following categories (type, identifier, expression, statement) are fairly
    loose, the main idea is to keep similar errors close to each other and still
@@ -24,6 +25,15 @@ let rec expected_types : UnsizedType.t Common.Nonempty_list.t Fmt.t =
     | t :: ts ->
         Fmt.pf ppf "%a,@ %a" ust t expected_types
           (ts |> Common.Nonempty_list.of_list_exn)
+
+let previous_declaration ?printed_filename ?code prev =
+  match prev with
+  | Some loc ->
+      Label.secondaryf
+        ~range:(Diagnostic.range_of_loc_span ?printed_filename ?code loc)
+        "Previous declaration here"
+      :: Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc
+  | None -> []
 
 module TypeError = struct
   type t =
@@ -79,7 +89,7 @@ module TypeError = struct
     | FuncOverloadRtOnly of
         string * UnsizedType.returntype * UnsizedType.returntype
     | FuncDeclRedefined of string * UnsizedType.t * bool
-    | FunDeclExists of string
+    | FunDeclExists of string * Location_span.t option
     | FunDeclNoDefn of string
     | FunDeclNeedsBlock
     | NonRealProbFunDef of UnsizedType.returntype
@@ -103,7 +113,7 @@ module TypeError = struct
     | n ->
         Fmt.str "%a element of the control parameter tuple" (Fmt.ordinal ()) n
 
-  let generic_laplace_usage info ppf (name, supplied) =
+  let generic_laplace_usage info (name, supplied) =
     let req = Stan_math_signatures.laplace_helper_param_types name in
     let is_helper = not @@ List.is_empty req in
     let pp_lik_args ppf =
@@ -121,7 +131,7 @@ module TypeError = struct
         Fmt.pf ppf "@ However, we received the types:@ @[<hov 2>(%a)@]"
           Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
           supplied in
-    Fmt.pf ppf
+    createf Severity.Error
       "@[<v>Ill-typed arguments supplied to function %a.@ The valid signature \
        of this function is@ @[<hov 2>%s(%t,@ data int,@ (T_k%t) => matrix,@ \
        tuple(T_k%t)%t)@]%t@ @[%a@]@]"
@@ -139,93 +149,95 @@ module TypeError = struct
           Fmt.pf ppf "%a,@ %a" ust t expected_types
             (ts |> Common.Nonempty_list.of_list_exn)
 
-  let pp ppf = function
+  let to_grace ?printed_filename ?code = function
     | IncorrectReturnType (t1, t2) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Invalid return statement. Function is declared to return %a, but \
            this statement returns %a instead."
           expected_types [t1]
           (actual_style UnsizedType.pp)
           t2
     | MismatchedArrayTypes (t1, t2) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Array expression must have entries of consistent type. Expected %a \
            but found %a."
           expected_types [t1]
           (actual_style UnsizedType.pp)
           t2
     | InvalidRowVectorTypes ty ->
-        Fmt.pf ppf "@[Row vector expression must have all %a entries.%a@]"
-          expected_types [UInt; UReal; UComplex] found_type ty
+        createf Severity.Error
+          "@[Row vector expression must have all %a entries.%a@]" expected_types
+          [UInt; UReal; UComplex] found_type ty
     | InvalidMatrixTypes ty ->
-        Fmt.pf ppf "@[Matrix expression must have all %a entries.%a@]"
-          expected_types
+        createf Severity.Error
+          "@[Matrix expression must have all %a entries.%a@]" expected_types
           [URowVector; UComplexRowVector]
           found_type ty
     | IntExpected (name, ut) ->
-        Fmt.pf ppf "@[%s must be of type %a.%a@]" name expected_types [UInt]
-          found_type ut
+        createf Severity.Error "@[%s must be of type %a.%a@]" name
+          expected_types [UInt] found_type ut
     | IntOrRealExpected (name, ut) ->
-        Fmt.pf ppf "@[%s must be of type %a.%a@]" name expected_types
-          [UInt; UReal] found_type ut
+        createf Severity.Error "@[%s must be of type %a.%a@]" name
+          expected_types [UInt; UReal] found_type ut
     | TupleExpected (name, ut) ->
-        Fmt.pf ppf "@[%s must be a %a.%a@]" name
+        createf Severity.Error "@[%s must be a %a.%a@]" name
           (expected_style Fmt.string)
           "tuple" found_type ut
     | TypeExpected (name, (UInt | UReal | UComplex), ut) ->
-        Fmt.pf ppf "@[%s must be a %a.%a@]" name
+        createf Severity.Error "@[%s must be a %a.%a@]" name
           (expected_style Fmt.string)
           "scalar" found_type ut
     | TypeExpected (name, et, ut) ->
-        Fmt.pf ppf "@[%s must be a %a or of type %a.%a@]" name
+        createf Severity.Error "@[%s must be a %a or of type %a.%a@]" name
           (expected_style Fmt.string)
           "scalar" expected_types [et] found_type ut
     | IntOrRealContainerExpected ut ->
-        Fmt.pf ppf "@[A (container of) %a was expected.%a@]" expected_types
-          [UReal; UInt] found_type ut
+        createf Severity.Error "@[A (container of) %a was expected.%a@]"
+          expected_types [UReal; UInt] found_type ut
     | IntIntArrayOrRangeExpected ut ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[Index must be of type %a or must be a range (int:int).%a@]"
           expected_types [UInt; UArray UInt] found_type ut
     | ArrayVectorRowVectorMatrixExpected ut ->
-        Fmt.pf ppf "@[Foreach-loop must be over %a, %a.%a@]"
+        createf Severity.Error "@[Foreach-loop must be over %a, %a.%a@]"
           (expected_style Fmt.string)
           "array" expected_types
           [UVector; URowVector; UMatrix]
           found_type ut
     | IllTypedReduceSumNotArray ty ->
-        Fmt.pf ppf "The second argument to reduce_sum must be an array.%a"
-          found_type ty
+        createf Severity.Error
+          "The second argument to reduce_sum must be an array.%a" found_type ty
     | IllTypedReduceSumSlice ty ->
-        Fmt.pf ppf "The inner type in reduce_sum array must be %a.%a"
-          expected_types
+        createf Severity.Error
+          "The inner type in reduce_sum array must be %a.%a" expected_types
           (Stan_math_signatures.reduce_sum_slice_types
          |> Common.Nonempty_list.of_list_exn)
           found_type ty
     | IllTypedReduceSum (name, arg_tys, expected_args, error) ->
-        SignatureMismatch.pp_signature_mismatch ppf
+        createf Severity.Error "%a" SignatureMismatch.pp_signature_mismatch
           (name, arg_tys, ([((ReturnType UReal, expected_args), error)], false))
     | IllTypedVariadic (name, arg_tys, args, error, return_type) ->
-        SignatureMismatch.pp_signature_mismatch ppf
+        createf Severity.Error "%a" SignatureMismatch.pp_signature_mismatch
           ( name
           , arg_tys
           , ([((UnsizedType.ReturnType return_type, args), error)], false) )
     | IllTypedFunctionApp (name, arg_tys, errors) ->
-        SignatureMismatch.pp_signature_mismatch ppf (name, arg_tys, errors)
+        createf Severity.Error "%a" SignatureMismatch.pp_signature_mismatch
+          (name, arg_tys, errors)
     | IllTypedForwardedFunctionApp (caller, name, skipped, details) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Cannot call %a@ with arguments forwarded from call to@ %a:@ %a"
           quoted name quoted caller
           (SignatureMismatch.pp_mismatch_details ~skipped)
           details
     | IllTypedForwardedFunctionSignature (caller, name, details) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Function %a does not have a valid signature for use in %a:@ %a"
           quoted name quoted caller
           (SignatureMismatch.pp_mismatch_details ~skipped:[])
           details
     | IllTypedLaplaceHelperArgs (name, expected, details) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[<v>Ill-typed arguments supplied to function %a@ for the \
            likelihood:@ %a@ Expected the arguments to start with:@ @[(%a)@]@]"
           quoted name
@@ -239,7 +251,7 @@ module TypeError = struct
             "We were unable to start more in-depth checking. Please ensure you \
              are passing enough arguments and that the first argument is a \
              function." in
-        generic_laplace_usage info ppf (name, supplied)
+        generic_laplace_usage info (name, supplied)
     | IllTypedLaplaceMarginal (name, false, supplied) ->
         let req = Stan_math_signatures.laplace_helper_param_types name in
         let is_helper = not @@ List.is_empty req in
@@ -250,16 +262,17 @@ module TypeError = struct
              Please ensure you are passing enough arguments and that the %a is \
              a function."
             n (Fmt.ordinal ()) (n + 1) in
-        generic_laplace_usage info ppf (name, supplied)
+        generic_laplace_usage info (name, supplied)
     | LaplaceCompatibilityIssue banned_function ->
-        Fmt.pf ppf
+        createf Severity.Error
           "The function %a, called by this likelihood function,@ does not \
            currently support higher-order derivatives, and@ cannot be used in \
            an embedded Laplace approximation."
           quoted banned_function
     | IlltypedLaplaceTooMany (name, n_args) ->
-        Fmt.pf ppf "Received %d extra %a at the end of the call to %a.@ %s"
-          n_args arguments n_args quoted name
+        createf Severity.Error
+          "Received %d extra %a at the end of the call to %a.@ %s" n_args
+          arguments n_args quoted name
           (if String.is_substring ~substring:"_tol" name then
              "Only a single tuple of control parameters is expected."
            else if n_args = 1 then "Did you mean to call the _tol version?"
@@ -271,29 +284,29 @@ module TypeError = struct
              remaining arguments.@]"
             (expected_style UnsizedType.pp)
             UInt in
-        generic_laplace_usage info ppf (name, [])
+        generic_laplace_usage info (name, [])
     | IlltypedLaplaceHessianBlockSize (name, Some (DataOnly, ty)) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[<hov>The hessian block size argument to %a must be a data-only \
            %a.%a@]"
           quoted name
           (expected_style UnsizedType.pp)
           UInt found_type ty
     | IlltypedLaplaceHessianBlockSize (name, Some (_, ty)) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[<hov>The hessian block size argument to %a must be a data-only \
            %a.%a@ %a@]"
           quoted name
           (expected_style UnsizedType.pp)
           UInt found_type ty SignatureMismatch.data_only_msg ()
     | IlltypedLaplaceTolArgs (name, ArgNumMismatch (_, 0)) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Missing control parameter tuple at the end of the call to %a.@ \
            Expected a tuple of %a arguments for the control parameters."
           quoted name (expected_style Fmt.int)
           (List.length Stan_math_signatures.laplace_tolerance_argument_types)
     | IlltypedLaplaceTolArgs (name, ArgNumMismatch (_, found)) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[<v>Received a tuple of %a control %a at the end of the call to \
            %a.@ Expected tuple of %a arguments for the control parameters \
            instead.@]"
@@ -301,24 +314,37 @@ module TypeError = struct
           (expected_style Fmt.int)
           (List.length Stan_math_signatures.laplace_tolerance_argument_types)
     | IlltypedLaplaceTolArgs (name, ArgError (n, DataOnlyError)) ->
-        Fmt.pf ppf
+        createf Severity.Error
+          ~notes:[Message.createf "%a" SignatureMismatch.data_only_msg ()]
           "@[<hov>The control parameters to %a@ must all be data-only,@ but \
-           the %s here is not.@ %a@]"
+           the %s here is not.@]"
           quoted name
           (laplace_tolerance_arg_name n)
-          SignatureMismatch.data_only_msg ()
     | IlltypedLaplaceTolArgs
         (name, ArgError (n, TypeMismatch (expected, found, _))) ->
-        Fmt.pf ppf "@[<hov>The %s to %a@ must be@ %a.%a@]"
+        createf Severity.Error "@[<hov>The %s to %a@ must be@ %a.%a@]"
           (laplace_tolerance_arg_name n)
           quoted name expected_types [expected] found_type found
     | AmbiguousFunctionPromotion (name, arg_tys, signatures) ->
-        (* todo(grace): use secondary locations *)
         let pp_sig ppf (rt, args, _) =
           Fmt.pf ppf "@[<hov>(@[<hov>%a@]) => %a@]"
             Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
             args UnsizedType.pp_returntype rt in
-        Fmt.pf ppf
+        createf Severity.Error
+          ~labels:
+            (List.filter_map signatures ~f:(fun (_, _, loc) ->
+                 match loc with
+                 | None -> None
+                 | Some l ->
+                     Some
+                       (Label.secondaryf
+                          ~range:
+                            (Diagnostic.range_of_loc_span ?printed_filename
+                               ?code l)
+                          "Possible overload defined here."
+                       :: Diagnostic.included_diagnostic ?printed_filename ?code
+                            l.begin_loc))
+            |> List.concat)
           "No unique minimum promotion found for function %a.@ Overloaded \
            functions must not have multiple equally valid promotion paths.@ %a \
            function has several:@ @[<v>%a@]@ Consider defining a new signature \
@@ -332,27 +358,28 @@ module TypeError = struct
           (Fmt.list ~sep:Fmt.cut pp_sig)
           signatures
     | ReturningFnExpectedNonReturningFound fn_name ->
-        Fmt.pf ppf
+        createf Severity.Error
           "A returning function was expected but a non-returning function %a \
            was supplied."
           quoted fn_name
     | NonReturningFnExpectedReturningFound fn_name ->
-        Fmt.pf ppf
+        createf Severity.Error
           "A non-returning function was expected but a returning function %a \
            was supplied."
           quoted fn_name
     | ReturningFnExpectedNonFnFound fn_name ->
-        Fmt.pf ppf
+        createf Severity.Error
           "A returning function was expected but a non-function value %a was \
            supplied."
           quoted fn_name
     | NonReturningFnExpectedNonFnFound fn_name ->
-        Fmt.pf ppf
+        createf Severity.Error
           "A non-returning function was expected but a non-function value %a \
            was supplied."
           quoted fn_name
     | ReturningFnExpectedUndeclaredDistSuffixFound (prefix, suffix) ->
-        Fmt.pf ppf "Function %a is not implemented for distribution %a." quoted
+        createf Severity.Error
+          "Function %a is not implemented for distribution %a." quoted
           (prefix ^ "_" ^ suffix)
           quoted prefix
     | ReturningFnExpectedWrongDistSuffixFound (prefix, suffix) ->
@@ -365,55 +392,58 @@ module TypeError = struct
           | _ ->
               Common.ICE.internal_compiler_error
                 [%message "Bad suffix:" (suffix : string)] in
-        Fmt.pf ppf
+        createf Severity.Error
           "Function %a is not implemented for distribution %a, use %a instead."
           quoted
           (prefix ^ "_" ^ suffix)
           quoted prefix quoted
           (prefix ^ "_" ^ newsuffix)
     | FuncOverloadRtOnly (name, _, rt') ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Function %a cannot be overloaded by return type only. Previously \
            used return type %a"
           quoted name UnsizedType.pp_returntype rt'
     | FuncDeclRedefined (name, ut, stan_math) ->
-        Fmt.pf ppf "Function %a %s signature %a" quoted name
+        createf Severity.Error "Function %a %s signature %a" quoted name
           (if stan_math then "is already declared in the Stan Math library with"
            else "has already been declared for")
           UnsizedType.pp ut
-    | FunDeclExists name ->
-        Fmt.pf ppf
+    | FunDeclExists (name, prev) ->
+        createf
+          ~labels:(previous_declaration ?printed_filename ?code prev)
+          Severity.Error
           "Function %a has already been declared. A definition is expected."
           quoted name
     | FunDeclNoDefn name ->
-        Fmt.pf ppf "Function %a is declared without specifying a definition."
-          quoted name
+        createf Severity.Error
+          "Function %a is declared without specifying a definition." quoted name
     | FunDeclNeedsBlock ->
-        Fmt.pf ppf "Function definitions must be wrapped in curly braces."
+        createf Severity.Error
+          "Function definitions must be wrapped in curly braces."
     | NonRealProbFunDef Void ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[Real return type required for probability functions ending in \
            _lpdf, _lupdf, _lpmf, _lupmf, _cdf, _lcdf, or _lccdf.@ Instead \
            found a void function.@]"
     | NonRealProbFunDef (ReturnType t) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[Real return type required for probability functions ending in \
            _lpdf, _lupdf, _lpmf, _lupmf, _cdf, _lcdf, or _lccdf.%a@]"
           found_type t
     | ProbDensityNonRealVariate ut ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[Probability density functions require real variates (first \
            argument).%a@]"
           Fmt.(option found_type)
           ut
     | ProbMassNonIntVariate ut ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[Probability mass functions require integer variates (first \
            argument).%a@]"
           Fmt.(option found_type)
           ut
     | IncompatibleReturnType ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Function bodies must contain a return statement of correct type in \
            every branch."
 end
@@ -423,7 +453,7 @@ module IdentifierError = struct
     | IsKeyword of string
     | IsModelName of string
     | IsStanMathName of string
-    | InUse of string
+    | InUse of string * Location_span.t option
     | NotInScope of string * string option
     | ReturningFnExpectedUndeclaredIdentFound of string * string option
     | NonReturningFnExpectedUndeclaredIdentFound of string * string option
@@ -433,37 +463,42 @@ module IdentifierError = struct
   let did_you_mean : string option Fmt.t =
     Fmt.option @@ fun ppf s -> Fmt.pf ppf "@ Did you mean %a?" quoted s
 
-  let pp ppf = function
+  let to_grace ?printed_filename ?code = function
     | IsStanMathName name ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Identifier %a clashes with a non-overloadable Stan Math library \
            function."
           quoted name
-    | InUse name -> Fmt.pf ppf "Identifier %a is already in use." quoted name
+    | InUse (name, previous) ->
+        createf Severity.Error
+          ~labels:(previous_declaration ?printed_filename ?code previous)
+          "Identifier %a is already in use." quoted name
     | IsModelName name ->
-        Fmt.pf ppf "Identifier %a clashes with model name." quoted name
+        createf Severity.Error "Identifier %a clashes with model name." quoted
+          name
     | IsKeyword name ->
-        Fmt.pf ppf "Identifier %a clashes with reserved keyword." quoted name
+        createf Severity.Error "Identifier %a clashes with reserved keyword."
+          quoted name
     | NotInScope (name, sug) ->
-        Fmt.pf ppf "@[Identifier %a not in scope.%a@]" quoted name did_you_mean
-          sug
+        createf Severity.Error "@[Identifier %a not in scope.%a@]" quoted name
+          did_you_mean sug
     | ReturningFnExpectedUndeclaredIdentFound (fn_name, sug) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[A returning function was expected but an undeclared identifier %a \
            was supplied.%a@]"
           quoted fn_name did_you_mean sug
     | NonReturningFnExpectedUndeclaredIdentFound (fn_name, sug) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[A non-returning function was expected but an undeclared \
            identifier %a was supplied.%a@]"
           quoted fn_name did_you_mean sug
     | UnnormalizedSuffix name ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Identifier %a has a _lupdf/_lupmf suffix, which is only allowed for \
            functions."
           quoted name
     | DuplicateArgNames name ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[All function arguments must have distinct identifiers.@ Argument \
            %a is duplicated.@]"
           quoted name
@@ -489,73 +524,78 @@ module ExpressionError = struct
     | IllTypedPrefixOperator of Operator.t * UnsizedType.t
     | IllTypedPostfixOperator of Operator.t * UnsizedType.t
 
-  let pp ppf = function
+  let to_grace ?printed_filename:_ ?code:_ = function
     | InvalidSizeDeclRng ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Random number generators are not allowed in top level size \
            declarations."
     | InvalidRngFunction ->
-        Fmt.text ppf
+        createf Severity.Error "%a" Fmt.text
           "Random number generators are only allowed in transformed data \
            block, generated quantities block or user-defined functions with \
            names ending in _rng."
     | InvalidUnnormalizedFunction ->
-        Fmt.text ppf
+        createf Severity.Error "%a" Fmt.text
           "Functions with names ending in _lupdf and _lupmf can only be used \
            in the model block or user-defined functions with names ending in \
            _lpdf or _lpmf."
     | InvalidUnnormalizedUDF fname ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[%a is an invalid user-defined function name.@ User-defined \
            probability mass and density functions must@ be defined as \
            normalized@ (function names should end@ with@ _lpdf/_lpmf not \
            _lupdf/_lupmf).@]"
           quoted fname
     | ConditionalNotationNotAllowed ->
-        Fmt.text ppf
+        createf Severity.Error "%a" Fmt.text
           "Only functions with names ending in _lpdf, _lupdf, _lpmf, _lupmf, \
            _cdf, _lcdf, _lccdf can make use of conditional notation."
     | ConditioningRequired ->
-        Fmt.text ppf
+        createf Severity.Error "%a" Fmt.text
           "Probability functions with suffixes _lpdf, _lupdf, _lpmf, _lupmf, \
            _cdf, _lcdf and _lccdf, require a vertical bar (|) between the \
            first two arguments."
-    | NotPrintable -> Fmt.pf ppf "Functions cannot be printed."
+    | NotPrintable -> createf Severity.Error "Functions cannot be printed."
     | EmptyArray ->
-        Fmt.pf ppf "Array expressions must contain at least one element."
+        createf Severity.Error
+          "Array expressions must contain at least one element."
     | EmptyTuple ->
-        Fmt.pf ppf "Tuple expressions must contain at least one element."
+        createf Severity.Error
+          "Tuple expressions must contain at least one element."
     | IntTooLarge ->
-        Fmt.pf ppf "Integer literal cannot be larger than %a."
+        createf Severity.Error "Integer literal cannot be larger than %a."
           (expected_style Fmt.string)
           "2_147_483_647"
     | TupleIndexInvalidIndex (ix_max, ix) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Tried to access index %a for a tuple of length %a.@ Only indices \
            between %a and %a are valid."
           (actual_style Fmt.int) ix (expected_style Fmt.int) ix_max
           (expected_style Fmt.int) 1 (expected_style Fmt.int) ix_max
     | TupleIndexNotTuple ut ->
-        Fmt.pf ppf "Tried to index a non-tuple type. Expression has type %a."
+        createf Severity.Error
+          "Tried to index a non-tuple type. Expression has type %a."
           (actual_style UnsizedType.pp)
           ut
     | NotIndexable (ut, _) when UnsizedType.is_scalar_type ut ->
-        Fmt.pf ppf "Tried to index a scalar type. Expression has type %a."
+        createf Severity.Error
+          "Tried to index a scalar type. Expression has type %a."
           (actual_style UnsizedType.pp)
           ut
     | NotIndexable (ut, nidcs) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Too many indices. Expression only has %a dimensions, but received \
            %a indices."
           (expected_style Fmt.int)
           (UnsizedType.count_dims ut)
           (actual_style Fmt.int) nidcs
     | IllTypedTernaryIf (UInt, ut, _) when UnsizedType.is_fun_type ut ->
-        Fmt.pf ppf "Ternary expression cannot have a function type: %a"
+        createf Severity.Error
+          "Ternary expression cannot have a function type: %a"
           (actual_style UnsizedType.pp)
           ut
     | IllTypedTernaryIf (UInt, ut2, ut3) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Type mismatch in ternary expression, expression when true is: %a; \
            expression when false is: %a"
           (actual_style UnsizedType.pp)
@@ -563,11 +603,12 @@ module ExpressionError = struct
           (actual_style UnsizedType.pp)
           ut3
     | IllTypedTernaryIf (ut1, _, _) ->
-        Fmt.pf ppf "@[Condition in ternary expression must be type %a.%a@]"
+        createf Severity.Error
+          "@[Condition in ternary expression must be type %a.%a@]"
           (expected_style UnsizedType.pp)
           UInt found_type ut1
     | IllTypedBinaryOperator (op, lt, rt) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Ill-typed arguments supplied to infix operator %a. Available \
            signatures: %s@[<h>Instead supplied arguments of incompatible type: \
            %a, %a.@]"
@@ -576,7 +617,7 @@ module ExpressionError = struct
           |> String.concat ~sep:"\n")
           UnsizedType.pp lt UnsizedType.pp rt
     | IllTypedPrefixOperator (op, ut) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Ill-typed arguments supplied to prefix operator %a. Available \
            signatures: %s@[<h>Instead supplied argument of incompatible type: \
            %a.@]"
@@ -585,7 +626,7 @@ module ExpressionError = struct
           |> String.concat ~sep:"\n")
           UnsizedType.pp ut
     | IllTypedPostfixOperator (op, ut) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Ill-typed arguments supplied to postfix operator %a. Available \
            signatures: %s\n\
            Instead supplied argument of incompatible type: %a."
@@ -619,20 +660,22 @@ module StatementError = struct
     | IntegerParameter of bool
     | IllTypedAssignment of Operator.t * UnsizedType.t * UnsizedType.t
 
-  let pp ppf = function
+  let to_grace ?printed_filename:_ ?code:_ = function
     | CannotAssignToReadOnly name ->
-        Fmt.pf ppf "Cannot assign to function argument or loop identifier %a."
-          quoted name
+        createf Severity.Error
+          "Cannot assign to function argument or loop identifier %a." quoted
+          name
     | CannotAssignToGlobal name ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Cannot assign to global variable %a declared in previous blocks."
           quoted name
     | CannotAssignFunction (name, ut) ->
-        Fmt.pf ppf "Cannot assign a function type (%a) to variable %a."
+        createf Severity.Error
+          "Cannot assign a function type (%a) to variable %a."
           (actual_style UnsizedType.pp)
           ut quoted name
     | LValueMultiIndexing ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Left hand side of an assignment cannot have nested multi-indexing."
     | LValueTupleUnpackDuplicates lvs ->
         let rec pp_lvalue ppf (l : Ast.untyped_lval) =
@@ -641,27 +684,27 @@ module StatementError = struct
           | LVariable id -> string ppf id.name
           | LIndexed (l, _) -> pf ppf "%a[%t]" pp_lvalue l ellipsis
           | LTupleProjection (l, ix) -> pf ppf "%a.%n" pp_lvalue l ix in
-        Fmt.pf ppf
+        createf Severity.Error
           "@[<v2>The same value cannot be assigned to multiple times in one \
            assignment:@ @[%a@]@]"
           Fmt.(list ~sep:comma pp_lvalue)
           lvs
     | LValueTupleReadAndWrite ids ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[<v2>The same variable cannot be both assigned to and read from on \
            the left hand side of an assignment:@ @[%a@]@]"
           Fmt.(list ~sep:comma string)
           ids
     | TargetPlusEqualsOutsideModelOrLogProb ->
-        Fmt.string ppf
+        createf Severity.Error
           "Target can only be accessed in the model block or in functions \
            ending with _lp."
     | JacobianPlusEqualsNotAllowed ->
-        Fmt.string ppf
+        createf Severity.Error
           "The jacobian adjustment can only be applied in the transformed \
            parameters block or in functions ending with _jacobian"
     | InvalidTildePDForPMF ->
-        Fmt.string ppf
+        createf Severity.Error
           "~ statement should refer to a distribution without its \
            \"_lpdf/_lupdf\" or \"_lpmf/_lupmf\" suffix.\n\
            For example, \"target += normal_lpdf(y, 0, 1)\" should become \"y ~ \
@@ -674,56 +717,58 @@ module StatementError = struct
               match String.chop_suffix name ~suffix:"_ccdf" with
               | Some n -> n ^ "_lccdf"
               | None -> name) in
-        Fmt.pf ppf
+        createf Severity.Error
           "CDF and CCDF functions may not be used with distribution notation \
            (~). Use target += %s(%t) instead."
           name ellipsis
     | InvalidTildeNoSuchDistribution (name, true) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Ill-typed arguments to distribution statement (~). No function %a \
            or %a was found when looking for distribution %a."
           quoted (name ^ "_lpmf") quoted (name ^ "_lpdf") quoted name
     | InvalidTildeNoSuchDistribution (name, false) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Ill-typed arguments to %a-statement. No function %a was found when \
            looking for distribution %a."
           quoted "~" quoted (name ^ "_lpdf") quoted name
     | InvalidTruncationCDForCCDF args ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Truncation is only defined if distribution has _lcdf and _lccdf \
            functions implemented with appropriate signature.\n\
            No matching signature for arguments: @[(%a)@]"
           Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
           args
     | BreakOutsideLoop ->
-        Fmt.pf ppf "Break statements may only be used in loops."
+        createf Severity.Error "Break statements may only be used in loops."
     | ContinueOutsideLoop ->
-        Fmt.pf ppf "Continue statements may only be used in loops."
+        createf Severity.Error "Continue statements may only be used in loops."
     | ExpressionReturnOutsideReturningFn ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Expression return statements may only be used inside non-%a \
            definitions."
           (actual_style Fmt.string) "void"
     | VoidReturnOutsideNonReturningFn ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Empty return statements may only be used inside %a function \
            definitions."
           (expected_style Fmt.string)
           "void"
     | NonDataVariableSizeDecl ->
-        Fmt.pf ppf
+        createf Severity.Error
           "Non-data variables are not allowed in top level size declarations."
     | NonIntBounds ->
-        Fmt.pf ppf "@[Bounds of integer variable must be of type %a.%a@]"
+        createf Severity.Error
+          "@[Bounds of integer variable must be of type %a.%a@]"
           (expected_style UnsizedType.pp)
           UInt found_type UReal
     | ComplexTransform ->
-        Fmt.pf ppf "Complex types do not support transformations."
-    | IntegerParameter false -> Fmt.pf ppf "Parameters cannot be integers."
+        createf Severity.Error "Complex types do not support transformations."
+    | IntegerParameter false ->
+        createf Severity.Error "Parameters cannot be integers."
     | IntegerParameter true ->
-        Fmt.pf ppf "Transformed parameters cannot be integers."
+        createf Severity.Error "Transformed parameters cannot be integers."
     | IllTypedAssignment (Operator.Equals, lt, rt) ->
-        Fmt.pf ppf
+        createf Severity.Error
           "@[Ill-typed assignment statement.@ Expected the right hand side to \
            have a type matching the destination (%a).%a@]"
           (expected_style UnsizedType.pp)
@@ -744,8 +789,8 @@ module StatementError = struct
                 (expected_style UnsizedType.pp)
                 lt expected_types args found_type rt in
         let sigs = SignatureMismatch.list_valid_assignmentoperator_rhs lt op in
-        Fmt.pf ppf "@[Ill-typed assignment operator %a=.@ %a@]" Operator.pp op
-          pp_expected_types sigs
+        createf Severity.Error "@[Ill-typed assignment operator %a=.@ %a@]"
+          Operator.pp op pp_expected_types sigs
 end
 
 type err =
@@ -756,12 +801,17 @@ type err =
 
 type t = Location_span.t * err
 
-let pp ppf (_, err) =
-  match err with
-  | TypeError err -> TypeError.pp ppf err
-  | IdentifierError err -> IdentifierError.pp ppf err
-  | ExpressionError err -> ExpressionError.pp ppf err
-  | StatementError err -> StatementError.pp ppf err
+let to_grace ?printed_filename ?code (loc, err) =
+  let diagonostic =
+    match err with
+    | TypeError err -> TypeError.to_grace ?printed_filename ?code err
+    | IdentifierError err ->
+        IdentifierError.to_grace ?printed_filename ?code err
+    | ExpressionError err ->
+        ExpressionError.to_grace ?printed_filename ?code err
+    | StatementError err -> StatementError.to_grace ?printed_filename ?code err
+  in
+  Diagnostic.locate ?printed_filename ?code loc diagonostic
 
 let location = fst
 
@@ -919,8 +969,8 @@ let ident_is_model_name loc name =
 let ident_is_stanmath_name loc name =
   (loc, IdentifierError (IdentifierError.IsStanMathName name))
 
-let ident_in_use loc name _prev (* todo(grace): use prev *) =
-  (loc, IdentifierError (IdentifierError.InUse name))
+let ident_in_use loc name prev =
+  (loc, IdentifierError (IdentifierError.InUse (name, prev)))
 
 let ident_not_in_scope loc name sug =
   (loc, IdentifierError (IdentifierError.NotInScope (name, sug)))
@@ -1016,7 +1066,8 @@ let fn_overload_rt_only loc name rt1 rt2 =
 let fn_decl_redefined loc name ~stan_math ut =
   (loc, TypeError (TypeError.FuncDeclRedefined (name, ut, stan_math)))
 
-let fn_decl_exists loc name = (loc, TypeError (TypeError.FunDeclExists name))
+let fn_decl_exists loc name prev =
+  (loc, TypeError (TypeError.FunDeclExists (name, prev)))
 
 let fn_decl_without_def loc name =
   (loc, TypeError (TypeError.FunDeclNoDefn name))

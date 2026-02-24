@@ -2,7 +2,9 @@ open Middle
 
 type t
 
-val pp : Format.formatter -> t -> unit
+val to_grace :
+  ?printed_filename:string -> ?code:string -> t -> 'a Grace.Diagnostic.t
+
 val location : t -> Location_span.t
 val invalid_return : Location_span.t -> UnsizedType.t -> UnsizedType.t -> t
 
@@ -181,7 +183,7 @@ val fn_overload_rt_only :
 val fn_decl_redefined :
   Location_span.t -> string -> stan_math:bool -> UnsizedType.t -> t
 
-val fn_decl_exists : Location_span.t -> string -> t
+val fn_decl_exists : Location_span.t -> string -> Location_span.t option -> t
 val fn_decl_without_def : Location_span.t -> string -> t
 val fn_decl_needs_block : Location_span.t -> t
 val non_real_prob_fn_def : Location_span.t -> UnsizedType.returntype -> t
