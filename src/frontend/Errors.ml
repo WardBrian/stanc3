@@ -25,8 +25,6 @@ let get_context ?code Middle.Location.{filename; included_from; _} =
           (* Or, we know we can find it in the map *)
           String.split_lines (Map.find_exn m filename))
 
-let red = Fmt.(styled `Bold (styled (`Fg `Red) string))
-
 let get_source ?printed_filename ?code loc =
   let code = get_context ?code loc in
   let source : Grace.Source.t =
@@ -71,47 +69,58 @@ let rec included_diagnostic ?printed_filename ?code
 
 let syntax_error_to_grace ?printed_filename ?code err =
   let loc_span = Syntax_error.location err in
-  Grace.Diagnostic.(
-    (* We'd need more locations to really do much -- hard from parser, easy from
-       typechecker *)
-    createf
-      ~labels:
-        Label.(
-          [ primaryf
-              ~range:(range_of_loc_span ?printed_filename ?code loc_span)
-              "%a" Syntax_error.pp err ]
-          @ included_diagnostic ?printed_filename ?code loc_span.begin_loc)
-      Error "%a" Syntax_error.pp err)
+  let diagnostic =
+    Grace.Diagnostic.(
+      (* We'd need more locations to really do much -- hard from parser, easy
+         from typechecker *)
+      createf
+        ~labels:
+          Label.
+            [ primaryf
+                ~range:(range_of_loc_span ?printed_filename ?code loc_span)
+                "%a" Syntax_error.pp err ]
+        Error "%a" Syntax_error.pp err) in
+  { diagnostic with
+    labels=
+      diagnostic.labels
+      @ included_diagnostic ?printed_filename ?code loc_span.begin_loc }
 
 let semantic_error_to_grace ?printed_filename ?code err =
   let loc_span = Semantic_error.location err in
-  Grace.Diagnostic.(
-    createf
-      ~labels:
-        Label.(
-          [ primaryf
-              ~range:(range_of_loc_span ?printed_filename ?code loc_span)
-              "%a" Semantic_error.pp err ]
-          @ included_diagnostic ?printed_filename ?code loc_span.begin_loc)
-      Error "%a" Semantic_error.pp err)
+  let diagnostic =
+    Grace.Diagnostic.(
+      createf
+        ~labels:
+          Label.
+            [ primaryf
+                ~range:(range_of_loc_span ?printed_filename ?code loc_span)
+                "%a" Semantic_error.pp err ]
+        Error "%a" Semantic_error.pp err) in
+  { diagnostic with
+    labels=
+      diagnostic.labels
+      @ included_diagnostic ?printed_filename ?code loc_span.begin_loc }
 
-let pp_diagnostic ppf diagnostic =
+let pp ?printed_filename ?code ppf t =
+  let diagnostic =
+    let open Grace.Diagnostic in
+    match t with
+    | FileNotFound f ->
+        createf Error "file '%s' not found or cannot be opened" f
+    | Syntax_error err -> syntax_error_to_grace ?printed_filename ?code err
+    | Semantic_error err -> semantic_error_to_grace ?printed_filename ?code err
+    | DebugDataError (loc, msg, had_context) ->
+        (* todo -- try to parse yojson message back into a location? *)
+        let notes =
+          if had_context then []
+          else [Message.create "Supplying a --debug-data-file may help."] in
+        let labels =
+          if Middle.Location_span.(compare loc empty = 0) then []
+          else
+            [ Label.primaryf
+                ~range:(range_of_loc_span ?printed_filename ?code loc)
+                "here" ] in
+        createf ~labels ~notes Error "%s" msg in
   Fmt.pf ppf "%a@."
     (Grace_ansi_renderer.pp_diagnostic ?config:None ?code_to_string:None)
     diagnostic
-
-let pp ?printed_filename ?code ppf = function
-  | FileNotFound f ->
-      Fmt.pf ppf "%a: file '%s' not found or cannot be opened@." red "Error" f
-  | Syntax_error err -> pp_diagnostic ppf (syntax_error_to_grace ?code err)
-  | Semantic_error err -> pp_diagnostic ppf (semantic_error_to_grace ?code err)
-  | DebugDataError (loc, msg, had_context) ->
-      if Middle.Location_span.(compare loc empty = 0) then
-        Fmt.pf ppf "%a: %s" red "Error" msg
-      else
-        Fmt.pf ppf "@[<v2>%a in %a:@ %s%a@.@]" red "Error"
-          (Middle.Location_span.pp ?printed_filename)
-          loc msg
-          (Fmt.if' (not had_context)
-             (Fmt.any "@ Supplying a --debug-data-file may help"))
-          ()
