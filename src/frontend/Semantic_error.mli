@@ -26,7 +26,11 @@ val array_vector_rowvector_matrix_expected :
   Location_span.t -> UnsizedType.t -> t
 
 val illtyped_assignment :
-  Location_span.t -> Operator.t -> UnsizedType.t -> UnsizedType.t -> t
+     Location_span.t
+  -> Operator.t
+  -> Ast.typed_expr_meta
+  -> Ast.typed_expr_meta
+  -> t
 
 val illtyped_ternary_if :
   Location_span.t -> UnsizedType.t -> UnsizedType.t -> UnsizedType.t -> t
@@ -189,5 +193,5 @@ val fn_decl_needs_block : Location_span.t -> t
 val non_real_prob_fn_def : Location_span.t -> UnsizedType.returntype -> t
 val prob_density_non_real_variate : Location_span.t -> UnsizedType.t option -> t
 val prob_mass_non_int_variate : Location_span.t -> UnsizedType.t option -> t
-val duplicate_arg_names : Location_span.t -> string -> t
+val duplicate_arg_names : Location_span.t -> Ast.identifier -> t
 val incompatible_return_types : Location_span.t -> t

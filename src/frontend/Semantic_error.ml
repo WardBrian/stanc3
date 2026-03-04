@@ -26,13 +26,16 @@ let rec expected_types : UnsizedType.t Common.Nonempty_list.t Fmt.t =
         Fmt.pf ppf "%a,@ %a" ust t expected_types
           (ts |> Common.Nonempty_list.of_list_exn)
 
+let context ?printed_filename ?code loc message =
+  Label.ksecondaryf
+    (fun l ->
+      l :: Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc)
+    ~range:(Diagnostic.range_of_loc_span ?printed_filename ?code loc)
+    message
+
 let previous_declaration ?printed_filename ?code prev =
   match prev with
-  | Some loc ->
-      Label.secondaryf
-        ~range:(Diagnostic.range_of_loc_span ?printed_filename ?code loc)
-        "Previous declaration here"
-      :: Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc
+  | Some loc -> context ?printed_filename ?code loc "Previous declaration here"
   | None -> []
 
 module TypeError = struct
@@ -458,7 +461,7 @@ module IdentifierError = struct
     | ReturningFnExpectedUndeclaredIdentFound of string * string option
     | NonReturningFnExpectedUndeclaredIdentFound of string * string option
     | UnnormalizedSuffix of string
-    | DuplicateArgNames of string
+    | DuplicateArgNames of Ast.identifier
 
   let did_you_mean : string option Fmt.t =
     Fmt.option @@ fun ppf s -> Fmt.pf ppf "@ Did you mean %a?" quoted s
@@ -497,11 +500,13 @@ module IdentifierError = struct
           "Identifier %a has a _lupdf/_lupmf suffix, which is only allowed for \
            functions."
           quoted name
-    | DuplicateArgNames name ->
+    | DuplicateArgNames id ->
         createf Severity.Error
+          ~labels:
+            (previous_declaration ?printed_filename ?code (Some id.id_loc))
           "@[All function arguments must have distinct identifiers.@ Argument \
            %a is duplicated.@]"
-          quoted name
+          quoted id.name
 end
 
 module ExpressionError = struct
@@ -658,9 +663,10 @@ module StatementError = struct
     | NonIntBounds
     | ComplexTransform
     | IntegerParameter of bool
-    | IllTypedAssignment of Operator.t * UnsizedType.t * UnsizedType.t
+    | IllTypedAssignment of
+        Operator.t * Ast.typed_expr_meta * Ast.typed_expr_meta
 
-  let to_grace ?printed_filename:_ ?code:_ = function
+  let to_grace ?printed_filename ?code = function
     | CannotAssignToReadOnly name ->
         createf Severity.Error
           "Cannot assign to function argument or loop identifier %a." quoted
@@ -769,28 +775,36 @@ module StatementError = struct
         createf Severity.Error "Transformed parameters cannot be integers."
     | IllTypedAssignment (Operator.Equals, lt, rt) ->
         createf Severity.Error
+          ~labels:
+            (context ?printed_filename ?code lt.loc
+               "Left hand side has type %a."
+               (expected_style UnsizedType.pp)
+               lt.type_)
           "@[Ill-typed assignment statement.@ Expected the right hand side to \
-           have a type matching the destination (%a).%a@]"
-          (expected_style UnsizedType.pp)
-          lt found_type rt
+           have a type matching the destination.%a@]"
+          found_type rt.type_
     | IllTypedAssignment (op, lt, rt) ->
         let pp_expected_types ppf signatures =
           match Common.Nonempty_list.of_list signatures with
           | None ->
               Fmt.pf ppf
-                "There are no valid right hand sides for the given left hand \
-                 side (%a)."
-                (actual_style UnsizedType.pp)
-                lt
+                "There are no valid right hand side types for the given left \
+                 hand side."
           | Some args ->
               Fmt.pf ppf
-                "For the given left hand side (%a), expected the right hand \
-                 side to have type@ %a.%a"
-                (expected_style UnsizedType.pp)
-                lt expected_types args found_type rt in
-        let sigs = SignatureMismatch.list_valid_assignmentoperator_rhs lt op in
-        createf Severity.Error "@[Ill-typed assignment operator %a=.@ %a@]"
-          Operator.pp op pp_expected_types sigs
+                "For the given left hand side, expected the right hand side to \
+                 have type@ %a.%a"
+                expected_types args found_type rt.type_ in
+        let sigs =
+          SignatureMismatch.list_valid_assignmentoperator_rhs lt.type_ op in
+        createf Severity.Error
+          ~labels:
+            (context ?printed_filename ?code lt.loc
+               "Left hand side has type %a."
+               (expected_style UnsizedType.pp)
+               lt.type_)
+          "@[Ill-typed assignment operator %a=.@ %a@]" Operator.pp op
+          pp_expected_types sigs
 end
 
 type err =
@@ -1084,8 +1098,8 @@ let prob_density_non_real_variate loc ut_opt =
 let prob_mass_non_int_variate loc ut_opt =
   (loc, TypeError (TypeError.ProbMassNonIntVariate ut_opt))
 
-let duplicate_arg_names loc name =
-  (loc, IdentifierError (IdentifierError.DuplicateArgNames name))
+let duplicate_arg_names loc id =
+  (loc, IdentifierError (IdentifierError.DuplicateArgNames id))
 
 let incompatible_return_types loc =
   (loc, TypeError TypeError.IncompatibleReturnType)

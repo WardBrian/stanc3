@@ -1288,45 +1288,55 @@ let warn_self_assignment loc lhs rhs =
         add_warning loc "Assignment of variable to itself.")
 
 let check_assignment_operator loc assop lhs rhs =
-  let rec type_of_lvalue = function
-    | LValue {lmeta; _} -> lmeta.type_
-    | LTuplePack {lvals; _} ->
-        UnsizedType.UTuple (List.map ~f:type_of_lvalue lvals) in
-  let err lhs op rhs =
-    Semantic_error.illtyped_assignment loc op (type_of_lvalue lhs) rhs |> error
-  in
+  let rec meta_of_lvalue lv : Ast.typed_expr_meta =
+    match lv with
+    | LValue {lmeta; _} -> lmeta
+    | LTuplePack {lvals; loc} ->
+        let metas = List.map ~f:meta_of_lvalue lvals in
+        { type_= UnsizedType.UTuple (List.map ~f:(fun {type_; _} -> type_) metas)
+        ; ad_level= TupleAD (List.map ~f:(fun {ad_level; _} -> ad_level) metas)
+        ; loc } in
+  let err lhs op (rhs : Ast.typed_expr_meta) =
+    Semantic_error.illtyped_assignment rhs.loc op (meta_of_lvalue lhs) rhs
+    |> error in
   match assop with
   | Assign ->
       warn_self_assignment loc lhs rhs;
-      let rec typechk lhs rhs =
+      let rec typechk lhs (rhs : Ast.typed_expr_meta) =
         match (lhs, rhs) with
-        | LValue ({lmeta= {type_; ad_level; _}; _} as lval), rhs -> (
-            verify_assignment_non_function loc (name_of_lval lval) rhs;
-            match SignatureMismatch.check_of_same_type_mod_conv type_ rhs with
+        | LValue ({lmeta= {type_; ad_level; _}; _} as lval), _ -> (
+            verify_assignment_non_function loc (name_of_lval lval) rhs.type_;
+            match
+              SignatureMismatch.check_of_same_type_mod_conv type_ rhs.type_
+            with
             | Ok p -> (p, ad_level)
             | Error _ -> err lhs Equals rhs)
-        | LTuplePack {lvals; _}, UnsizedType.UTuple tps ->
+        | ( LTuplePack {lvals; _}
+          , {type_= UnsizedType.UTuple tps; ad_level= TupleAD ads; loc} ) ->
             let proms, ad_levels =
-              match List.map2 ~f:typechk lvals tps with
+              let rvs =
+                List.map2_exn
+                  ~f:(fun t ad -> {type_= t; ad_level= ad; loc})
+                  tps ads in
+              match List.map2 ~f:typechk lvals rvs with
               | Unequal_lengths -> err lhs Equals rhs
               | Ok l -> List.unzip l in
             if
               List.exists ~f:(function NoPromotion -> false | _ -> true) proms
             then (TuplePromotion proms, TupleAD ad_levels)
             else (NoPromotion, TupleAD ad_levels)
-        | LTuplePack _, rhs -> err lhs Equals rhs in
-      let prom, ad_level = typechk lhs rhs.emeta.type_ in
+        | LTuplePack _, _ -> err lhs Equals rhs in
+      let prom, ad_level = typechk lhs rhs.emeta in
       let rhs =
         (* Hack: need RHS to properly get promoted to var if needed *)
         {rhs with emeta= {rhs.emeta with ad_level}} in
       Promotion.promote rhs prom
   | OperatorAssign op -> (
       let args =
-        [(UnsizedType.AutoDiffable, type_of_lvalue lhs); arg_type rhs] in
+        [(UnsizedType.AutoDiffable, (meta_of_lvalue lhs).type_); arg_type rhs]
+      in
       let return_type = assignmentoperator_stan_math_return_type op args in
-      match return_type with
-      | Some Void -> rhs
-      | _ -> err lhs op rhs.emeta.type_)
+      match return_type with Some Void -> rhs | _ -> err lhs op rhs.emeta)
 
 let overlapping_lvalues lvals =
   (* Prevent assigning to multiple indices in the same object at once. In
@@ -1883,8 +1893,7 @@ and check_var_decl_initial_value loc cf tenv {identifier; initial_value} =
       with
       | Ok p -> Ast.{identifier; initial_value= Some (Promotion.promote rhs p)}
       | Error _ ->
-          Semantic_error.illtyped_assignment loc Equals lhs.lmeta.type_
-            rhs.emeta.type_
+          Semantic_error.illtyped_assignment loc Equals lhs.lmeta rhs.emeta
           |> error)
   | None -> Ast.{identifier; initial_value= None}
 
@@ -2013,7 +2022,7 @@ and verify_pmf_fundef_first_arg_ty loc id arg_tys =
     | _ -> Semantic_error.prob_mass_non_int_variate loc rt |> error
 
 and verify_fundef_distinct_arg_ids loc arg_names =
-  match List.find_a_dup ~compare:String.compare arg_names with
+  match List.find_a_dup ~compare:Ast.compare_identifier arg_names with
   | None -> ()
   | Some dup -> Semantic_error.duplicate_arg_names loc dup |> error
 
@@ -2045,14 +2054,13 @@ and check_fundef loc cf tenv return_ty id args body =
   verify_identifier id;
   let arg_types = List.map ~f:(fun (w, y, _) -> (w, y)) args in
   let arg_identifiers = List.map ~f:(fun (_, _, z) -> z) args in
-  let arg_names = List.map ~f:(fun x -> x.name) arg_identifiers in
   verify_fundef_dist_rt loc id return_ty;
   verify_pdf_fundef_first_arg_ty loc id arg_types;
   verify_pmf_fundef_first_arg_ty loc id arg_types;
   List.iter
     ~f:(fun id -> verify_name_fresh tenv id ~is_udf:false)
     arg_identifiers;
-  verify_fundef_distinct_arg_ids loc arg_names;
+  verify_fundef_distinct_arg_ids loc arg_identifiers;
   (* We treat DataOnly arguments as if they are data and AutoDiffable arguments
      as if they are parameters, for the purposes of type checking. *)
   let arg_types_internal =
