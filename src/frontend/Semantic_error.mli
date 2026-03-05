@@ -35,8 +35,11 @@ val illtyped_assignment :
 val illtyped_ternary_if :
   Location_span.t -> UnsizedType.t -> UnsizedType.t -> UnsizedType.t -> t
 
-val returning_fn_expected_nonreturning_found : Location_span.t -> string -> t
-val returning_fn_expected_nonfn_found : Location_span.t -> string -> t
+val returning_fn_expected_nonreturning_found :
+  Location_span.t -> string -> Location_span.t option -> t
+
+val returning_fn_expected_nonfn_found :
+  Location_span.t -> string -> Location_span.t option -> t
 
 val returning_fn_expected_undeclaredident_found :
   Location_span.t -> string -> string option -> t
@@ -121,8 +124,11 @@ val illtyped_laplace_hessian_block_size_arg :
 val illtyped_laplace_tolerance_args :
   Location_span.t -> string -> SignatureMismatch.function_mismatch -> t
 
-val nonreturning_fn_expected_returning_found : Location_span.t -> string -> t
-val nonreturning_fn_expected_nonfn_found : Location_span.t -> string -> t
+val nonreturning_fn_expected_returning_found :
+  Location_span.t -> string -> Location_span.t option -> t
+
+val nonreturning_fn_expected_nonfn_found :
+  Location_span.t -> string -> Location_span.t option -> t
 
 val nonreturning_fn_expected_undeclaredident_found :
   Location_span.t -> string -> string option -> t
@@ -158,8 +164,17 @@ val not_printable : Location_span.t -> t
 val empty_array : Location_span.t -> t
 val empty_tuple : Location_span.t -> t
 val bad_int_literal : Location_span.t -> t
-val cannot_assign_to_read_only : Location_span.t -> string -> t
-val cannot_assign_to_global : Location_span.t -> string -> t
+
+val cannot_assign_to_read_only :
+  Location_span.t -> string -> Location_span.t option -> t
+
+val cannot_assign_to_global :
+     Location_span.t
+  -> string
+  -> Environment.originblock
+  -> Location_span.t option
+  -> t
+
 val cannot_assign_function : Location_span.t -> string -> UnsizedType.t -> t
 val cannot_assign_to_multiindex : Location_span.t -> t
 
@@ -180,7 +195,10 @@ val break_outside_loop : Location_span.t -> t
 val continue_outside_loop : Location_span.t -> t
 val expression_return_outside_returning_fn : Location_span.t -> t
 val void_outside_nonreturning_fn : Location_span.t -> t
-val non_data_variable_size_decl : Location_span.t -> t
+
+val non_data_variable_size_decl :
+  Location_span.t -> Environment.originblock -> Location_span.t option -> t
+
 val non_int_bounds : Location_span.t -> t
 val complex_transform : Location_span.t -> t
 val no_int_params : Location_span.t -> bool -> t
@@ -194,7 +212,12 @@ val fn_overload_rt_only :
   -> t
 
 val fn_decl_redefined :
-  Location_span.t -> string -> stan_math:bool -> UnsizedType.t -> t
+     Location_span.t
+  -> string
+  -> stan_math:bool
+  -> UnsizedType.t
+  -> Location_span.t option
+  -> t
 
 val fn_decl_exists : Location_span.t -> string -> Location_span.t option -> t
 val fn_decl_without_def : Location_span.t -> string -> t

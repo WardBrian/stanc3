@@ -14,6 +14,8 @@ type originblock =
   | Model
   | GQuant
 
+val block_name : originblock -> string
+
 (** Information available for each variable *)
 type varinfo = {origin: originblock; global: bool; readonly: bool}
 

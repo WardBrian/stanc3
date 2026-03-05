@@ -197,7 +197,7 @@ let check_ternary_if loc pe te fe =
       |> error
 
 let match_to_rt_option = function
-  | SignatureMismatch.UniqueMatch (rt, _, _) -> Some rt
+  | SignatureMismatch.UniqueMatch (rt, _, _, _) -> Some rt
   | _ -> None
 
 let stan_math_return_type name arg_tys =
@@ -218,7 +218,7 @@ let operator_stan_math_return_type op arg_tys =
       Stan_math_signatures.operator_to_stan_math_fns op
       |> List.filter_map ~f:(fun name ->
           SignatureMismatch.matching_stanlib_function name arg_tys |> function
-          | SignatureMismatch.UniqueMatch (rt, _, p) -> Some (rt, p)
+          | SignatureMismatch.UniqueMatch (rt, _, p, _) -> Some (rt, p)
           | _ -> None)
       |> List.hd
 
@@ -277,9 +277,12 @@ let check_id cf loc tenv id =
   | {kind= `StanMath; _} :: _ ->
       ( calculate_autodifftype cf MathLibrary UMathLibraryFunction
       , UnsizedType.UMathLibraryFunction )
-  | {kind= `Variable {origin= Param | TParam | GQuant; _}; _} :: _
+  | { kind= `Variable {origin= (Param | TParam | GQuant) as origin; _}
+    ; location= prev
+    ; _ }
+    :: _
     when cf.in_toplevel_decl ->
-      Semantic_error.non_data_variable_size_decl loc |> error
+      Semantic_error.non_data_variable_size_decl loc origin prev |> error
   | _ :: _
     when Utils.is_unnormalized_distribution id.name
          && not
@@ -511,13 +514,13 @@ let mk_fun_app ~is_cond_dist ~loc kind name args ~type_ : Ast.typed_expression =
 
 let check_normal_fn ~is_cond_dist loc tenv id es =
   match Env.find tenv (Utils.normalized_name id.name) with
-  | {kind= `Variable _; _} :: _
+  | {kind= `Variable _; location= prev; _} :: _
   (* variables can sometimes shadow stanlib functions, so we have to check
      this *)
     when not
            (Stan_math_signatures.is_stan_math_function_name
               (Utils.normalized_name id.name)) ->
-      Semantic_error.returning_fn_expected_nonfn_found loc id.name |> error
+      Semantic_error.returning_fn_expected_nonfn_found loc id.name prev |> error
   | [] ->
       (match Utils.split_distribution_suffix id.name with
         | Some (prefix, suffix) -> (
@@ -556,10 +559,11 @@ let check_normal_fn ~is_cond_dist loc tenv id es =
       match
         SignatureMismatch.matching_function tenv id.name (get_arg_types es)
       with
-      | UniqueMatch (Void, _, _) ->
+      | UniqueMatch (Void, _, _, prev) ->
           Semantic_error.returning_fn_expected_nonreturning_found loc id.name
+            prev
           |> error
-      | UniqueMatch (ReturnType ut, fnk, promotions) ->
+      | UniqueMatch (ReturnType ut, fnk, promotions, _) ->
           mk_fun_app ~is_cond_dist ~loc
             (fnk (Fun_kind.suffix_from_name id.name))
             id
@@ -700,7 +704,7 @@ let check_function_callable_with_tuple cf tenv caller_id fname
             |> Result.map_error ~f:(fun x ->
                 `SuppliedArgsMismatch (InputMismatch x, location)) in
           ((fn_type, location), promotions)
-    | _ -> Error `NonFunction in
+    | {location; _} -> Error (`NonFunction location) in
   match find_matching_first_order_fn tenv matches fname with
   | SignatureMismatch.UniqueMatch ((ftype, _), promotions) ->
       let fn = make_function_variable cf fname.id_loc fname ftype in
@@ -714,8 +718,9 @@ let check_function_callable_with_tuple cf tenv caller_id fname
       Semantic_error.ambiguous_function_promotion fname.id_loc fname.name None
         ps
       |> error
-  | SignatureErrors `NonFunction ->
+  | SignatureErrors (`NonFunction prev) ->
       Semantic_error.returning_fn_expected_nonfn_found fname.id_loc fname.name
+        prev
       |> error
   | SignatureErrors (`FnRequirementsError (details, prev)) ->
       Semantic_error.forwarded_function_signature_error fname.id_loc
@@ -1177,10 +1182,11 @@ let check_expression_of_scalar_or_type cf tenv t e name =
 
 let check_nrfn loc tenv id es =
   match Env.find tenv id.name with
-  | {kind= `Variable _; _} :: _
+  | {kind= `Variable _; location; _} :: _
   (* variables can shadow stanlib functions, so we have to check this *)
     when not (Stan_math_signatures.is_stan_math_function_name id.name) ->
-      Semantic_error.nonreturning_fn_expected_nonfn_found loc id.name |> error
+      Semantic_error.nonreturning_fn_expected_nonfn_found loc id.name location
+      |> error
   | [] ->
       Semantic_error.nonreturning_fn_expected_undeclaredident_found loc id.name
         (Env.nearest_ident tenv id.name)
@@ -1189,7 +1195,7 @@ let check_nrfn loc tenv id es =
       match
         SignatureMismatch.matching_function tenv id.name (get_arg_types es)
       with
-      | UniqueMatch (Void, fnk, promotions) ->
+      | UniqueMatch (Void, fnk, promotions, _) ->
           mk_typed_statement
             ~stmt:
               (NRFunApp
@@ -1197,8 +1203,9 @@ let check_nrfn loc tenv id es =
                  , id
                  , Promotion.promote_list es promotions ))
             ~return_type:Incomplete ~loc
-      | UniqueMatch (ReturnType _, _, _) ->
+      | UniqueMatch (ReturnType _, _, _, prev) ->
           Semantic_error.nonreturning_fn_expected_returning_found loc id.name
+            prev
           |> error
       | AmbiguousMatch sigs ->
           Semantic_error.ambiguous_function_promotion loc id.name
@@ -1246,15 +1253,17 @@ let check_jacobian_pe loc cf tenv e =
   mk_typed_statement ~stmt:(JacobianPE te) ~return_type:Incomplete ~loc
 
 (* assignments *)
-let verify_assignment_read_only loc is_readonly id =
+let verify_assignment_read_only loc is_readonly id decl_location =
   if is_readonly then
-    Semantic_error.cannot_assign_to_read_only loc id.name |> error
+    Semantic_error.cannot_assign_to_read_only loc id.name decl_location |> error
 
 (* Variables from previous blocks are read-only. In particular, data and
    parameters never assigned to *)
-let verify_assignment_global loc cf block is_global id =
+let verify_assignment_global loc cf block is_global id decl_location =
   if (not is_global) || block = cf.current_block then ()
-  else Semantic_error.cannot_assign_to_global loc id.name |> error
+  else
+    Semantic_error.cannot_assign_to_global loc id.name block decl_location
+    |> error
 
 (* Until function types are added to the user language, we disallow assignments
    to function values *)
@@ -1430,19 +1439,20 @@ let verify_lvalue_unique (lv : Ast.typed_lval_pack) =
   | dupes -> Semantic_error.cannot_access_assigning_var loc dupes |> error
 
 let verify_assignable_id loc cf tenv assign_id =
-  let block, global, readonly =
+  let block, global, readonly, decl_location =
     let var = Env.find tenv assign_id.name in
     match var with
-    | {kind= `Variable {origin; global; readonly}; _} :: _ ->
-        (origin, global, readonly)
-    | {kind= `StanMath; _} :: _ -> (MathLibrary, true, false)
-    | {kind= `UserDefined | `UserDeclared _; _} :: _ -> (Functions, true, false)
+    | {kind= `Variable {origin; global; readonly}; location; _} :: _ ->
+        (origin, global, readonly, location)
+    | {kind= `StanMath; _} :: _ -> (MathLibrary, true, false, None)
+    | {kind= `UserDefined | `UserDeclared _; location; _} :: _ ->
+        (Functions, true, false, location)
     | _ ->
         Semantic_error.ident_not_in_scope loc assign_id.name
           (Env.nearest_ident tenv assign_id.name)
         |> error in
-  verify_assignment_global loc cf block global assign_id;
-  verify_assignment_read_only loc readonly assign_id
+  verify_assignment_global loc cf block global assign_id decl_location;
+  verify_assignment_read_only loc readonly assign_id decl_location
 
 let rec check_lvalue cf tenv {lval; lmeta= ({loc} : located_meta)} =
   match lval with
@@ -1543,7 +1553,7 @@ let check_tilde_distribution loc cf tenv id arguments =
     List.min_elt distributions ~compare:(fun (m1, _) (m2, _) ->
         SignatureMismatch.compare_match_results m1 m2)
   with
-  | Some (UniqueMatch (_, f, p), sfx) ->
+  | Some (UniqueMatch (_, f, p, _), sfx) ->
       let suffix =
         Fun_kind.suffix_from_name (name ^ Utils.unnormalized_suffix sfx) in
       (Promotion.promote_list arguments p, f suffix)
@@ -1585,7 +1595,7 @@ let is_cumulative_density_defined tenv id arguments =
     match
       SignatureMismatch.matching_function tenv (name ^ suffix) argumenttypes
     with
-    | UniqueMatch (ReturnType UReal, _, _) -> true
+    | UniqueMatch (ReturnType UReal, _, _, _) -> true
     | _ -> false in
   valid_arg_types_for_suffix "_lcdf" && valid_arg_types_for_suffix "_lccdf"
 
@@ -1979,9 +1989,10 @@ and verify_unique_signature tenv loc id arg_tys rt =
   | [] -> ()
   | {type_= UFun (_, rt', _, _); location; _} :: _ when rt <> rt' ->
       Semantic_error.fn_overload_rt_only loc id.name rt rt' location |> error
-  | {kind; _} :: _ ->
+  | {kind; location= prev; _} :: _ ->
       Semantic_error.fn_decl_redefined loc id.name ~stan_math:(kind = `StanMath)
         (UnsizedType.UFun (arg_tys, rt, Fun_kind.suffix_from_name id.name, AoS))
+        prev
       |> error
 
 and verify_fundef_overloaded loc tenv id arg_tys rt =

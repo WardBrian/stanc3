@@ -33,19 +33,25 @@ let context ?printed_filename ?code loc message =
     ~range:(Diagnostic.range_of_loc_span ?printed_filename ?code loc)
     message
 
-let function_defined ?printed_filename ?code loc =
+let optional_context ?printed_filename ?code loc message =
   match loc with
-  | Some loc -> context ?printed_filename ?code loc "Function defined here."
-  | None -> []
+  | Some loc -> context ?printed_filename ?code loc message
+  | None -> Format.ikfprintf (fun _ -> []) Fmt.stdout message
+
+let function_defined ?printed_filename ?code loc =
+  optional_context ?printed_filename ?code loc "Function defined here."
+
+let variable_in_block ?printed_filename ?code loc =
+  optional_context ?printed_filename ?code loc
+    "Variable was declared in %a here."
+    (Fmt.of_to_string Environment.block_name)
 
 let functions_considered ?printed_filename ?code errors =
   List.concat_map errors ~f:(fun (_, _, loc) ->
       function_defined ?printed_filename ?code loc)
 
 let previous_declaration ?printed_filename ?code prev =
-  match prev with
-  | Some loc -> context ?printed_filename ?code loc "Previous declaration here."
-  | None -> []
+  optional_context ?printed_filename ?code prev "Previous declaration here."
 
 module TypeError = struct
   type t =
@@ -98,18 +104,19 @@ module TypeError = struct
           * UnsizedType.argumentlist
           * Location_span.t option)
           list
-    | ReturningFnExpectedNonReturningFound of string
-    | ReturningFnExpectedNonFnFound of string
+    | ReturningFnExpectedNonReturningFound of string * Location_span.t option
+    | ReturningFnExpectedNonFnFound of string * Location_span.t option
     | ReturningFnExpectedUndeclaredDistSuffixFound of string * string
     | ReturningFnExpectedWrongDistSuffixFound of string * string
-    | NonReturningFnExpectedReturningFound of string
-    | NonReturningFnExpectedNonFnFound of string
+    | NonReturningFnExpectedReturningFound of string * Location_span.t option
+    | NonReturningFnExpectedNonFnFound of string * Location_span.t option
     | FuncOverloadRtOnly of
         string
         * UnsizedType.returntype
         * UnsizedType.returntype
         * Location_span.t option
-    | FuncDeclRedefined of string * UnsizedType.t * bool
+    | FuncDeclRedefined of
+        string * UnsizedType.t * bool * Location_span.t option
     | FunDeclExists of string * Location_span.t option
     | FunDeclNoDefn of string
     | FunDeclNeedsBlock
@@ -377,23 +384,31 @@ module TypeError = struct
           arg_tys
           (Fmt.list ~sep:Fmt.cut pp_sig)
           signatures
-    | ReturningFnExpectedNonReturningFound fn_name ->
+    | ReturningFnExpectedNonReturningFound (fn_name, prev) ->
         createf Severity.Error
+          ~labels:(function_defined ?printed_filename ?code prev)
           "A returning function was expected but a non-returning function %a \
            was supplied."
           quoted fn_name
-    | NonReturningFnExpectedReturningFound fn_name ->
+    | NonReturningFnExpectedReturningFound (fn_name, prev) ->
         createf Severity.Error
+          ~labels:(function_defined ?printed_filename ?code prev)
           "A non-returning function was expected but a returning function %a \
            was supplied."
           quoted fn_name
-    | ReturningFnExpectedNonFnFound fn_name ->
+    | ReturningFnExpectedNonFnFound (fn_name, prev) ->
         createf Severity.Error
+          ~labels:
+            (optional_context ?printed_filename ?code prev
+               "Variable was declared here.")
           "A returning function was expected but a non-function value %a was \
            supplied."
           quoted fn_name
-    | NonReturningFnExpectedNonFnFound fn_name ->
+    | NonReturningFnExpectedNonFnFound (fn_name, prev) ->
         createf Severity.Error
+          ~labels:
+            (optional_context ?printed_filename ?code prev
+               "Variable was declared here.")
           "A non-returning function was expected but a non-function value %a \
            was supplied."
           quoted fn_name
@@ -426,8 +441,10 @@ module TypeError = struct
                 (actual_style UnsizedType.pp_returntype)
                 rt' ]
           "Function %a cannot be overloaded by return type only." quoted name
-    | FuncDeclRedefined (name, ut, stan_math) ->
-        createf Severity.Error "Function %a %s signature %a" quoted name
+    | FuncDeclRedefined (name, ut, stan_math, prev) ->
+        createf Severity.Error
+          ~labels:(previous_declaration ?printed_filename ?code prev)
+          "Function %a %s signature %a" quoted name
           (if stan_math then "is already declared in the Stan Math library with"
            else "has already been declared for")
           UnsizedType.pp ut
@@ -663,8 +680,9 @@ end
 
 module StatementError = struct
   type t =
-    | CannotAssignToReadOnly of string
-    | CannotAssignToGlobal of string
+    | CannotAssignToReadOnly of string * Location_span.t option
+    | CannotAssignToGlobal of
+        string * Environment.originblock * Location_span.t option
     | CannotAssignFunction of string * UnsizedType.t
     | LValueMultiIndexing
     | LValueTupleUnpackDuplicates of Ast.untyped_lval list
@@ -679,7 +697,8 @@ module StatementError = struct
     | ContinueOutsideLoop
     | ExpressionReturnOutsideReturningFn
     | VoidReturnOutsideNonReturningFn
-    | NonDataVariableSizeDecl
+    | NonDataVariableSizeDecl of
+        Environment.originblock * Location_span.t option
     | NonIntBounds
     | ComplexTransform
     | IntegerParameter of bool
@@ -687,13 +706,15 @@ module StatementError = struct
         Operator.t * Ast.typed_expr_meta * Ast.typed_expr_meta
 
   let to_grace ?printed_filename ?code = function
-    | CannotAssignToReadOnly name ->
+    | CannotAssignToReadOnly (name, prev) ->
         createf Severity.Error
+          ~labels:(previous_declaration ?printed_filename ?code prev)
           "Cannot assign to function argument or loop identifier %a." quoted
           name
-    | CannotAssignToGlobal name ->
+    | CannotAssignToGlobal (name, block, prev) ->
         createf Severity.Error
-          "Cannot assign to global variable %a declared in previous blocks."
+          ~labels:(variable_in_block ?printed_filename ?code prev block)
+          "Cannot assign to global variable %a declared in previous block."
           quoted name
     | CannotAssignFunction (name, ut) ->
         createf Severity.Error
@@ -779,8 +800,9 @@ module StatementError = struct
            definitions."
           (expected_style Fmt.string)
           "void"
-    | NonDataVariableSizeDecl ->
+    | NonDataVariableSizeDecl (block, prev) ->
         createf Severity.Error
+          ~labels:(variable_in_block ?printed_filename ?code prev block)
           "Non-data variables are not allowed in top level size declarations."
     | NonIntBounds ->
         createf Severity.Error
@@ -845,6 +867,8 @@ let to_grace ?printed_filename ?code (loc, err) =
         ExpressionError.to_grace ?printed_filename ?code err
     | StatementError err -> StatementError.to_grace ?printed_filename ?code err
   in
+  (* todo(grace): eventually, avoid using this and generate separate
+     messages/primary labels *)
   Diagnostic.locate ?printed_filename ?code loc diagonostic
 
 let location = fst
@@ -891,8 +915,8 @@ let illtyped_assignment loc assignop lt rt =
 let illtyped_ternary_if loc predt lt rt =
   (loc, ExpressionError (ExpressionError.IllTypedTernaryIf (predt, lt, rt)))
 
-let returning_fn_expected_nonreturning_found loc name =
-  (loc, TypeError (TypeError.ReturningFnExpectedNonReturningFound name))
+let returning_fn_expected_nonreturning_found loc name prev =
+  (loc, TypeError (TypeError.ReturningFnExpectedNonReturningFound (name, prev)))
 
 let illtyped_reduce_sum_not_array loc ty =
   (loc, TypeError (TypeError.IllTypedReduceSumNotArray ty))
@@ -947,8 +971,8 @@ let ambiguous_function_promotion loc name arg_tys signatures =
   , TypeError (TypeError.AmbiguousFunctionPromotion (name, arg_tys, signatures))
   )
 
-let returning_fn_expected_nonfn_found loc name =
-  (loc, TypeError (TypeError.ReturningFnExpectedNonFnFound name))
+let returning_fn_expected_nonfn_found loc name prev =
+  (loc, TypeError (TypeError.ReturningFnExpectedNonFnFound (name, prev)))
 
 let returning_fn_expected_undeclaredident_found loc name sug =
   ( loc
@@ -966,11 +990,11 @@ let returning_fn_expected_wrong_dist_suffix_found loc (prefix, suffix) =
   , TypeError
       (TypeError.ReturningFnExpectedWrongDistSuffixFound (prefix, suffix)) )
 
-let nonreturning_fn_expected_returning_found loc name =
-  (loc, TypeError (TypeError.NonReturningFnExpectedReturningFound name))
+let nonreturning_fn_expected_returning_found loc name prev =
+  (loc, TypeError (TypeError.NonReturningFnExpectedReturningFound (name, prev)))
 
-let nonreturning_fn_expected_nonfn_found loc name =
-  (loc, TypeError (TypeError.NonReturningFnExpectedNonFnFound name))
+let nonreturning_fn_expected_nonfn_found loc name prev =
+  (loc, TypeError (TypeError.NonReturningFnExpectedNonFnFound (name, prev)))
 
 let nonreturning_fn_expected_undeclaredident_found loc name sug =
   ( loc
@@ -1040,11 +1064,11 @@ let empty_array loc = (loc, ExpressionError ExpressionError.EmptyArray)
 let empty_tuple loc = (loc, ExpressionError ExpressionError.EmptyTuple)
 let bad_int_literal loc = (loc, ExpressionError ExpressionError.IntTooLarge)
 
-let cannot_assign_to_read_only loc name =
-  (loc, StatementError (StatementError.CannotAssignToReadOnly name))
+let cannot_assign_to_read_only loc name prev =
+  (loc, StatementError (StatementError.CannotAssignToReadOnly (name, prev)))
 
-let cannot_assign_to_global loc name =
-  (loc, StatementError (StatementError.CannotAssignToGlobal name))
+let cannot_assign_to_global loc name block prev =
+  (loc, StatementError (StatementError.CannotAssignToGlobal (name, block, prev)))
 
 let cannot_assign_function loc name ut =
   (loc, StatementError (StatementError.CannotAssignFunction (name, ut)))
@@ -1090,8 +1114,8 @@ let expression_return_outside_returning_fn loc =
 let void_outside_nonreturning_fn loc =
   (loc, StatementError StatementError.VoidReturnOutsideNonReturningFn)
 
-let non_data_variable_size_decl loc =
-  (loc, StatementError StatementError.NonDataVariableSizeDecl)
+let non_data_variable_size_decl loc block prev =
+  (loc, StatementError (StatementError.NonDataVariableSizeDecl (block, prev)))
 
 let non_int_bounds loc = (loc, StatementError StatementError.NonIntBounds)
 let complex_transform loc = (loc, StatementError StatementError.ComplexTransform)
@@ -1102,8 +1126,8 @@ let no_int_params loc transformed =
 let fn_overload_rt_only loc name rt1 rt2 prev =
   (loc, TypeError (TypeError.FuncOverloadRtOnly (name, rt1, rt2, prev)))
 
-let fn_decl_redefined loc name ~stan_math ut =
-  (loc, TypeError (TypeError.FuncDeclRedefined (name, ut, stan_math)))
+let fn_decl_redefined loc name ~stan_math ut prev =
+  (loc, TypeError (TypeError.FuncDeclRedefined (name, ut, stan_math, prev)))
 
 let fn_decl_exists loc name prev =
   (loc, TypeError (TypeError.FunDeclExists (name, prev)))

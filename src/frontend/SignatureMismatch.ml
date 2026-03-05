@@ -94,6 +94,7 @@ type match_result =
   ( UnsizedType.returntype
     * (bool Middle.Fun_kind.suffix -> Ast.fun_kind)
     * Promotion.t list
+    * Location_span.t option
   , signature_error list * bool )
   generic_match_result
 
@@ -262,8 +263,8 @@ let find_compatible_rt function_types args =
         | Ok p -> Either.First (((rt, tys, loc), funkind_constructor), p)
         | Error e -> Second ((rt, tys, loc), e)) in
   match unique_minimum_promotion matches with
-  | Ok (((rt, _, _), funkind_constructor), p) ->
-      UniqueMatch (rt, funkind_constructor, p)
+  | Ok (((rt, _, l), funkind_constructor), p) ->
+      UniqueMatch (rt, funkind_constructor, p, l)
   | Error (Some e) ->
       AmbiguousMatch (List.map ~f:fst e)
       (* return the return types and argument types of ambiguous matches *)

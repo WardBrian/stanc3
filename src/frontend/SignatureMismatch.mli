@@ -32,6 +32,7 @@ type match_result =
   ( UnsizedType.returntype
     * (bool Middle.Fun_kind.suffix -> Ast.fun_kind)
     * Promotion.t list
+    * Location_span.t option
   , signature_error list * bool )
   generic_match_result
 
