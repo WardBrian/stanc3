@@ -33,9 +33,18 @@ let context ?printed_filename ?code loc message =
     ~range:(Diagnostic.range_of_loc_span ?printed_filename ?code loc)
     message
 
+let function_defined ?printed_filename ?code loc =
+  match loc with
+  | Some loc -> context ?printed_filename ?code loc "Function defined here."
+  | None -> []
+
+let functions_considered ?printed_filename ?code errors =
+  List.concat_map errors ~f:(fun (_, _, loc) ->
+      function_defined ?printed_filename ?code loc)
+
 let previous_declaration ?printed_filename ?code prev =
   match prev with
-  | Some loc -> context ?printed_filename ?code loc "Previous declaration here"
+  | Some loc -> context ?printed_filename ?code loc "Previous declaration here."
   | None -> []
 
 module TypeError = struct
@@ -58,16 +67,22 @@ module TypeError = struct
         * UnsizedType.t list
         * UnsizedType.argumentlist
         * SignatureMismatch.function_mismatch
+        * Location_span.t option
     | IllTypedVariadic of
         string
         * UnsizedType.t list
         * UnsizedType.argumentlist
         * SignatureMismatch.function_mismatch
         * UnsizedType.t
+        * Location_span.t option
     | IllTypedForwardedFunctionSignature of
-        string * string * SignatureMismatch.details
+        string * string * SignatureMismatch.details * Location_span.t option
     | IllTypedForwardedFunctionApp of
-        string * string * string list * SignatureMismatch.details
+        string
+        * string
+        * string list
+        * SignatureMismatch.details
+        * Location_span.t option
     | IllTypedLaplaceHelperArgs of
         string * UnsizedType.argumentlist * SignatureMismatch.details
     | IllTypedLaplaceMarginal of string * bool * UnsizedType.argumentlist
@@ -90,7 +105,10 @@ module TypeError = struct
     | NonReturningFnExpectedReturningFound of string
     | NonReturningFnExpectedNonFnFound of string
     | FuncOverloadRtOnly of
-        string * UnsizedType.returntype * UnsizedType.returntype
+        string
+        * UnsizedType.returntype
+        * UnsizedType.returntype
+        * Location_span.t option
     | FuncDeclRedefined of string * UnsizedType.t * bool
     | FunDeclExists of string * Location_span.t option
     | FunDeclNoDefn of string
@@ -216,25 +234,37 @@ module TypeError = struct
           (Stan_math_signatures.reduce_sum_slice_types
          |> Common.Nonempty_list.of_list_exn)
           found_type ty
-    | IllTypedReduceSum (name, arg_tys, expected_args, error) ->
-        createf Severity.Error "%a" SignatureMismatch.pp_signature_mismatch
-          (name, arg_tys, ([((ReturnType UReal, expected_args), error)], false))
-    | IllTypedVariadic (name, arg_tys, args, error, return_type) ->
-        createf Severity.Error "%a" SignatureMismatch.pp_signature_mismatch
+    | IllTypedReduceSum (name, arg_tys, expected_args, error, prev) ->
+        createf Severity.Error
+          ~labels:(function_defined ?printed_filename ?code prev)
+          "@[%a@]" SignatureMismatch.pp_signature_mismatch
           ( name
           , arg_tys
-          , ([((UnsizedType.ReturnType return_type, args), error)], false) )
-    | IllTypedFunctionApp (name, arg_tys, errors) ->
-        createf Severity.Error "%a" SignatureMismatch.pp_signature_mismatch
-          (name, arg_tys, errors)
-    | IllTypedForwardedFunctionApp (caller, name, skipped, details) ->
+          , ([((ReturnType UReal, expected_args, None), error)], false) )
+    | IllTypedVariadic (name, arg_tys, args, error, return_type, prev) ->
         createf Severity.Error
+          ~labels:(function_defined ?printed_filename ?code prev)
+          "@[%a@]" SignatureMismatch.pp_signature_mismatch
+          ( name
+          , arg_tys
+          , ([((UnsizedType.ReturnType return_type, args, None), error)], false)
+          )
+    | IllTypedFunctionApp (name, arg_tys, errors) ->
+        let signatures = List.map ~f:fst (fst errors) in
+        createf Severity.Error
+          ~labels:(functions_considered ?printed_filename ?code signatures)
+          "@[%a@]" SignatureMismatch.pp_signature_mismatch
+          (name, arg_tys, errors)
+    | IllTypedForwardedFunctionApp (caller, name, skipped, details, prev) ->
+        createf Severity.Error
+          ~labels:(function_defined ?printed_filename ?code prev)
           "Cannot call %a@ with arguments forwarded from call to@ %a:@ %a"
           quoted name quoted caller
           (SignatureMismatch.pp_mismatch_details ~skipped)
           details
-    | IllTypedForwardedFunctionSignature (caller, name, details) ->
+    | IllTypedForwardedFunctionSignature (caller, name, details, prev) ->
         createf Severity.Error
+          ~labels:(function_defined ?printed_filename ?code prev)
           "Function %a does not have a valid signature for use in %a:@ %a"
           quoted name quoted caller
           (SignatureMismatch.pp_mismatch_details ~skipped:[])
@@ -334,20 +364,7 @@ module TypeError = struct
             Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
             args UnsizedType.pp_returntype rt in
         createf Severity.Error
-          ~labels:
-            (List.filter_map signatures ~f:(fun (_, _, loc) ->
-                 match loc with
-                 | None -> None
-                 | Some l ->
-                     Some
-                       (Label.secondaryf
-                          ~range:
-                            (Diagnostic.range_of_loc_span ?printed_filename
-                               ?code l)
-                          "Possible overload defined here."
-                       :: Diagnostic.included_diagnostic ?printed_filename ?code
-                            l.begin_loc))
-            |> List.concat)
+          ~labels:(functions_considered ?printed_filename ?code signatures)
           "No unique minimum promotion found for function %a.@ Overloaded \
            functions must not have multiple equally valid promotion paths.@ %a \
            function has several:@ @[<v>%a@]@ Consider defining a new signature \
@@ -401,11 +418,14 @@ module TypeError = struct
           (prefix ^ "_" ^ suffix)
           quoted prefix quoted
           (prefix ^ "_" ^ newsuffix)
-    | FuncOverloadRtOnly (name, _, rt') ->
+    | FuncOverloadRtOnly (name, _, rt', prev) ->
         createf Severity.Error
-          "Function %a cannot be overloaded by return type only. Previously \
-           used return type %a"
-          quoted name UnsizedType.pp_returntype rt'
+          ~labels:(previous_declaration ?printed_filename ?code prev)
+          ~notes:
+            [ Message.createf "Previously used return type %a."
+                (actual_style UnsizedType.pp_returntype)
+                rt' ]
+          "Function %a cannot be overloaded by return type only." quoted name
     | FuncDeclRedefined (name, ut, stan_math) ->
         createf Severity.Error "Function %a %s signature %a" quoted name
           (if stan_math then "is already declared in the Stan Math library with"
@@ -880,24 +900,28 @@ let illtyped_reduce_sum_not_array loc ty =
 let illtyped_reduce_sum_slice loc ty =
   (loc, TypeError (TypeError.IllTypedReduceSumSlice ty))
 
-let illtyped_reduce_sum loc name arg_tys args error =
-  (loc, TypeError (TypeError.IllTypedReduceSum (name, arg_tys, args, error)))
-
-let illtyped_variadic loc name arg_tys args fn_rt error =
+let illtyped_reduce_sum loc name arg_tys args error prev =
   ( loc
-  , TypeError (TypeError.IllTypedVariadic (name, arg_tys, args, error, fn_rt))
+  , TypeError (TypeError.IllTypedReduceSum (name, arg_tys, args, error, prev))
   )
 
-let forwarded_function_application_error loc caller name required_args details =
+let illtyped_variadic loc name arg_tys args fn_rt error prev =
+  ( loc
+  , TypeError
+      (TypeError.IllTypedVariadic (name, arg_tys, args, error, fn_rt, prev)) )
+
+let forwarded_function_application_error loc caller name required_args details
+    prev =
   ( loc
   , TypeError
       (TypeError.IllTypedForwardedFunctionApp
-         (caller, name, required_args, details)) )
+         (caller, name, required_args, details, prev)) )
 
-let forwarded_function_signature_error loc caller name details =
+let forwarded_function_signature_error loc caller name details prev =
   ( loc
   , TypeError
-      (TypeError.IllTypedForwardedFunctionSignature (caller, name, details)) )
+      (TypeError.IllTypedForwardedFunctionSignature (caller, name, details, prev))
+  )
 
 let illtyped_laplace_helper_args loc name lik_args details =
   ( loc
@@ -1075,8 +1099,8 @@ let complex_transform loc = (loc, StatementError StatementError.ComplexTransform
 let no_int_params loc transformed =
   (loc, StatementError (StatementError.IntegerParameter transformed))
 
-let fn_overload_rt_only loc name rt1 rt2 =
-  (loc, TypeError (TypeError.FuncOverloadRtOnly (name, rt1, rt2)))
+let fn_overload_rt_only loc name rt1 rt2 prev =
+  (loc, TypeError (TypeError.FuncOverloadRtOnly (name, rt1, rt2, prev)))
 
 let fn_decl_redefined loc name ~stan_math ut =
   (loc, TypeError (TypeError.FuncDeclRedefined (name, ut, stan_math)))

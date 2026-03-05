@@ -56,6 +56,7 @@ val illtyped_reduce_sum :
   -> UnsizedType.t list
   -> UnsizedType.argumentlist
   -> SignatureMismatch.function_mismatch
+  -> Location_span.t option
   -> t
 
 val ambiguous_function_promotion :
@@ -75,10 +76,16 @@ val illtyped_variadic :
   -> UnsizedType.argumentlist
   -> UnsizedType.t
   -> SignatureMismatch.function_mismatch
+  -> Location_span.t option
   -> t
 
 val forwarded_function_signature_error :
-  Location_span.t -> string -> string -> SignatureMismatch.details -> t
+     Location_span.t
+  -> string
+  -> string
+  -> SignatureMismatch.details
+  -> Location_span.t option
+  -> t
 
 val forwarded_function_application_error :
      Location_span.t
@@ -86,6 +93,7 @@ val forwarded_function_application_error :
   -> string
   -> string list
   -> SignatureMismatch.details
+  -> Location_span.t option
   -> t
 
 val illtyped_laplace_helper_args :
@@ -182,6 +190,7 @@ val fn_overload_rt_only :
   -> string
   -> UnsizedType.returntype
   -> UnsizedType.returntype
+  -> Location_span.t option
   -> t
 
 val fn_decl_redefined :

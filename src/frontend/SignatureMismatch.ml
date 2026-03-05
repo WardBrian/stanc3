@@ -77,7 +77,8 @@ and function_mismatch =
   | ArgNumMismatch of int * int
 
 type signature_error =
-  (UnsizedType.returntype * UnsizedType.argumentlist) * function_mismatch
+  (UnsizedType.returntype * UnsizedType.argumentlist * Location_span.t option)
+  * function_mismatch
 
 type ('unique, 'error) generic_match_result =
   | UniqueMatch of 'unique
@@ -259,7 +260,7 @@ let find_compatible_rt function_types args =
       ~f:(fun (rt, tys, funkind_constructor, _, loc) ->
         match check_compatible_arguments 0 tys args with
         | Ok p -> Either.First (((rt, tys, loc), funkind_constructor), p)
-        | Error e -> Second ((rt, tys), e)) in
+        | Error e -> Second ((rt, tys, loc), e)) in
   match unique_minimum_promotion matches with
   | Ok (((rt, _, _), funkind_constructor), p) ->
       UniqueMatch (rt, funkind_constructor, p)
@@ -292,7 +293,7 @@ let check_variadic_args ~allow_lpdf mandatory_arg_tys mandatory_fun_arg_tys
   in
   let minimal_args =
     (UnsizedType.AutoDiffable, minimal_func_type) :: mandatory_arg_tys in
-  let wrap_err x = Error (minimal_args, ArgError (1, x)) in
+  let wrap_err x = Error (minimal_args, ArgError (1, x), location) in
   match args with
   | ( _
     , (UnsizedType.UFun (fun_args, ReturnType return_type, suffix, _) as
@@ -321,10 +322,10 @@ let check_variadic_args ~allow_lpdf mandatory_arg_tys mandatory_fun_arg_tys
                   @ variadic_arg_tys in
                 check_compatible_arguments 0 expected_args args
                 |> Result.map ~f:(fun x -> ((func_type, location), x))
-                |> Result.map_error ~f:(fun x -> (expected_args, x)))
+                |> Result.map_error ~f:(fun x -> (expected_args, x, location)))
       else wrap_func_error (SuffixMismatch (FnPlain, suffix))
   | (_, x) :: _ -> TypeMismatch (minimal_func_type, x, None) |> wrap_err
-  | [] -> Error ([], ArgNumMismatch (List.length mandatory_arg_tys, 0))
+  | [] -> Error ([], ArgNumMismatch (List.length mandatory_arg_tys, 0), location)
 
 let suffix_str = function
   | Fun_kind.FnPlain -> "a pure function"
@@ -488,7 +489,7 @@ let pp_signature_mismatch ppf (name, arg_tys, (sigs, omitted)) =
   let pp_args =
     pp_with_where ctx (fun ppf ->
         pf ppf "(@[<hov>%a@])" (list ~sep:comma (pp_unsized_type ctx))) in
-  let pp_signature ppf ((rt, args), err) =
+  let pp_signature ppf ((rt, args, _), err) =
     let fun_ty = UnsizedType.UFun (args, rt, FnPlain, AoS) in
     Fmt.pf ppf "%a@ @[<hov 2>  %a@]"
       (pp_with_where ctx (pp_fundef ctx))

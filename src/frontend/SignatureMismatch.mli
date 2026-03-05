@@ -15,7 +15,8 @@ and function_mismatch = private
   | ArgNumMismatch of int * int
 
 type signature_error =
-  (UnsizedType.returntype * UnsizedType.argumentlist) * function_mismatch
+  (UnsizedType.returntype * UnsizedType.argumentlist * Location_span.t option)
+  * function_mismatch
 
 type ('unique, 'error) generic_match_result =
   | UniqueMatch of 'unique
@@ -68,7 +69,7 @@ val check_variadic_args :
   -> UnsizedType.t
   -> UnsizedType.argumentlist
   -> ( (UnsizedType.t * Location_span.t option) * Promotion.t list
-     , UnsizedType.argumentlist * function_mismatch )
+     , UnsizedType.argumentlist * function_mismatch * Location_span.t option )
      result
 (** Check variadic function arguments. If a match is found, returns [Ok] of the
     function type and a list of promotions (see [promote]) If none is found,
@@ -93,12 +94,7 @@ val pp_mismatch_details :
 
 val pp_signature_mismatch :
      Format.formatter
-  -> string
-     * UnsizedType.t list
-     * (((UnsizedType.returntype * UnsizedType.argumentlist)
-        * function_mismatch)
-        list
-       * bool)
+  -> string * UnsizedType.t list * (signature_error list * bool)
   -> unit
 
 val list_valid_assignmentoperator_rhs :

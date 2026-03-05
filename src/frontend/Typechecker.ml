@@ -675,11 +675,13 @@ let check_function_callable_with_tuple cf tenv caller_id fname
         if return_type <> required_fn_return_type then
           Error
             (`FnRequirementsError
-               (ReturnTypeMismatch (required_fn_return_type, return_type)))
+               ( ReturnTypeMismatch (required_fn_return_type, return_type)
+               , location ))
         else if sfx <> FnPlain then
           Error
             (`FnRequirementsError
-               (SuffixMismatch (FnPlain, Fun_kind.forget_normalization sfx)))
+               ( SuffixMismatch (FnPlain, Fun_kind.forget_normalization sfx)
+               , location ))
         else
           let no_prom_args, _ =
             List.split_n args (List.length required_arg_types) in
@@ -692,11 +694,11 @@ let check_function_callable_with_tuple cf tenv caller_id fname
              check_compatible_arguments_no_promotion no_prom_args
                required_arg_types)
             |> Result.map_error ~f:(fun x ->
-                `FnRequirementsError (InputMismatch x)) in
+                `FnRequirementsError (InputMismatch x, location)) in
           let+ promotions =
             check_compatible_arguments_mod_conv args required
             |> Result.map_error ~f:(fun x ->
-                `SuppliedArgsMismatch (InputMismatch x)) in
+                `SuppliedArgsMismatch (InputMismatch x, location)) in
           ((fn_type, location), promotions)
     | _ -> Error `NonFunction in
   match find_matching_first_order_fn tenv matches fname with
@@ -715,13 +717,13 @@ let check_function_callable_with_tuple cf tenv caller_id fname
   | SignatureErrors `NonFunction ->
       Semantic_error.returning_fn_expected_nonfn_found fname.id_loc fname.name
       |> error
-  | SignatureErrors (`FnRequirementsError details) ->
+  | SignatureErrors (`FnRequirementsError (details, prev)) ->
       Semantic_error.forwarded_function_signature_error fname.id_loc
-        caller_id.name fname.name details
+        caller_id.name fname.name details prev
       |> error
-  | SignatureErrors (`SuppliedArgsMismatch details) ->
+  | SignatureErrors (`SuppliedArgsMismatch (details, prev)) ->
       Semantic_error.forwarded_function_application_error arg_tupl.emeta.loc
-        caller_id.name fname.name required_arg_names details
+        caller_id.name fname.name required_arg_names details prev
       |> error
 
 let specialize_loc ~loc err (args : Ast.typed_expression list) =
@@ -828,19 +830,19 @@ and check_reduce_sum ~is_cond_dist loc cf tenv id tes =
       | AmbiguousMatch ps ->
           Semantic_error.ambiguous_function_promotion loc fname.name None ps
           |> error
-      | SignatureErrors (expected_args, err) ->
+      | SignatureErrors (expected_args, err, prev) ->
           let loc = specialize_loc ~loc err tes in
           Semantic_error.illtyped_reduce_sum loc id.name
             (List.map ~f:type_of_expr_typed tes)
-            expected_args err
+            expected_args err prev
           |> error)
   | _ ->
-      let expected_args, err =
+      let expected_args, err, prev =
         basic_mismatch () |> Result.error |> Option.value_exn in
       let loc = specialize_loc ~loc err tes in
       Semantic_error.illtyped_reduce_sum loc id.name
         (List.map ~f:type_of_expr_typed tes)
-        expected_args err
+        expected_args err prev
       |> error
 
 (** Laplace functions are also special, in two ways:
@@ -947,21 +949,21 @@ and check_variadic ~is_cond_dist loc cf tenv id tes =
       | AmbiguousMatch ps ->
           Semantic_error.ambiguous_function_promotion loc fname.name None ps
           |> error
-      | SignatureErrors (expected_args, err) ->
+      | SignatureErrors (expected_args, err, prev) ->
           let loc = specialize_loc ~loc err tes in
           Semantic_error.illtyped_variadic loc id.name
             (List.map ~f:type_of_expr_typed tes)
-            expected_args required_fn_rt err
+            expected_args required_fn_rt err prev
           |> error)
   | _ ->
-      let expected_args, err =
+      let expected_args, err, prev =
         SignatureMismatch.check_variadic_args ~allow_lpdf:false control_args
           required_fn_args None required_fn_rt (get_arg_types tes)
         |> Result.error |> Option.value_exn in
       let loc = specialize_loc ~loc err tes in
       Semantic_error.illtyped_variadic loc id.name
         (List.map ~f:type_of_expr_typed tes)
-        expected_args required_fn_rt err
+        expected_args required_fn_rt err prev
       |> error
 
 and check_funapp loc cf tenv ~is_cond_dist id (es : Ast.typed_expression list) =
@@ -1975,8 +1977,8 @@ and verify_unique_signature tenv loc id arg_tys rt =
     | _ -> false in
   match List.filter existing ~f:same_args with
   | [] -> ()
-  | {type_= UFun (_, rt', _, _); _} :: _ when rt <> rt' ->
-      Semantic_error.fn_overload_rt_only loc id.name rt rt' |> error
+  | {type_= UFun (_, rt', _, _); location; _} :: _ when rt <> rt' ->
+      Semantic_error.fn_overload_rt_only loc id.name rt rt' location |> error
   | {kind; _} :: _ ->
       Semantic_error.fn_decl_redefined loc id.name ~stan_math:(kind = `StanMath)
         (UnsizedType.UFun (arg_tys, rt, Fun_kind.suffix_from_name id.name, AoS))
