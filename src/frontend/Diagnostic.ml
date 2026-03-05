@@ -68,7 +68,29 @@ let locate ?printed_filename ?code loc_span (diagnostic : 'a Grace.Diagnostic.t)
   { diagnostic with
     labels=
       diagnostic.labels
-      @ Grace.Diagnostic.Label.primary
-          ~range:(range_of_loc_span ?printed_filename ?code loc_span)
-          diagnostic.message
+      @ Grace.Diagnostic.(
+          Label.primary
+            ~range:(range_of_loc_span ?printed_filename ?code loc_span)
+            (Message.createf "@.%a"
+               (Fmt.styled `None Message.pp)
+               diagnostic.message))
         :: included_diagnostic ?printed_filename ?code loc_span.begin_loc }
+
+let styles =
+  let open Grace_ansi_renderer.Config in
+  { Style_sheet.default with
+    header_warning= [`Bold; `Fg `Magenta]
+  ; primary_label_warning= [`Fg `Magenta]
+  ; source_border= [`None]
+  ; line_number= [`Fg (`Hi `Yellow)] }
+
+let pp ppf =
+  let open Grace_ansi_renderer in
+  let config =
+    Config.
+      { styles
+      ; use_ansi=
+          Some
+            (match Fmt.style_renderer ppf with `Ansi_tty -> true | _ -> false)
+      ; chars= Chars.unicode } in
+  pp_diagnostic ~config ?code_to_string:None ppf

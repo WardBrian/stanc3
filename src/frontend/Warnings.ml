@@ -5,6 +5,8 @@ type t = Location_span.t * string
 
 let purple = Fmt.styled (`Fg `Magenta) Fmt.string
 
+(* todo(grace): use grace *)
+
 let pp ?printed_filename ppf (span, message) =
   Fmt.pf ppf "@[<v4>%a in @[%a@]:@ @[%a@]@]" purple "Warning"
     (Location_span.pp ?printed_filename)

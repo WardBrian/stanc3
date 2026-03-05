@@ -40,6 +40,4 @@ let pp ?printed_filename ?code ppf t =
                 ~range:(range_of_loc_span ?printed_filename ?code loc)
                 "here" ] in
         createf ~labels ~notes Error "%s" msg in
-  Fmt.pf ppf "%a@."
-    (Grace_ansi_renderer.pp_diagnostic ?config:None ?code_to_string:None)
-    diagnostic
+  Fmt.pf ppf "%a@." Diagnostic.pp diagnostic

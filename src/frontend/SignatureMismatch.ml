@@ -351,10 +351,10 @@ let data_only_msg ppf () =
     (styled (`Fg `Green) (quote string))
     "data"
 
-let expected_style pp = Fmt.(styled (`Fg `Green)) pp
-let actual_style pp = Fmt.(styled (`Fg `Yellow)) pp
+let expected_style pp = Fmt.box @@ Fmt.(styled (`Fg `Green)) pp
+let actual_style pp = Fmt.box @@ Fmt.(styled (`Fg `Yellow)) pp
 let arguments = Fmt.cardinal ~one:(Fmt.any "argument") ()
-let quoted = Fmt.styled (`Fg `Green) Fmt.(quote string)
+let quoted = Fmt.box @@ Fmt.styled (`Fg `Green) Fmt.(quote string)
 
 let pp_mismatch_details ~skipped ppf details =
   let open Fmt in
