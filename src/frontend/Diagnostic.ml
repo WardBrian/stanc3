@@ -81,7 +81,7 @@ let styles =
   { Style_sheet.default with
     header_warning= [`Bold; `Fg `Magenta]
   ; primary_label_warning= [`Fg `Magenta]
-  ; source_border= [`None]
+  ; source_border= [`None; `Faint]
   ; line_number= [`Fg (`Hi `Yellow)] }
 
 let pp ppf =
@@ -89,6 +89,8 @@ let pp ppf =
   let config =
     Config.
       { styles
+      ; num_contextual_lines= 1
+      ; enable_inline_contextual_lines= true
       ; use_ansi=
           Some
             (match Fmt.style_renderer ppf with `Ansi_tty -> true | _ -> false)
