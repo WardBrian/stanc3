@@ -26,6 +26,25 @@ let rec expected_types : UnsizedType.t Common.Nonempty_list.t Fmt.t =
         Fmt.pf ppf "%a,@ %a" ust t expected_types
           (ts |> Common.Nonempty_list.of_list_exn)
 
+(** This is the real workhouse function of this class. It is in charge of
+    building [Grace.Diagnostic.t]s from code locations, a primary messages, and
+    additional labels, notes, or a summary message. *)
+let make_error ?printed_filename ?code (loc : Location_span.t) ?(labels = [])
+    ?(notes = []) ?(summary : Message.t option) primary =
+  (* todo map over labels with captured printed filename/code? *)
+  let included =
+    Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc in
+  let indent (l : Grace.Diagnostic.Label.t) =
+    { l with
+      message= Message.createf "@.%a" (Fmt.styled `None Message.pp) l.message }
+  in
+  let range = Diagnostic.range_of_loc_span ?printed_filename ?code loc in
+  let kont (l : Grace.Diagnostic.Label.t) =
+    let summary = Option.value summary ~default:l.message in
+    let labels = (indent l :: included) @ labels in
+    create Severity.Error ~labels ~notes summary in
+  Label.kprimaryf kont ~range primary
+
 let context ?printed_filename ?code loc message =
   Label.ksecondaryf
     (fun l ->
@@ -705,24 +724,30 @@ module StatementError = struct
     | IllTypedAssignment of
         Operator.t * Ast.typed_expr_meta * Ast.typed_expr_meta
 
-  let to_grace ?printed_filename ?code = function
+  let to_grace ?printed_filename ?code loc err =
+    let make_error ?labels ?notes ?summary =
+      make_error ?printed_filename ?code loc ?labels ?notes ?summary in
+    match err with
     | CannotAssignToReadOnly (name, prev) ->
-        createf Severity.Error
+        make_error
           ~labels:(previous_declaration ?printed_filename ?code prev)
-          "Cannot assign to function argument or loop identifier %a." quoted
-          name
+          ~summary:(Message.create "Cannot assign to read-only variable.")
+          "%a was previously used as a function argument or loop identifier."
+          quoted name
     | CannotAssignToGlobal (name, block, prev) ->
-        createf Severity.Error
+        make_error
           ~labels:(variable_in_block ?printed_filename ?code prev block)
-          "Cannot assign to global variable %a declared in previous block."
+          ~summary:(Message.create "Cannot assign to global variable.")
+          "%a was declared in a previous block and cannot be assigned to."
           quoted name
     | CannotAssignFunction (name, ut) ->
-        createf Severity.Error
-          "Cannot assign a function type (%a) to variable %a."
+        make_error
+          ~summary:(Message.create "Cannot assign a function to a variable.")
+          "Function type (%a) cannot be assigned to variable %a."
           (actual_style UnsizedType.pp)
           ut quoted name
     | LValueMultiIndexing ->
-        createf Severity.Error
+        make_error
           "Left hand side of an assignment cannot have nested multi-indexing."
     | LValueTupleUnpackDuplicates lvs ->
         let rec pp_lvalue ppf (l : Ast.untyped_lval) =
@@ -731,31 +756,34 @@ module StatementError = struct
           | LVariable id -> string ppf id.name
           | LIndexed (l, _) -> pf ppf "%a[%t]" pp_lvalue l ellipsis
           | LTupleProjection (l, ix) -> pf ppf "%a.%n" pp_lvalue l ix in
-        createf Severity.Error
+        make_error
+          ~summary:(Message.create "Ill-typed assignment statement.")
           "@[<v2>The same value cannot be assigned to multiple times in one \
            assignment:@ @[%a@]@]"
           Fmt.(list ~sep:comma pp_lvalue)
           lvs
     | LValueTupleReadAndWrite ids ->
-        createf Severity.Error
+        make_error
+          ~summary:(Message.create "Ill-typed assignment statement.")
           "@[<v2>The same variable cannot be both assigned to and read from on \
            the left hand side of an assignment:@ @[%a@]@]"
           Fmt.(list ~sep:comma string)
           ids
     | TargetPlusEqualsOutsideModelOrLogProb ->
-        createf Severity.Error
+        make_error
           "Target can only be accessed in the model block or in functions \
            ending with _lp."
     | JacobianPlusEqualsNotAllowed ->
-        createf Severity.Error
+        make_error
           "The jacobian adjustment can only be applied in the transformed \
            parameters block or in functions ending with _jacobian"
     | InvalidTildePDForPMF ->
-        createf Severity.Error
+        make_error
+          ~notes:
+            [ Message.createf "For example, %a should become %a." quoted
+                "y ~ normal_lpdf(0, 1)" quoted "y ~ normal(0, 1)" ]
           "~ statement should refer to a distribution without its \
-           \"_lpdf/_lupdf\" or \"_lpmf/_lupmf\" suffix.\n\
-           For example, \"target += normal_lpdf(y, 0, 1)\" should become \"y ~ \
-           normal(0, 1).\""
+           \"_lpdf/_lupdf\" or \"_lpmf/_lupmf\" suffix."
     | InvalidTildeCDForCCDF name ->
         let name =
           match String.chop_suffix name ~suffix:"_cdf" with
@@ -764,66 +792,68 @@ module StatementError = struct
               match String.chop_suffix name ~suffix:"_ccdf" with
               | Some n -> n ^ "_lccdf"
               | None -> name) in
-        createf Severity.Error
+        make_error
+          ~notes:[Message.createf "Use target += %s(%t) instead." name ellipsis]
           "CDF and CCDF functions may not be used with distribution notation \
-           (~). Use target += %s(%t) instead."
-          name ellipsis
+           (~)."
     | InvalidTildeNoSuchDistribution (name, true) ->
-        createf Severity.Error
-          "Ill-typed arguments to distribution statement (~). No function %a \
-           or %a was found when looking for distribution %a."
+        make_error
+          ~summary:(Message.createf "Ill-typed %a-statement." quoted "~")
+          "No function %a or %a was found when looking for distribution %a."
           quoted (name ^ "_lpmf") quoted (name ^ "_lpdf") quoted name
     | InvalidTildeNoSuchDistribution (name, false) ->
-        createf Severity.Error
-          "Ill-typed arguments to %a-statement. No function %a was found when \
-           looking for distribution %a."
-          quoted "~" quoted (name ^ "_lpdf") quoted name
+        make_error
+          ~summary:(Message.createf "Ill-typed %a-statement." quoted "~")
+          "No function %a was found when looking for distribution %a." quoted
+          (name ^ "_lpdf") quoted name
     | InvalidTruncationCDForCCDF args ->
-        createf Severity.Error
+        make_error
+          ~summary:
+            (Message.create
+               "Unable to truncate distribution with given arguments.")
           "Truncation is only defined if distribution has _lcdf and _lccdf \
            functions implemented with appropriate signature.\n\
            No matching signature for arguments: @[(%a)@]"
-          Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
+          Fmt.(list ~sep:comma (actual_style UnsizedType.pp_fun_arg))
           args
     | BreakOutsideLoop ->
-        createf Severity.Error "Break statements may only be used in loops."
+        make_error "Break statements may only be used in loops."
     | ContinueOutsideLoop ->
-        createf Severity.Error "Continue statements may only be used in loops."
+        make_error "Continue statements may only be used in loops."
     | ExpressionReturnOutsideReturningFn ->
-        createf Severity.Error
+        make_error
           "Expression return statements may only be used inside non-%a \
            definitions."
           (actual_style Fmt.string) "void"
     | VoidReturnOutsideNonReturningFn ->
-        createf Severity.Error
+        make_error
           "Empty return statements may only be used inside %a function \
            definitions."
           (expected_style Fmt.string)
           "void"
     | NonDataVariableSizeDecl (block, prev) ->
-        createf Severity.Error
+        make_error
           ~labels:(variable_in_block ?printed_filename ?code prev block)
           "Non-data variables are not allowed in top level size declarations."
     | NonIntBounds ->
-        createf Severity.Error
-          "@[Bounds of integer variable must be of type %a.%a@]"
+        make_error "@[Bounds of integer variable must be of type %a.%a@]"
           (expected_style UnsizedType.pp)
           UInt found_type UReal
     | ComplexTransform ->
-        createf Severity.Error "Complex types do not support transformations."
-    | IntegerParameter false ->
-        createf Severity.Error "Parameters cannot be integers."
+        make_error "Complex types do not support transformations."
+    | IntegerParameter false -> make_error "Parameters cannot be integers."
     | IntegerParameter true ->
-        createf Severity.Error "Transformed parameters cannot be integers."
+        make_error "Transformed parameters cannot be integers."
     | IllTypedAssignment (Operator.Equals, lt, rt) ->
-        createf Severity.Error
+        make_error
+          ~summary:(Message.create "Ill-typed assignment statement.")
           ~labels:
             (context ?printed_filename ?code lt.loc
                "Left hand side has type %a."
                (expected_style UnsizedType.pp)
                lt.type_)
-          "@[Ill-typed assignment statement.@ Expected the right hand side to \
-           have a type matching the destination.%a@]"
+          "@[Expected the right hand side to have a type matching the \
+           destination.%a@]"
           found_type rt.type_
     | IllTypedAssignment (op, lt, rt) ->
         let pp_expected_types ppf signatures =
@@ -839,7 +869,8 @@ module StatementError = struct
                 expected_types args found_type rt.type_ in
         let sigs =
           SignatureMismatch.list_valid_assignmentoperator_rhs lt.type_ op in
-        createf Severity.Error
+        make_error
+          ~summary:(Message.create "Ill-typed compound assignment statement.")
           ~labels:
             (context ?printed_filename ?code lt.loc
                "Left hand side has type %a."
@@ -858,18 +889,20 @@ type err =
 type t = Location_span.t * err
 
 let to_grace ?printed_filename ?code (loc, err) =
-  let diagonostic =
-    match err with
-    | TypeError err -> TypeError.to_grace ?printed_filename ?code err
-    | IdentifierError err ->
-        IdentifierError.to_grace ?printed_filename ?code err
-    | ExpressionError err ->
-        ExpressionError.to_grace ?printed_filename ?code err
-    | StatementError err -> StatementError.to_grace ?printed_filename ?code err
-  in
-  (* todo(grace): eventually, avoid using this and generate separate
-     messages/primary labels *)
-  Diagnostic.locate ?printed_filename ?code loc diagonostic
+  match err with
+  | TypeError err ->
+      (* todo(grace): eventually, avoid using this and generate separate
+         messages/primary labels *)
+      Diagnostic.locate ?printed_filename ?code loc
+      @@ TypeError.to_grace ?printed_filename ?code err
+  | IdentifierError err ->
+      Diagnostic.locate ?printed_filename ?code loc
+      @@ IdentifierError.to_grace ?printed_filename ?code err
+  | ExpressionError err ->
+      Diagnostic.locate ?printed_filename ?code loc
+      @@ ExpressionError.to_grace ?printed_filename ?code err
+  | StatementError err ->
+      StatementError.to_grace ?printed_filename ?code loc err
 
 let location = fst
 

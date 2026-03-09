@@ -1574,7 +1574,7 @@ let check_tilde_distribution loc cf tenv id arguments =
                   (fn_expr : Ast.typed_expression)]
       else
         (* Otherwise, the function is non existent *)
-        Semantic_error.invalid_tilde_no_such_dist loc name
+        Semantic_error.invalid_tilde_no_such_dist id.id_loc name
           (List.hd_exn argumenttypes |> snd |> UnsizedType.is_int_type)
         |> error
   | Some (AmbiguousMatch sigs, _) ->
