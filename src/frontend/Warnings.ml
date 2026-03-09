@@ -3,15 +3,12 @@ module Location = Middle.Location
 
 type t = Location_span.t * string
 
-let purple = Fmt.styled (`Fg `Magenta) Fmt.string
+let pp ?printed_filename ?code ppf (span, message) =
+  let diagnostic =
+    Grace.(Diagnostic.create Warning (Diagnostic.Message.create message)) in
+  let diagnostic = Diagnostic.locate ?printed_filename ?code span diagnostic in
+  Diagnostic.pp ppf diagnostic
 
-(* todo(grace): use grace *)
-
-let pp ?printed_filename ppf (span, message) =
-  Fmt.pf ppf "@[<v4>%a in @[%a@]:@ @[%a@]@]" purple "Warning"
-    (Location_span.pp ?printed_filename)
-    span Fmt.text message
-
-let pp_warnings ?printed_filename ppf warnings =
+let pp_warnings ?printed_filename ?code ppf warnings =
   if not (Core.List.is_empty warnings) then
-    Fmt.(pf ppf "@[<v>%a@.@]" (list ~sep:cut (pp ?printed_filename)) warnings)
+    Fmt.(pf ppf "@[<v>%a@.@]" (list ~sep:cut (pp ?printed_filename ?code)) warnings)

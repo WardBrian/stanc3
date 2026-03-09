@@ -58,9 +58,7 @@ let wrap_result ?printed_filename ~color_output ~code ~warnings res =
         |]
   | Error e ->
       let e =
-        str_color ~color_output "%a"
-          (Errors.pp ?printed_filename ?code:(Some (Js.to_string code)))
-          e in
+        str_color ~color_output "%a" (Errors.pp ?printed_filename ~code) e in
       wrap_error ~warnings e
 
 let typecheck e typ = String.equal (Js.to_string (Js.typeof e)) typ
@@ -229,13 +227,15 @@ let stan2cpp_wrapped name code flags includes =
     let+ result, warnings =
       Common.ICE.with_exn_message (fun () ->
           invoke_driver name code driver_flags) in
-    (result, warnings, driver_flags.filename_in_msg, color_output) in
+    (result, warnings, driver_flags.filename_in_msg, code, color_output) in
   match compilation_result with
-  | Ok (result, warnings, printed_filename, color_output) ->
+  | Ok (result, warnings, printed_filename, code, color_output) ->
       let warnings =
         include_reader_warnings
         @ List.map
-            ~f:(str_color ~color_output "%a" (Warnings.pp ?printed_filename))
+            ~f:
+              (str_color ~color_output "%a"
+                 (Warnings.pp ?printed_filename ~code))
             warnings in
       wrap_result ?printed_filename ~color_output ~code result ~warnings
   | Error non_compilation_error (* either an ICE or malformed JS input *) ->
