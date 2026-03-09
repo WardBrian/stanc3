@@ -28,7 +28,11 @@ let rec expected_types : UnsizedType.t Common.Nonempty_list.t Fmt.t =
 
 (** This is the real workhouse function of this class. It is in charge of
     building [Grace.Diagnostic.t]s from code locations, a primary messages, and
-    additional labels, notes, or a summary message. *)
+    additional labels, notes, or a summary message.
+
+    The main difference between this and Grace's built-in diagnostic builders is
+    that this prioritizes the primary label, rather than proritizing the top
+    level message, as the format string that requires more care *)
 let make_error ?printed_filename ?code (loc : Location_span.t) ?(labels = [])
     ?(notes = []) ?(summary : Message.t option) primary =
   (* todo map over labels with captured printed filename/code? *)
@@ -585,116 +589,153 @@ module ExpressionError = struct
     | IllTypedPrefixOperator of Operator.t * UnsizedType.t
     | IllTypedPostfixOperator of Operator.t * UnsizedType.t
 
-  let to_grace ?printed_filename:_ ?code:_ = function
+  let to_grace ?printed_filename ?code loc err =
+    let make_error ?labels ?notes ?summary =
+      make_error ?printed_filename ?code loc ?labels ?notes ?summary in
+    match err with
     | InvalidSizeDeclRng ->
-        createf Severity.Error
+        make_error
           "Random number generators are not allowed in top level size \
            declarations."
     | InvalidRngFunction ->
-        createf Severity.Error "%a" Fmt.text
+        make_error
+          ~summary:(Message.create "Invalid call to random number generator.")
+          "%a" Fmt.text
           "Random number generators are only allowed in transformed data \
            block, generated quantities block or user-defined functions with \
            names ending in _rng."
     | InvalidUnnormalizedFunction ->
-        createf Severity.Error "%a" Fmt.text
+        make_error
+          ~summary:
+            (Message.create "Invalid call to unnormalized probability function.")
+          "%a" Fmt.text
           "Functions with names ending in _lupdf and _lupmf can only be used \
            in the model block or user-defined functions with names ending in \
            _lpdf or _lpmf."
     | InvalidUnnormalizedUDF fname ->
-        createf Severity.Error
+        make_error
+          ~summary:(Message.create "Invalid user-defined function name.")
+          ~notes:
+            [ Message.createf
+                "Function names should end with _lpdf/_lpmf not _lupdf/_lupmf."
+            ]
           "@[%a is an invalid user-defined function name.@ User-defined \
            probability mass and density functions must@ be defined as \
-           normalized@ (function names should end@ with@ _lpdf/_lpmf not \
-           _lupdf/_lupmf).@]"
+           normalized.@]"
           quoted fname
     | ConditionalNotationNotAllowed ->
-        createf Severity.Error "%a" Fmt.text
-          "Only functions with names ending in _lpdf, _lupdf, _lpmf, _lupmf, \
-           _cdf, _lcdf, _lccdf can make use of conditional notation."
+        make_error
+          ~summary:(Message.create "Invalid conditioning in function.")
+          "@[Only functions with names ending in _lpdf,@ _lupdf,@ _lpmf,@ \
+           _lupmf,@ _cdf,@ _lcdf,@ _lccdf can make use of@ conditional \
+           notation (%a).@]"
+          quoted "|"
     | ConditioningRequired ->
-        createf Severity.Error "%a" Fmt.text
-          "Probability functions with suffixes _lpdf, _lupdf, _lpmf, _lupmf, \
-           _cdf, _lcdf and _lccdf, require a vertical bar (|) between the \
-           first two arguments."
-    | NotPrintable -> createf Severity.Error "Functions cannot be printed."
+        make_error
+          ~summary:(Message.create "Conditioning required for function.")
+          "@[Probability functions with suffixes _lpdf,@ _lupdf,@ _lpmf,@ \
+           _lupmf,@ _cdf,@ _lcdf,@ and _lccdf,@ require a vertical bar@ (%a) \
+           between@ the first@ two arguments.@]"
+          quoted "|"
+    | NotPrintable -> make_error "Functions cannot be printed."
     | EmptyArray ->
-        createf Severity.Error
-          "Array expressions must contain at least one element."
+        make_error "Array expressions must contain at least one element."
     | EmptyTuple ->
-        createf Severity.Error
-          "Tuple expressions must contain at least one element."
+        make_error "Tuple expressions must contain at least one element."
     | IntTooLarge ->
-        createf Severity.Error "Integer literal cannot be larger than %a."
+        make_error "Integer literal cannot be larger than %a."
           (expected_style Fmt.string)
           "2_147_483_647"
     | TupleIndexInvalidIndex (ix_max, ix) ->
-        createf Severity.Error
+        make_error
+          ~summary:(Message.create "Invalid tuple index.")
           "Tried to access index %a for a tuple of length %a.@ Only indices \
            between %a and %a are valid."
           (actual_style Fmt.int) ix (expected_style Fmt.int) ix_max
           (expected_style Fmt.int) 1 (expected_style Fmt.int) ix_max
     | TupleIndexNotTuple ut ->
-        createf Severity.Error
-          "Tried to index a non-tuple type. Expression has type %a."
+        make_error
+          ~summary:(Message.create "Tried to index a non-tuple type.")
+          "Expression has type %a."
           (actual_style UnsizedType.pp)
           ut
     | NotIndexable (ut, _) when UnsizedType.is_scalar_type ut ->
-        createf Severity.Error
-          "Tried to index a scalar type. Expression has type %a."
+        make_error "Tried to index a scalar type. Expression has type %a."
           (actual_style UnsizedType.pp)
           ut
     | NotIndexable (ut, nidcs) ->
-        createf Severity.Error
+        make_error
           "Too many indices. Expression only has %a dimensions, but received \
            %a indices."
           (expected_style Fmt.int)
           (UnsizedType.count_dims ut)
           (actual_style Fmt.int) nidcs
     | IllTypedTernaryIf (UInt, ut, _) when UnsizedType.is_fun_type ut ->
-        createf Severity.Error
-          "Ternary expression cannot have a function type: %a"
+        make_error "Ternary expression cannot have a function type: %a"
           (actual_style UnsizedType.pp)
           ut
     | IllTypedTernaryIf (UInt, ut2, ut3) ->
-        createf Severity.Error
-          "Type mismatch in ternary expression, expression when true is: %a; \
-           expression when false is: %a"
+        make_error
+          ~summary:(Message.create "Type mismatch in ternary expression.")
+          "@[Expression when true is: %a;@ Expression when false is: %a@]"
           (actual_style UnsizedType.pp)
           ut2
           (actual_style UnsizedType.pp)
           ut3
     | IllTypedTernaryIf (ut1, _, _) ->
-        createf Severity.Error
-          "@[Condition in ternary expression must be type %a.%a@]"
+        make_error "@[Condition in ternary expression must be type %a.%a@]"
           (expected_style UnsizedType.pp)
           UInt found_type ut1
     | IllTypedBinaryOperator (op, lt, rt) ->
-        createf Severity.Error
-          "Ill-typed arguments supplied to infix operator %a. Available \
-           signatures: %s@[<h>Instead supplied arguments of incompatible type: \
-           %a, %a.@]"
+        let sigs =
+          Stan_math_signatures.make_assignmentoperator_stan_math_signatures op
+        in
+        make_error
+          ~summary:
+            (Message.createf
+               "Ill-typed arguments supplied to infix operator %a." Operator.pp
+               op)
+          "@[<v 2>Available signatures for %a:@ %a@]@ @[<h>Instead supplied \
+           arguments of incompatible type: %a, %a.@]"
           Operator.pp op
-          (Stan_math_signatures.pretty_print_math_lib_operator_sigs op
-          |> String.concat ~sep:"\n")
-          UnsizedType.pp lt UnsizedType.pp rt
+          (Fmt.list ~sep:Fmt.cut (expected_style UnsizedType.pp_math_sig))
+          sigs
+          (actual_style UnsizedType.pp)
+          lt
+          (actual_style UnsizedType.pp)
+          rt
     | IllTypedPrefixOperator (op, ut) ->
-        createf Severity.Error
-          "Ill-typed arguments supplied to prefix operator %a. Available \
-           signatures: %s@[<h>Instead supplied argument of incompatible type: \
-           %a.@]"
+        let sigs =
+          Stan_math_signatures.make_assignmentoperator_stan_math_signatures op
+        in
+        make_error
+          ~summary:
+            (Message.createf
+               "Ill-typed arguments supplied to prefix operator %a." Operator.pp
+               op)
+          "@[<v 2>Available signatures for %a:@ %a@]@ @[<h>Instead supplied \
+           argument of incompatible type: %a.@]"
           Operator.pp op
-          (Stan_math_signatures.pretty_print_math_lib_operator_sigs op
-          |> String.concat ~sep:"\n")
-          UnsizedType.pp ut
+          (Fmt.list ~sep:Fmt.cut (expected_style UnsizedType.pp_math_sig))
+          sigs
+          (actual_style UnsizedType.pp)
+          ut
     | IllTypedPostfixOperator (op, ut) ->
-        createf Severity.Error
-          "Ill-typed arguments supplied to postfix operator %a. Available \
-           signatures: %s\n\
-           Instead supplied argument of incompatible type: %a."
+        let sigs =
+          Stan_math_signatures.make_assignmentoperator_stan_math_signatures op
+        in
+        make_error
+          ~summary:
+            (Message.createf
+               "Ill-typed arguments supplied to postfix operator %a."
+               Operator.pp op)
+          "@[<v 2>Available signatures for %a:@ %a@]@ @[<h>Instead supplied \
+           argument of incompatible type: %a.@]"
           Operator.pp op
-          (Stan_math_signatures.pretty_print_math_lib_operator_sigs op
-          |> String.concat ~sep:"\n")
-          UnsizedType.pp ut
+          (Fmt.list ~sep:Fmt.cut (expected_style UnsizedType.pp_math_sig))
+          sigs
+          (actual_style UnsizedType.pp)
+          ut
 end
 
 module StatementError = struct
@@ -899,8 +940,7 @@ let to_grace ?printed_filename ?code (loc, err) =
       Diagnostic.locate ?printed_filename ?code loc
       @@ IdentifierError.to_grace ?printed_filename ?code err
   | ExpressionError err ->
-      Diagnostic.locate ?printed_filename ?code loc
-      @@ ExpressionError.to_grace ?printed_filename ?code err
+      ExpressionError.to_grace ?printed_filename ?code loc err
   | StatementError err ->
       StatementError.to_grace ?printed_filename ?code loc err
 
