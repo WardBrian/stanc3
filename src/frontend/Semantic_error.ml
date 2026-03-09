@@ -874,7 +874,6 @@ let to_grace ?printed_filename ?code (loc, err) =
 let location = fst
 
 (* -- Constructors ---------------------------------------------------------- *)
-(* todo(grace): should these just immediately construct diagnostics? *)
 
 let invalid_return loc t1 t2 =
   (loc, TypeError (TypeError.IncorrectReturnType (t1, t2)))
