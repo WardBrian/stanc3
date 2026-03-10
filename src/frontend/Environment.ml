@@ -109,17 +109,25 @@ module Distance = struct
       if name <> suggestion then Some suggestion else None
 end
 
-let max_distance = 3
+let max_distance_for_length l = if l < 4 then 1 else if l < 10 then 3 else 5
 
 let nearest_ident env name =
-  try
-    (* catch any errors in distance and just ignore them, no big deal *)
-    Option.first_some
-      (Distance.find_min ~max:max_distance (Map.keys env) name)
-      (Utils.(
-         distribution_suffices
-         @ List.map ~f:(fun n -> "_" ^ n) cumulative_distribution_suffices_w_rng)
-      |> List.map ~f:(fun suffix -> name ^ suffix)
-      |> List.filter ~f:(Map.mem env)
-      |> List.hd)
-  with _ -> None
+  let open Common.Let_syntax.Option in
+  let* key =
+    try
+      (* catch any errors in distance and just ignore them, no big deal *)
+      Option.first_some
+        (Distance.find_min
+           ~max:(max_distance_for_length (String.length name))
+           (Map.keys env) name)
+        (Utils.(
+           distribution_suffices
+           @ List.map
+               ~f:(fun n -> "_" ^ n)
+               cumulative_distribution_suffices_w_rng)
+        |> List.map ~f:(fun suffix -> name ^ suffix)
+        |> List.filter ~f:(Map.mem env)
+        |> List.hd)
+    with _ -> None in
+  let+ values = Map.find env key in
+  (key, List.map ~f:(fun i -> i.location) values)

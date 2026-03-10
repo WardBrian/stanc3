@@ -42,7 +42,10 @@ val returning_fn_expected_nonfn_found :
   Location_span.t -> string -> Location_span.t option -> t
 
 val returning_fn_expected_undeclaredident_found :
-  Location_span.t -> string -> string option -> t
+     Location_span.t
+  -> string
+  -> (string * Location_span.t option list) option
+  -> t
 
 val returning_fn_expected_undeclared_dist_suffix_found :
   Location_span.t -> string * string -> t
@@ -131,7 +134,10 @@ val nonreturning_fn_expected_nonfn_found :
   Location_span.t -> string -> Location_span.t option -> t
 
 val nonreturning_fn_expected_undeclaredident_found :
-  Location_span.t -> string -> string option -> t
+     Location_span.t
+  -> string
+  -> (string * Location_span.t option list) option
+  -> t
 
 val illtyped_fn_app :
      Location_span.t
@@ -152,7 +158,13 @@ val ident_is_keyword : Location_span.t -> string -> t
 val ident_is_model_name : Location_span.t -> string -> t
 val ident_is_stanmath_name : Location_span.t -> string -> t
 val ident_in_use : Location_span.t -> string -> Location_span.t option -> t
-val ident_not_in_scope : Location_span.t -> string -> string option -> t
+
+val ident_not_in_scope :
+     Location_span.t
+  -> string
+  -> (string * Location_span.t option list) option
+  -> t
+
 val invalid_decl_rng_fn : Location_span.t -> t
 val invalid_rng_fn : Location_span.t -> t
 val invalid_unnormalized_fn : Location_span.t -> t

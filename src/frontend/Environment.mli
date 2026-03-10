@@ -53,6 +53,6 @@ val set_raw : t -> string -> info list -> t
 val mem : t -> string -> bool
 val iteri : t -> (string -> info list -> unit) -> unit
 
-val nearest_ident : t -> string -> string option
+val nearest_ident : t -> string -> (string * Location_span.t option list) option
 (** The nearest identifier by edit distance, capped at edit distance 3 (if one
     exists) *)

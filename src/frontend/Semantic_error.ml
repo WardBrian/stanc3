@@ -33,7 +33,7 @@ let rec expected_types : UnsizedType.t Common.Nonempty_list.t Fmt.t =
     The main difference between this and Grace's built-in diagnostic builders is
     that this prioritizes the primary label, rather than proritizing the top
     level message, as the format string that requires more care *)
-let make_error ?printed_filename ?code (loc : Location_span.t) ?(labels = [])
+let make_error ?printed_filename ?code ~(loc : Location_span.t) ?(labels = [])
     ?(notes = []) ?(summary : Message.t option) primary =
   (* todo map over labels with captured printed filename/code? *)
   let included =
@@ -517,51 +517,67 @@ module IdentifierError = struct
     | IsModelName of string
     | IsStanMathName of string
     | InUse of string * Location_span.t option
-    | NotInScope of string * string option
-    | ReturningFnExpectedUndeclaredIdentFound of string * string option
-    | NonReturningFnExpectedUndeclaredIdentFound of string * string option
+    | NotInScope of string * (string * Location_span.t option list) option
+    | ReturningFnExpectedUndeclaredIdentFound of
+        string * (string * Location_span.t option list) option
+    | NonReturningFnExpectedUndeclaredIdentFound of
+        string * (string * Location_span.t option list) option
     | UnnormalizedSuffix of string
     | DuplicateArgNames of Ast.identifier
 
-  let did_you_mean : string option Fmt.t =
-    Fmt.option @@ fun ppf s -> Fmt.pf ppf "@ Did you mean %a?" quoted s
+  let suggestions ?printed_filename ?code s =
+    match s with
+    | None -> ([], [])
+    | Some (s, locs) ->
+        let notes =
+          if Option.is_some (List.find ~f:Option.is_none locs) then
+            [Message.createf "Did you mean %a?" quoted s]
+          else [] in
+        let labels =
+          List.concat_map locs ~f:(fun l ->
+              optional_context ?printed_filename ?code l
+                "Did you mean %a, declared here?" quoted s) in
+        (notes, labels)
 
-  let to_grace ?printed_filename ?code = function
+  let to_grace ?printed_filename ?code ~loc err =
+    let make_error ?labels ?notes ?summary =
+      make_error ?printed_filename ?code ~loc ?labels ?notes ?summary in
+    match err with
     | IsStanMathName name ->
-        createf Severity.Error
+        make_error
           "Identifier %a clashes with a non-overloadable Stan Math library \
            function."
           quoted name
     | InUse (name, previous) ->
-        createf Severity.Error
+        make_error
           ~labels:(previous_declaration ?printed_filename ?code previous)
           "Identifier %a is already in use." quoted name
     | IsModelName name ->
-        createf Severity.Error "Identifier %a clashes with model name." quoted
-          name
+        make_error "Identifier %a clashes with model name." quoted name
     | IsKeyword name ->
-        createf Severity.Error "Identifier %a clashes with reserved keyword."
-          quoted name
+        make_error "Identifier %a clashes with reserved keyword." quoted name
     | NotInScope (name, sug) ->
-        createf Severity.Error "@[Identifier %a not in scope.%a@]" quoted name
-          did_you_mean sug
+        let notes, labels = suggestions ?printed_filename ?code sug in
+        make_error ~notes ~labels "@[Identifier %a not in scope.@]" quoted name
     | ReturningFnExpectedUndeclaredIdentFound (fn_name, sug) ->
-        createf Severity.Error
+        let notes, labels = suggestions ?printed_filename ?code sug in
+        make_error ~notes ~labels
           "@[A returning function was expected but an undeclared identifier %a \
-           was supplied.%a@]"
-          quoted fn_name did_you_mean sug
+           was supplied.@]"
+          quoted fn_name
     | NonReturningFnExpectedUndeclaredIdentFound (fn_name, sug) ->
-        createf Severity.Error
+        let notes, labels = suggestions ?printed_filename ?code sug in
+        make_error ~notes ~labels
           "@[A non-returning function was expected but an undeclared \
-           identifier %a was supplied.%a@]"
-          quoted fn_name did_you_mean sug
+           identifier %a was supplied.@]"
+          quoted fn_name
     | UnnormalizedSuffix name ->
-        createf Severity.Error
+        make_error
           "Identifier %a has a _lupdf/_lupmf suffix, which is only allowed for \
            functions."
           quoted name
     | DuplicateArgNames id ->
-        createf Severity.Error
+        make_error
           ~labels:
             (previous_declaration ?printed_filename ?code (Some id.id_loc))
           "@[All function arguments must have distinct identifiers.@ Argument \
@@ -589,9 +605,9 @@ module ExpressionError = struct
     | IllTypedPrefixOperator of Operator.t * UnsizedType.t
     | IllTypedPostfixOperator of Operator.t * UnsizedType.t
 
-  let to_grace ?printed_filename ?code loc err =
+  let to_grace ?printed_filename ?code ~loc err =
     let make_error ?labels ?notes ?summary =
-      make_error ?printed_filename ?code loc ?labels ?notes ?summary in
+      make_error ?printed_filename ?code ~loc ?labels ?notes ?summary in
     match err with
     | InvalidSizeDeclRng ->
         make_error
@@ -765,9 +781,9 @@ module StatementError = struct
     | IllTypedAssignment of
         Operator.t * Ast.typed_expr_meta * Ast.typed_expr_meta
 
-  let to_grace ?printed_filename ?code loc err =
+  let to_grace ?printed_filename ?code ~loc err =
     let make_error ?labels ?notes ?summary =
-      make_error ?printed_filename ?code loc ?labels ?notes ?summary in
+      make_error ?printed_filename ?code ~loc ?labels ?notes ?summary in
     match err with
     | CannotAssignToReadOnly (name, prev) ->
         make_error
@@ -937,12 +953,11 @@ let to_grace ?printed_filename ?code (loc, err) =
       Diagnostic.locate ?printed_filename ?code loc
       @@ TypeError.to_grace ?printed_filename ?code err
   | IdentifierError err ->
-      Diagnostic.locate ?printed_filename ?code loc
-      @@ IdentifierError.to_grace ?printed_filename ?code err
+      IdentifierError.to_grace ?printed_filename ?code ~loc err
   | ExpressionError err ->
-      ExpressionError.to_grace ?printed_filename ?code loc err
+      ExpressionError.to_grace ?printed_filename ?code ~loc err
   | StatementError err ->
-      StatementError.to_grace ?printed_filename ?code loc err
+      StatementError.to_grace ?printed_filename ?code ~loc err
 
 let location = fst
 

@@ -1189,7 +1189,7 @@ let check_nrfn loc tenv id es =
       |> error
   | [] ->
       Semantic_error.nonreturning_fn_expected_undeclaredident_found loc id.name
-        (Env.nearest_ident tenv id.name)
+        (Env.nearest_ident tenv id.name  )
       |> error
   | _ (* a function *) -> (
       match
