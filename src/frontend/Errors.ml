@@ -13,8 +13,8 @@ let syntax_error_to_grace ?printed_filename ?code err =
   let loc_span = Syntax_error.location err in
   let diagnostic =
     Grace.Diagnostic.(
-      (* We'd need more locations to really do much -- hard from parser, easy
-         from typechecker *)
+      (* todo(grace): to really do much better, we need to split up messages
+         from the parser somehow *)
       createf
         ~notes:(Syntax_error.notes err |> List.map ~f:Message.create)
         Error "%a" Syntax_error.pp err) in
