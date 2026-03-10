@@ -6,6 +6,67 @@ open Grace.Diagnostic
    loose, the main idea is to keep similar errors close to each other and still
    be semi-organized *)
 
+(* location helpers, set by to_grace *)
+let printed_filename_ref : string option ref = ref None
+let code_ref : string option ref = ref None
+let loc_ref : Location_span.t ref = ref Location_span.empty
+
+(* grace helpers *)
+
+(** This is the real workhouse function of this class. It is in charge of
+    building [Grace.Diagnostic.t]s from code locations, a primary messages, and
+    additional labels, notes, or a summary message.
+
+    The main difference between this and Grace's built-in diagnostic builders is
+    that this prioritizes the primary label, rather than proritizing the top
+    level message, as the format string that requires more care *)
+let make_error ?(labels = []) ?(notes = []) ?(summary : Message.t option)
+    primary =
+  let printed_filename = !printed_filename_ref in
+  let code = !code_ref in
+  let loc = !loc_ref in
+  let included =
+    Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc in
+  let indent (l : Grace.Diagnostic.Label.t) =
+    { l with
+      message= Message.createf "@.%a" (Fmt.styled `None Message.pp) l.message }
+  in
+  let range = Diagnostic.range_of_loc_span ?printed_filename ?code loc in
+  let kont (l : Grace.Diagnostic.Label.t) =
+    let summary = Option.value summary ~default:l.message in
+    let labels = (indent l :: included) @ labels in
+    create Severity.Error ~labels ~notes summary in
+  Label.kprimaryf kont ~range primary
+
+let context loc message =
+  let printed_filename = !printed_filename_ref in
+  let code = !code_ref in
+  Label.ksecondaryf
+    (fun l ->
+      l :: Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc)
+    ~range:(Diagnostic.range_of_loc_span ?printed_filename ?code loc)
+    message
+
+let optional_context loc message =
+  match loc with
+  | Some loc -> context loc message
+  | None -> Format.ikfprintf (fun _ -> []) Fmt.stdout message
+
+let function_defined loc = optional_context loc "Function defined here."
+let callback_defined loc = optional_context loc "Callback defined here."
+
+let variable_in_block loc =
+  optional_context loc "Variable was declared in %a here."
+    (Fmt.of_to_string Environment.block_name)
+
+let functions_considered errors =
+  List.concat_map errors ~f:(fun (_, _, loc) -> function_defined loc)
+
+let previous_declaration prev =
+  optional_context prev "Previous declaration here."
+
+(* formatting helpers *)
+
 let ellipsis ppf = Fmt.styled `Faint Fmt.string ppf "..."
 let expected_style = SignatureMismatch.expected_style
 let actual_style = SignatureMismatch.actual_style
@@ -25,59 +86,6 @@ let rec expected_types : UnsizedType.t Common.Nonempty_list.t Fmt.t =
     | t :: ts ->
         Fmt.pf ppf "%a,@ %a" ust t expected_types
           (ts |> Common.Nonempty_list.of_list_exn)
-
-(** This is the real workhouse function of this class. It is in charge of
-    building [Grace.Diagnostic.t]s from code locations, a primary messages, and
-    additional labels, notes, or a summary message.
-
-    The main difference between this and Grace's built-in diagnostic builders is
-    that this prioritizes the primary label, rather than proritizing the top
-    level message, as the format string that requires more care *)
-let make_error ?printed_filename ?code ~(loc : Location_span.t) ?(labels = [])
-    ?(notes = []) ?(summary : Message.t option) primary =
-  (* todo map over labels with captured printed filename/code? *)
-  let included =
-    Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc in
-  let indent (l : Grace.Diagnostic.Label.t) =
-    { l with
-      message= Message.createf "@.%a" (Fmt.styled `None Message.pp) l.message }
-  in
-  let range = Diagnostic.range_of_loc_span ?printed_filename ?code loc in
-  let kont (l : Grace.Diagnostic.Label.t) =
-    let summary = Option.value summary ~default:l.message in
-    let labels = (indent l :: included) @ labels in
-    create Severity.Error ~labels ~notes summary in
-  Label.kprimaryf kont ~range primary
-
-let context ?printed_filename ?code loc message =
-  Label.ksecondaryf
-    (fun l ->
-      l :: Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc)
-    ~range:(Diagnostic.range_of_loc_span ?printed_filename ?code loc)
-    message
-
-let optional_context ?printed_filename ?code loc message =
-  match loc with
-  | Some loc -> context ?printed_filename ?code loc message
-  | None -> Format.ikfprintf (fun _ -> []) Fmt.stdout message
-
-let function_defined ?printed_filename ?code loc =
-  optional_context ?printed_filename ?code loc "Function defined here."
-
-let callback_defined ?printed_filename ?code loc =
-  optional_context ?printed_filename ?code loc "Callback defined here."
-
-let variable_in_block ?printed_filename ?code loc =
-  optional_context ?printed_filename ?code loc
-    "Variable was declared in %a here."
-    (Fmt.of_to_string Environment.block_name)
-
-let functions_considered ?printed_filename ?code errors =
-  List.concat_map errors ~f:(fun (_, _, loc) ->
-      function_defined ?printed_filename ?code loc)
-
-let previous_declaration ?printed_filename ?code prev =
-  optional_context ?printed_filename ?code prev "Previous declaration here."
 
 module TypeError = struct
   type t =
@@ -178,36 +186,33 @@ module TypeError = struct
           Fmt.pf ppf "%a,@ %a" ust t expected_types
             (ts |> Common.Nonempty_list.of_list_exn)
 
-  let to_grace ?printed_filename ?code ~loc err =
-    let make_error ?labels ?notes ?summary =
-      make_error ?printed_filename ?code ~loc ?labels ?notes ?summary in
-    let generic_laplace_usage note (name, supplied) =
-      let req = Stan_math_signatures.laplace_helper_param_types name in
-      let is_helper = not @@ List.is_empty req in
-      let pp_lik_args ppf =
-        if is_helper then Fmt.(list ~sep:comma UnsizedType.pp_fun_arg) ppf req
-        else
-          Fmt.pf ppf "(vector, T_l%t) => real,@ tuple(T_l%t)" ellipsis ellipsis
-      in
-      let pp_laplace_tols ppf =
-        if String.is_substring ~substring:"_tol" name then
-          Fmt.pf ppf ", %a"
-            Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
-            Stan_math_signatures.laplace_tolerance_argument_types in
-      let pp_supplied_tys ppf =
-        if List.is_empty supplied then Fmt.nop ppf ()
-        else
-          Fmt.pf ppf "@ However, we received the types:@ @[<hov 2>(%a)@]"
-            Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
-            supplied in
-      make_error
-        ~summary:
-          (Message.createf "Ill-typed arguments supplied to %a." quoted name)
-        ~notes:[note]
-        "@[<v>The valid signature of this function is@ @[<hov 2>%s(%t,@ data \
-         int,@ (T_k%t) => matrix,@ tuple(T_k%t)%t)@]%t@@]"
-        name pp_lik_args ellipsis ellipsis pp_laplace_tols pp_supplied_tys in
-    match err with
+  let generic_laplace_usage note (name, supplied) =
+    let req = Stan_math_signatures.laplace_helper_param_types name in
+    let is_helper = not @@ List.is_empty req in
+    let pp_lik_args ppf =
+      if is_helper then Fmt.(list ~sep:comma UnsizedType.pp_fun_arg) ppf req
+      else Fmt.pf ppf "(vector, T_l%t) => real,@ tuple(T_l%t)" ellipsis ellipsis
+    in
+    let pp_laplace_tols ppf =
+      if String.is_substring ~substring:"_tol" name then
+        Fmt.pf ppf ", %a"
+          Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
+          Stan_math_signatures.laplace_tolerance_argument_types in
+    let pp_supplied_tys ppf =
+      if List.is_empty supplied then Fmt.nop ppf ()
+      else
+        Fmt.pf ppf "@ However, we received the types:@ @[<hov 2>(%a)@]"
+          Fmt.(list ~sep:comma UnsizedType.pp_fun_arg)
+          supplied in
+    make_error
+      ~summary:
+        (Message.createf "Ill-typed arguments supplied to %a." quoted name)
+      ~notes:[note]
+      "@[<v>The valid signature of this function is@ @[<hov 2>%s(%t,@ data \
+       int,@ (T_k%t) => matrix,@ tuple(T_k%t)%t)@]%t@@]"
+      name pp_lik_args ellipsis ellipsis pp_laplace_tols pp_supplied_tys
+
+  let to_grace = function
     | IncorrectReturnType (t1, t2) ->
         make_error
           ~summary:(Message.create "Invalid return statement.")
@@ -276,8 +281,8 @@ module TypeError = struct
         make_error
           ~summary:
             (Message.createf "Ill-typed arguments supplied to %a." quoted name)
-          ~labels:(callback_defined ?printed_filename ?code prev)
-          "@[%a@]" SignatureMismatch.pp_signature_mismatch
+          ~labels:(callback_defined prev) "@[%a@]"
+          SignatureMismatch.pp_signature_mismatch
           ( name
           , arg_tys
           , ([((ReturnType UReal, expected_args, None), error)], false) )
@@ -285,8 +290,8 @@ module TypeError = struct
         make_error
           ~summary:
             (Message.createf "Ill-typed arguments supplied to %a." quoted name)
-          ~labels:(callback_defined ?printed_filename ?code prev)
-          "@[%a@]" SignatureMismatch.pp_signature_mismatch
+          ~labels:(callback_defined prev) "@[%a@]"
+          SignatureMismatch.pp_signature_mismatch
           ( name
           , arg_tys
           , ([((UnsizedType.ReturnType return_type, args, None), error)], false)
@@ -296,7 +301,7 @@ module TypeError = struct
         make_error
           ~summary:
             (Message.createf "Ill-typed arguments supplied to %a." quoted name)
-          ~labels:(functions_considered ?printed_filename ?code signatures)
+          ~labels:(functions_considered signatures)
           "@[%a@]" SignatureMismatch.pp_signature_mismatch
           (name, arg_tys, errors)
     | IllTypedForwardedFunctionApp (caller, name, skipped, details, prev) ->
@@ -304,7 +309,7 @@ module TypeError = struct
           ~summary:
             (Message.createf "Ill-typed arguments forwarded to %a in %a." quoted
                name quoted caller)
-          ~labels:(callback_defined ?printed_filename ?code prev)
+          ~labels:(callback_defined prev)
           "Cannot call %a@ with arguments forwarded from call to@ %a:@ %a"
           quoted name quoted caller
           (SignatureMismatch.pp_mismatch_details ~skipped)
@@ -315,7 +320,7 @@ module TypeError = struct
             (Message.createf
                "Invalid signature for forwarded function %a in %a." quoted name
                quoted caller)
-          ~labels:(callback_defined ?printed_filename ?code prev)
+          ~labels:(callback_defined prev)
           "Function %a does not have a valid signature for use in %a:@ %a"
           quoted name quoted caller
           (SignatureMismatch.pp_mismatch_details ~skipped:[])
@@ -355,8 +360,7 @@ module TypeError = struct
             (Message.create
                "Incompatible function used in embedded Laplace approximation.")
           ~labels:
-            (context ?printed_filename ?code call_loc
-               "Call to incompatible function occurs here.")
+            (context call_loc "Call to incompatible function occurs here.")
           "This likelihood function calls the function %a,@ which does not \
            currently support higher-order derivatives and@ cannot be used in \
            an embedded Laplace approximation."
@@ -434,7 +438,7 @@ module TypeError = struct
           ~summary:
             (Message.createf
                "No unique minimum promotion found for function %a." quoted name)
-          ~labels:(functions_considered ?printed_filename ?code signatures)
+          ~labels:(functions_considered signatures)
           ~notes:
             [ Message.createf
                 "Consider defining a new signature for the exact@ types needed \
@@ -449,30 +453,24 @@ module TypeError = struct
           (Fmt.list ~sep:Fmt.cut pp_sig)
           signatures
     | ReturningFnExpectedNonReturningFound (fn_name, prev) ->
-        make_error
-          ~labels:(function_defined ?printed_filename ?code prev)
+        make_error ~labels:(function_defined prev)
           "A returning function was expected but a non-returning function %a \
            was supplied."
           quoted fn_name
     | NonReturningFnExpectedReturningFound (fn_name, prev) ->
-        make_error
-          ~labels:(function_defined ?printed_filename ?code prev)
+        make_error ~labels:(function_defined prev)
           "A non-returning function was expected but a returning function %a \
            was supplied."
           quoted fn_name
     | ReturningFnExpectedNonFnFound (fn_name, prev) ->
         make_error
-          ~labels:
-            (optional_context ?printed_filename ?code prev
-               "Variable was declared here.")
+          ~labels:(optional_context prev "Variable was declared here.")
           "A returning function was expected but a non-function value %a was \
            supplied."
           quoted fn_name
     | NonReturningFnExpectedNonFnFound (fn_name, prev) ->
         make_error
-          ~labels:
-            (optional_context ?printed_filename ?code prev
-               "Variable was declared here.")
+          ~labels:(optional_context prev "Variable was declared here.")
           "A non-returning function was expected but a non-function value %a \
            was supplied."
           quoted fn_name
@@ -498,7 +496,7 @@ module TypeError = struct
           (prefix ^ "_" ^ newsuffix)
     | FuncOverloadRtOnly (name, _, rt', prev) ->
         make_error
-          ~labels:(previous_declaration ?printed_filename ?code prev)
+          ~labels:(previous_declaration prev)
           ~notes:
             [ Message.createf "Previously used return type %a."
                 (actual_style UnsizedType.pp_returntype)
@@ -506,14 +504,14 @@ module TypeError = struct
           "Function %a cannot be overloaded by return type only." quoted name
     | FuncDeclRedefined (name, ut, stan_math, prev) ->
         make_error
-          ~labels:(previous_declaration ?printed_filename ?code prev)
+          ~labels:(previous_declaration prev)
           "Function %a %s signature %a" quoted name
           (if stan_math then "is already declared in the Stan Math library with"
            else "has already been declared for")
           UnsizedType.pp ut
     | FunDeclExists (name, prev) ->
         make_error
-          ~labels:(previous_declaration ?printed_filename ?code prev)
+          ~labels:(previous_declaration prev)
           "Function %a has already been declared. A definition is expected."
           quoted name
     | FunDeclNoDefn name ->
@@ -572,23 +570,21 @@ module IdentifierError = struct
     | UnnormalizedSuffix of string
     | DuplicateArgNames of Ast.identifier
 
-  let to_grace ?printed_filename ?code ~loc err =
-    let suggestions s =
-      match s with
-      | None -> ([], [])
-      | Some (s, locs) ->
-          let notes =
-            if Option.is_some (List.find ~f:Option.is_none locs) then
-              [Message.createf "Did you mean %a?" quoted s]
-            else [] in
-          let labels =
-            List.concat_map locs ~f:(fun l ->
-                optional_context ?printed_filename ?code l
-                  "Did you mean %a, declared here?" quoted s) in
-          (notes, labels) in
-    let make_error ?labels ?notes ?summary =
-      make_error ?printed_filename ?code ~loc ?labels ?notes ?summary in
-    match err with
+  let suggestions s =
+    match s with
+    | None -> ([], [])
+    | Some (s, locs) ->
+        let notes =
+          if Option.is_some (List.find ~f:Option.is_none locs) then
+            [Message.createf "Did you mean %a?" quoted s]
+          else [] in
+        let labels =
+          List.concat_map locs ~f:(fun l ->
+              optional_context l "Did you mean %a, declared here?" quoted s)
+        in
+        (notes, labels)
+
+  let to_grace = function
     | IsStanMathName name ->
         make_error
           "Identifier %a clashes with a non-overloadable Stan Math library \
@@ -596,7 +592,7 @@ module IdentifierError = struct
           quoted name
     | InUse (name, previous) ->
         make_error
-          ~labels:(previous_declaration ?printed_filename ?code previous)
+          ~labels:(previous_declaration previous)
           "Identifier %a is already in use." quoted name
     | IsModelName name ->
         make_error "Identifier %a clashes with model name." quoted name
@@ -624,8 +620,7 @@ module IdentifierError = struct
           quoted name
     | DuplicateArgNames id ->
         make_error
-          ~labels:
-            (previous_declaration ?printed_filename ?code (Some id.id_loc))
+          ~labels:(previous_declaration (Some id.id_loc))
           "@[All function arguments must have distinct identifiers.@ Argument \
            %a is duplicated.@]"
           quoted id.name
@@ -651,10 +646,7 @@ module ExpressionError = struct
     | IllTypedPrefixOperator of Operator.t * UnsizedType.t
     | IllTypedPostfixOperator of Operator.t * UnsizedType.t
 
-  let to_grace ?printed_filename ?code ~loc err =
-    let make_error ?labels ?notes ?summary =
-      make_error ?printed_filename ?code ~loc ?labels ?notes ?summary in
-    match err with
+  let to_grace = function
     | InvalidSizeDeclRng ->
         make_error
           "Random number generators are not allowed in top level size \
@@ -827,19 +819,16 @@ module StatementError = struct
     | IllTypedAssignment of
         Operator.t * Ast.typed_expr_meta * Ast.typed_expr_meta
 
-  let to_grace ?printed_filename ?code ~loc err =
-    let make_error ?labels ?notes ?summary =
-      make_error ?printed_filename ?code ~loc ?labels ?notes ?summary in
-    match err with
+  let to_grace = function
     | CannotAssignToReadOnly (name, prev) ->
         make_error
-          ~labels:(previous_declaration ?printed_filename ?code prev)
+          ~labels:(previous_declaration prev)
           ~summary:(Message.create "Cannot assign to read-only variable.")
           "%a was previously used as a function argument or loop identifier."
           quoted name
     | CannotAssignToGlobal (name, block, prev) ->
         make_error
-          ~labels:(variable_in_block ?printed_filename ?code prev block)
+          ~labels:(variable_in_block prev block)
           ~summary:(Message.create "Cannot assign to global variable.")
           "%a was declared in a previous block and cannot be assigned to."
           quoted name
@@ -936,7 +925,7 @@ module StatementError = struct
           "void"
     | NonDataVariableSizeDecl (block, prev) ->
         make_error
-          ~labels:(variable_in_block ?printed_filename ?code prev block)
+          ~labels:(variable_in_block prev block)
           "Non-data variables are not allowed in top level size declarations."
     | NonIntBounds ->
         make_error "@[Bounds of integer variable must be of type %a.%a@]"
@@ -951,8 +940,7 @@ module StatementError = struct
         make_error
           ~summary:(Message.create "Ill-typed assignment statement.")
           ~labels:
-            (context ?printed_filename ?code lt.loc
-               "Left hand side has type %a."
+            (context lt.loc "Left hand side has type %a."
                (expected_style UnsizedType.pp)
                lt.type_)
           "@[Expected the right hand side to have a type matching the \
@@ -975,8 +963,7 @@ module StatementError = struct
         make_error
           ~summary:(Message.create "Ill-typed compound assignment statement.")
           ~labels:
-            (context ?printed_filename ?code lt.loc
-               "Left hand side has type %a."
+            (context lt.loc "Left hand side has type %a."
                (expected_style UnsizedType.pp)
                lt.type_)
           "@[Ill-typed assignment operator %a=.@ %a@]" Operator.pp op
@@ -992,16 +979,14 @@ type err =
 type t = Location_span.t * err
 
 let to_grace ?printed_filename ?code (loc, err) =
-  (* todo(grace): set printed_filename, code in a global to avoid viral
-     passing? *)
+  printed_filename_ref := printed_filename;
+  code_ref := code;
+  loc_ref := loc;
   match err with
-  | TypeError err -> TypeError.to_grace ?printed_filename ?code ~loc err
-  | IdentifierError err ->
-      IdentifierError.to_grace ?printed_filename ?code ~loc err
-  | ExpressionError err ->
-      ExpressionError.to_grace ?printed_filename ?code ~loc err
-  | StatementError err ->
-      StatementError.to_grace ?printed_filename ?code ~loc err
+  | TypeError err -> TypeError.to_grace err
+  | IdentifierError err -> IdentifierError.to_grace err
+  | ExpressionError err -> ExpressionError.to_grace err
+  | StatementError err -> StatementError.to_grace err
 
 let location = fst
 
