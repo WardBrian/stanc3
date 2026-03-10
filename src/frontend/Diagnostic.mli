@@ -17,6 +17,7 @@ val range_of_loc_span :
   ?printed_filename:string -> ?code:string -> Middle.Location_span.t -> Range.t
 
 val pp : 'a Diagnostic.t Fmt.t
+val pp_compact : 'a Diagnostic.t Fmt.t
 
 module Json_printer : sig
   val to_yojson :

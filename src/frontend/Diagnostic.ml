@@ -94,6 +94,12 @@ let pp ppf =
   in
   pp_diagnostic ~config:{config with use_ansi} ?code_to_string:None ppf
 
+let pp_compact ppf =
+  let use_ansi =
+    match Fmt.style_renderer ppf with `Ansi_tty -> Some true | _ -> Some false
+  in
+  pp_compact_diagnostic ~config:{config with use_ansi} ?code_to_string:None ppf
+
 module Json_printer = struct
   (* Hopefully something like this will appear in Grace one day *)
 
