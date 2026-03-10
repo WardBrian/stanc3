@@ -115,7 +115,7 @@ val illtyped_laplace_generic :
     function arguments are misplaced, both of which prevent us from giving a
     better message *)
 
-val laplace_compatibility : Location_span.t -> string -> t
+val laplace_compatibility : Location_span.t -> string -> Location_span.t -> t
 val illtyped_laplace_extra_args : Location_span.t -> string -> int -> t
 
 val illtyped_laplace_hessian_block_size_arg :

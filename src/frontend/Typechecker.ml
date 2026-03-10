@@ -633,11 +633,11 @@ let verify_second_order_derivative_compatibility (ast : typed_program) =
     if Set.mem visited fn_name then visited
     else
       let rec check_expr seen = function
-        | {expr= FunApp (StanLib _, {name; _}, _); _}
+        | {expr= FunApp (StanLib _, {name; id_loc= call_loc}, _); _}
           when Stan_math_signatures.lacks_higher_order_autodiff name ->
             (* note: we could possibly check all the arguments are DataOnly and
                still allow it, but those seem like mostly useless cases. *)
-            Semantic_error.laplace_compatibility id_loc name |> error
+            Semantic_error.laplace_compatibility id_loc name call_loc |> error
         | {expr= FunApp (UserDefined _, name, es); _} ->
             (* we want the location to be the use-site no matter what *)
             let seen' = check_fun seen {name with id_loc} in
@@ -1189,7 +1189,7 @@ let check_nrfn loc tenv id es =
       |> error
   | [] ->
       Semantic_error.nonreturning_fn_expected_undeclaredident_found loc id.name
-        (Env.nearest_ident tenv id.name  )
+        (Env.nearest_ident tenv id.name)
       |> error
   | _ (* a function *) -> (
       match
