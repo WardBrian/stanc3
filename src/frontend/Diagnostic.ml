@@ -93,3 +93,64 @@ let pp ppf =
     match Fmt.style_renderer ppf with `Ansi_tty -> Some true | _ -> Some false
   in
   pp_diagnostic ~config:{config with use_ansi} ?code_to_string:None ppf
+
+module Json_printer = struct
+  (* Hopefully something like this will appear in Grace one day *)
+
+  module Utf8 = struct
+    (* copied from Grace_ansi_renderer *)
+    let length s =
+      let decoder = Uutf.decoder ~encoding:`UTF_8 (`String s) in
+      let rec loop acc =
+        match Uutf.decode decoder with
+        | `Uchar _ -> loop (acc + 1)
+        | `End -> acc
+        | `Malformed _ -> raise (Invalid_argument "invalid UTF-8")
+        | `Await -> assert false in
+      loop 0
+  end
+
+  open Grace_source_reader
+
+  let to_yojson ?code_to_string (d : 'a Diagnostic.t) : Yojson.Basic.t =
+    with_reader @@ fun () ->
+    let range_to_positions (r : Range.t) =
+      let sd = open_source (Range.source r) in
+      let byte_index_to_position (idx : Byte_index.t) =
+        let col_of_byte_index (idx : Byte_index.t) ~sd ~line =
+          (* copied from Grace_ansi_renderer *)
+          let content = slicei sd (Line.start line) idx in
+          let length = Utf8.length content in
+          length + 1 in
+        let line = Line.of_byte_index sd idx in
+        let col = col_of_byte_index idx ~sd ~line in
+        ((line.idx :> int) + 1, col) in
+      let start_line, start_col = byte_index_to_position (Range.start r) in
+      let end_line, end_col = byte_index_to_position (Range.stop r) in
+      let vals =
+        [ ( "start"
+          , `Assoc [("line", `Int start_line); ("column", `Int start_col)] )
+        ; ("end", `Assoc [("line", `Int end_line); ("column", `Int end_col)]) ]
+      in
+      match Source.name (Range.source r) with
+      | Some name -> `Assoc (("file", `String name) :: vals)
+      | None -> `Assoc vals in
+    let vals =
+      [ ("severity", `String (Diagnostic.Severity.to_string d.severity))
+      ; ("message", `String (Diagnostic.Message.to_string d.message))
+      ; ( "labels"
+        , `List
+            (List.map d.labels ~f:(fun label ->
+                 `Assoc
+                   [ ("range", range_to_positions label.range)
+                   ; ( "priority"
+                     , `String (Diagnostic.Priority.to_string label.priority) )
+                   ; ( "message"
+                     , `String (Diagnostic.Message.to_string label.message) ) ]))
+        ) ] in
+    match (code_to_string, d.code) with
+    | Some f, Some c -> `Assoc (("error_code", `String (f c)) :: vals)
+    | _ -> `Assoc vals
+
+  let pp_json ppf d = to_yojson d |> Yojson.Basic.pretty_print ppf
+end
