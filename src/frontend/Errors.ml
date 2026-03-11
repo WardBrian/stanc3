@@ -33,4 +33,4 @@ let pp ?printed_filename ?code ppf t =
 
 let pp_json ?printed_filename ?code ppf t =
   let diagnostic = to_grace ?printed_filename ?code t in
-  Fmt.pf ppf "%a" Diagnostic.Json_printer.pp_json diagnostic
+  Fmt.pf ppf "%a" Diagnostic.pp_json diagnostic

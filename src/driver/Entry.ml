@@ -105,7 +105,8 @@ let stan2cpp model_name model (flags : Flags.t) (output : other_output -> unit)
           Error
             (Errors.DebugDataError
                ( Location_span.empty
-               , "Failed to parse " ^ ctx ^ " for debug generation: " ^ reason
+               , Fmt.str "@[<v2>Failed to parse %s for debug generation:@ %a@]"
+                   ctx Fmt.lines reason
                , true ))) in
   let* () =
     if flags.debug_settings.debug_generate_data then

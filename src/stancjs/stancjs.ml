@@ -44,9 +44,7 @@ let wrap_warnings ~output ~warnings =
     match output with
     | Basic -> fun w -> Js.string (Fmt.str "%a" Diagnostic.pp w)
     | ANSIColored -> fun w -> Js.string (str_color "%a" Diagnostic.pp w)
-    | JSON ->
-        fun w -> json_parse (Fmt.str "%a" Diagnostic.Json_printer.pp_json w)
-  in
+    | JSON -> fun w -> json_parse (Fmt.str "%a" Diagnostic.pp_json w) in
   ( "warnings"
   , Js.Unsafe.coerce (Js.array (List.to_array (List.map ~f:to_js warnings))) )
 
