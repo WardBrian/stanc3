@@ -5,9 +5,12 @@ module Location = Middle.Location
 type t = Location_span.t * string
 
 let to_grace ?printed_filename ?code (span, message) =
-  let diagnostic =
-    Grace.(Diagnostic.create Warning (Diagnostic.Message.create message)) in
-  Diagnostic.locate ?printed_filename ?code span diagnostic
+  let open Grace.Diagnostic in
+  let range, included =
+    Diagnostic.range_of_loc_span ?printed_filename ?code span in
+  let message = Message.create message in
+  let labels = Label.primary ~range message :: included in
+  create Warning ~labels message
 
 let pp ?printed_filename ?code ppf (span, message) =
   let diagnostic = to_grace ?printed_filename ?code (span, message) in

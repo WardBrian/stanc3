@@ -25,27 +25,24 @@ let make_error ?(labels = []) ?(notes = []) ?(summary : Message.t option)
   let printed_filename = !printed_filename_ref in
   let code = !code_ref in
   let loc = !loc_ref in
-  let included =
-    Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc in
   let indent (l : Grace.Diagnostic.Label.t) =
     { l with
       message= Message.createf "@.%a" (Fmt.styled `None Message.pp) l.message }
   in
-  let range = Diagnostic.range_of_loc_span ?printed_filename ?code loc in
+  let range, included =
+    Diagnostic.range_of_loc_span ?printed_filename ?code loc in
   let kont (l : Grace.Diagnostic.Label.t) =
     let summary = Option.value summary ~default:l.message in
     let labels = (indent l :: included) @ labels in
-    create Severity.Error ~labels ~notes summary in
+    create Error ~labels ~notes summary in
   Label.kprimaryf kont ~range primary
 
 let context loc message =
   let printed_filename = !printed_filename_ref in
   let code = !code_ref in
-  Label.ksecondaryf
-    (fun l ->
-      l :: Diagnostic.included_diagnostic ?printed_filename ?code loc.begin_loc)
-    ~range:(Diagnostic.range_of_loc_span ?printed_filename ?code loc)
-    message
+  let range, included =
+    Diagnostic.range_of_loc_span ?printed_filename ?code loc in
+  Label.ksecondaryf (fun l -> l :: included) ~range message
 
 let optional_context loc message =
   match loc with
@@ -987,8 +984,6 @@ let to_grace ?printed_filename ?code (loc, err) =
   | IdentifierError err -> IdentifierError.to_grace err
   | ExpressionError err -> ExpressionError.to_grace err
   | StatementError err -> StatementError.to_grace err
-
-let location = fst
 
 (* -- Constructors ---------------------------------------------------------- *)
 

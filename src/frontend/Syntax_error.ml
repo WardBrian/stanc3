@@ -11,14 +11,6 @@ type err =
 
 type t = Middle.Location_span.t * err
 
-let location = fst
-
-let kind (_, err) =
-  match err with
-  | Parsing _ -> "parsing error"
-  | UnexpectedEOF | Lexing -> "lexing error"
-  | Include _ -> "include error"
-
 (** Sets up the semantic tag machinery
     (https://ocaml.org/manual/api/Format.html#tags) to print ANSI escape codes
     for formatting *)
@@ -98,14 +90,28 @@ let pp_styled_text : styled_text Fmt.t =
           Format.pp_set_formatter_stag_functions ppf former;
           Format.pp_set_mark_tags ppf marks)
 
-let pp ppf (_, err) =
-  match err with
+let pp ppf = function
   | Parsing message -> pp_styled_text ppf message
   | Lexing -> Fmt.pf ppf "Invalid character found.@."
   | UnexpectedEOF -> Fmt.pf ppf "Unexpected end of input.@."
   | Include (message, _) -> Fmt.pf ppf "%s@." message
 
-let notes = function _, Include (_, Some note) -> [note] | _ -> []
+let to_grace ?printed_filename ?code ((loc, err) : t) =
+  let open Grace.Diagnostic in
+  let range, included =
+    Diagnostic.range_of_loc_span ?printed_filename ?code loc in
+  let primary = Label.primaryf ~range "@.%a" pp err in
+  let summary =
+    (* todo(grace): to really do much better, we need to split up messages from
+       the parser somehow *)
+    let str = Fmt.str "%a" pp err in
+    str |> String.lsplit2 ~on:'.' |> Option.map ~f:fst
+    |> Option.map ~f:(Fn.flip ( ^ ) ".")
+    |> Option.value ~default:str |> Message.create in
+  let notes =
+    match err with Include (_, Some note) -> [Message.create note] | _ -> []
+  in
+  create Error ~labels:(primary :: included) ~notes summary
 
 exception ParserException of styled_text * Middle.Location_span.t
 exception UnexpectedEOF of Middle.Location_span.t

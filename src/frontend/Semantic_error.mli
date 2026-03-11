@@ -5,7 +5,6 @@ type t
 val to_grace :
   ?printed_filename:string -> ?code:string -> t -> 'a Grace.Diagnostic.t
 
-val location : t -> Location_span.t
 val invalid_return : Location_span.t -> UnsizedType.t -> UnsizedType.t -> t
 
 val mismatched_array_types :

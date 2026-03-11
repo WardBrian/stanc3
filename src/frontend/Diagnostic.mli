@@ -1,27 +1,17 @@
-open Grace
-
-val locate :
+val range_of_loc_span :
      ?printed_filename:string
   -> ?code:string
   -> Middle.Location_span.t
-  -> 'a Diagnostic.t
-  -> 'a Diagnostic.t
+  -> Grace.Range.t * Grace.Diagnostic.Label.t list
+(** Returns the range represented by the location span and a list of secondary
+    diagnostics identifying where it was included from, if applicable *)
 
-val included_diagnostic :
-     ?printed_filename:string
-  -> ?code:string
-  -> Middle.Location.t
-  -> Diagnostic.Label.t list
-
-val range_of_loc_span :
-  ?printed_filename:string -> ?code:string -> Middle.Location_span.t -> Range.t
-
-val pp : 'a Diagnostic.t Fmt.t
-val pp_compact : 'a Diagnostic.t Fmt.t
+val pp : 'a Grace.Diagnostic.t Fmt.t
+val pp_compact : 'a Grace.Diagnostic.t Fmt.t
 
 module Json_printer : sig
   val to_yojson :
-    ?code_to_string:('a -> string) -> 'a Diagnostic.t -> Yojson.Basic.t
+    ?code_to_string:('a -> string) -> 'a Grace.Diagnostic.t -> Yojson.Basic.t
 
-  val pp_json : 'a Diagnostic.t Fmt.t
+  val pp_json : 'a Grace.Diagnostic.t Fmt.t
 end

@@ -139,9 +139,10 @@ let get_includes includes : string String.Map.t * 'a Grace.Diagnostic.t list =
   ( map
   , List.map
       ~f:(fun w ->
-        Grace.Diagnostic.create Grace.Diagnostic.Severity.Warning
-          (Grace.Diagnostic.Message.createf
-             "stanc.js failed to parse included file mapping:@ %s" w))
+        Grace.Diagnostic.(
+          create Warning
+            (Message.createf
+               "stanc.js failed to parse included file mapping:@ %s" w)))
       warnings )
 
 type flags = {driver_flags: Driver.Flags.t; output: output_config}

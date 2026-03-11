@@ -24,22 +24,13 @@ let get_source ?printed_filename ?code loc =
     if Option.is_none loc.included_from then
       Option.first_some printed_filename (Some loc.filename)
     else Some loc.filename in
-  let content = String.substr_replace_all ~pattern:"\t" ~with_:" " code in
+  let content =
+    String.substr_replace_all ~pattern:"\t" ~with_:" "
+      (* https://github.com/johnyob/grace/issues/83 *) code in
   let source : Source.t = `String {name; content} in
   source
 
-let range_of_loc_span ?printed_filename ?code
-    ({begin_loc; end_loc} : Middle.Location_span.t) =
-  let source = get_source ?printed_filename ?code begin_loc in
-  let max = Source.length source in
-  let start =
-    (* clamp handles errors at end of source *)
-    Int.clamp_exn ~min:0 ~max (begin_loc.bol_offset + begin_loc.col_num) in
-  let end_ =
-    (* especially possible if error crosses include boundary *)
-    Int.clamp_exn ~min:start ~max (end_loc.bol_offset + end_loc.col_num) in
-  Range.create ~source (Byte_index.of_int start) (Byte_index.of_int end_)
-
+(** Generate secondary diagnostics identifying where a file was included *)
 let rec included_diagnostic ?printed_filename ?code
     Middle.Location.{included_from; filename; _} : Diagnostic.Label.t list =
   let range_of_loc loc =
@@ -59,18 +50,19 @@ let rec included_diagnostic ?printed_filename ?code
           "file '%s' included here" filename in
       label :: included_diagnostic ?printed_filename ?code loc
 
-let locate ?printed_filename ?code loc_span (diagnostic : 'a Diagnostic.t) :
-    'a Diagnostic.t =
-  { diagnostic with
-    labels=
-      diagnostic.labels
-      @ Diagnostic.(
-          Label.primary
-            ~range:(range_of_loc_span ?printed_filename ?code loc_span)
-            (Message.createf "@.%a"
-               (Fmt.styled `None Message.pp)
-               diagnostic.message))
-        :: included_diagnostic ?printed_filename ?code loc_span.begin_loc }
+let range_of_loc_span ?printed_filename ?code
+    ({begin_loc; end_loc} : Middle.Location_span.t) :
+    Range.t * Diagnostic.Label.t list =
+  let source = get_source ?printed_filename ?code begin_loc in
+  let max = Source.length source in
+  let start =
+    (* clamp handles errors at end of source *)
+    Int.clamp_exn ~min:0 ~max (begin_loc.bol_offset + begin_loc.col_num) in
+  let end_ =
+    (* especially possible if error crosses include boundary *)
+    Int.clamp_exn ~min:start ~max (end_loc.bol_offset + end_loc.col_num) in
+  ( Range.create ~source (Byte_index.of_int start) (Byte_index.of_int end_)
+  , included_diagnostic ?printed_filename ?code begin_loc )
 
 open Grace_ansi_renderer
 
@@ -117,7 +109,9 @@ module Json_printer = struct
 
   open Grace_source_reader
 
-  let to_yojson ?code_to_string (d : 'a Diagnostic.t) : Yojson.Basic.t =
+  let to_yojson ?code_to_string
+      ({severity; message; notes; labels; code} : 'a Diagnostic.t) :
+      Yojson.Basic.t =
     with_reader @@ fun () ->
     let range_to_positions (r : Range.t) =
       let sd = open_source (Range.source r) in
@@ -141,21 +135,24 @@ module Json_printer = struct
       | Some name -> `Assoc (("file", `String name) :: vals)
       | None -> `Assoc vals in
     let vals =
-      [ ("severity", `String (Diagnostic.Severity.to_string d.severity))
-      ; ("message", `String (Diagnostic.Message.to_string d.message))
-      ; ( "labels"
-        , `List
-            (List.map d.labels ~f:(fun label ->
-                 `Assoc
-                   [ ("range", range_to_positions label.range)
-                   ; ( "priority"
-                     , `String (Diagnostic.Priority.to_string label.priority) )
-                   ; ( "message"
-                     , `String (Diagnostic.Message.to_string label.message) ) ]))
-        ) ] in
-    match (code_to_string, d.code) with
+      Diagnostic.
+        [ ("severity", `String (Severity.to_string severity))
+        ; ("message", `String (Message.to_string message))
+        ; ( "notes"
+          , `List
+              (List.map notes ~f:(fun note -> `String (Message.to_string note)))
+          )
+        ; ( "labels"
+          , `List
+              (List.map labels ~f:(fun label ->
+                   `Assoc
+                     [ ("range", range_to_positions label.range)
+                     ; ("priority", `String (Priority.to_string label.priority))
+                     ; ("message", `String (Message.to_string label.message)) ]))
+          ) ] in
+    match (code_to_string, code) with
     | Some f, Some c -> `Assoc (("error_code", `String (f c)) :: vals)
     | _ -> `Assoc vals
 
-  let pp_json ppf d = to_yojson d |> Yojson.Basic.pretty_print ppf
+  let pp_json ppf d = to_yojson d |> Yojson.Basic.pp ppf
 end
