@@ -1,32 +1,31 @@
 open Core
 open Grace
 
-let get_context ?code Middle.Location.{filename; included_from; _} =
+let get_context code Middle.Location.{filename; included_from; _} =
   match (included_from, code) with
   | None, Some code ->
       (* If the location is not included from anywhere, and we have code
          provided, use it *)
-      String.split_lines code
+      code
   | _ -> (
       (* Otherwise, by the time we are printing an error, all these files are
          already resolved. *)
       match !Include_files.include_provider with
       | FileSystemPaths _ ->
           (* So we can read directly from the filesystem *)
-          In_channel.read_lines filename
+          In_channel.read_all filename
       | InMemory m ->
           (* Or, we know we can find it in the map *)
-          String.split_lines (Map.find_exn m filename))
+          Map.find_exn m filename)
 
 let get_source ?printed_filename ?code loc =
-  let code = get_context ?code loc in
-  let source : Source.t =
-    `String
-      { name=
-          (if Option.is_none loc.included_from then
-             Option.first_some printed_filename (Some loc.filename)
-           else Some loc.filename)
-      ; content= code |> String.concat ~sep:"\n" } in
+  let code = get_context code loc in
+  let name =
+    if Option.is_none loc.included_from then
+      Option.first_some printed_filename (Some loc.filename)
+    else Some loc.filename in
+  let content = String.substr_replace_all ~pattern:"\t" ~with_:" " code in
+  let source : Source.t = `String {name; content} in
   source
 
 let range_of_loc_span ?printed_filename ?code

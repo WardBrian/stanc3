@@ -4,10 +4,13 @@ module Location = Middle.Location
 (* todo(grace): consider more information in warning type *)
 type t = Location_span.t * string
 
-let pp ?printed_filename ?code ppf (span, message) =
+let to_grace ?printed_filename ?code (span, message) =
   let diagnostic =
     Grace.(Diagnostic.create Warning (Diagnostic.Message.create message)) in
-  let diagnostic = Diagnostic.locate ?printed_filename ?code span diagnostic in
+  Diagnostic.locate ?printed_filename ?code span diagnostic
+
+let pp ?printed_filename ?code ppf (span, message) =
+  let diagnostic = to_grace ?printed_filename ?code (span, message) in
   Fmt.pf ppf "%a@." Diagnostic.pp_compact diagnostic
 
 let pp_warnings ?printed_filename ?code ppf warnings =

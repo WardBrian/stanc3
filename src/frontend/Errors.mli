@@ -11,3 +11,5 @@ val pp : ?printed_filename:string -> ?code:string -> t Fmt.t
     locations with [printed_filename], if supplied. If [code] is supplied, read
     context from that string. Otherwise, it will attempt to open the original
     file. *)
+
+val pp_json : ?printed_filename:string -> ?code:string -> t Fmt.t
