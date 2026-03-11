@@ -21,12 +21,36 @@ let invoke_driver model_name model flags =
     Driver.Entry.stan2cpp model_name (`Code model) flags output_callback in
   (compilation_result, !warnings)
 
-let wrap_warnings ~warnings =
-  ( "warnings"
-  , Js.Unsafe.coerce (Js.array (List.to_array (List.map ~f:Js.string warnings)))
-  )
+type output_config = Basic | ANSIColored | JSON
 
-let wrap_error ~warnings e =
+(** similar to [Fmt.str_like] but directly sets style rendering rather than
+    copying from another ppf *)
+let str_color m =
+  let buf = Buffer.create 64 in
+  let ppf = Format.formatter_of_buffer buf in
+  Fmt.set_style_renderer ppf `Ansi_tty;
+  let flush ppf =
+    Format.pp_print_flush ppf ();
+    let s = Buffer.contents buf in
+    Buffer.reset buf;
+    s in
+  Format.kfprintf flush ppf m
+
+let json_parse s =
+  Js.Unsafe.meth_call Js._JSON "parse" [| Js.Unsafe.inject (Js.string s) |]
+
+let wrap_warnings ~output ~warnings =
+  let to_js =
+    match output with
+    | Basic -> fun w -> Js.string (Fmt.str "%a" Diagnostic.pp w)
+    | ANSIColored -> fun w -> Js.string (str_color "%a" Diagnostic.pp w)
+    | JSON ->
+        fun w -> json_parse (Fmt.str "%a" Diagnostic.Json_printer.pp_json w)
+  in
+  ( "warnings"
+  , Js.Unsafe.coerce (Js.array (List.to_array (List.map ~f:to_js warnings))) )
+
+let wrap_error ?(output = Basic) ~warnings e =
   Js.Unsafe.obj
     [| ( "errors"
        , (* NB: The "0" entry is due to a historical mistake that led the first
@@ -35,31 +59,27 @@ let wrap_error ~warnings e =
             backward compatibility with existing consumers of stanc.js we have
             to keep this behavior. *)
          Js.Unsafe.coerce (Js.array (Array.map ~f:Js.string [| "0"; e |])) )
-     ; wrap_warnings ~warnings |]
+     ; wrap_warnings ~output ~warnings |]
 
-(** similar to [Fmt.str_like] but directly sets style rendering rather than
-    copying from another ppf *)
-let str_color ~color_output =
-  let buf = Buffer.create 64 in
-  let ppf = Format.formatter_of_buffer buf in
-  Fmt.set_style_renderer ppf (if color_output then `Ansi_tty else `None);
-  let flush ppf =
-    Format.pp_print_flush ppf ();
-    let s = Buffer.contents buf in
-    Buffer.reset buf;
-    s in
-  Format.kfprintf flush ppf
-
-let wrap_result ?printed_filename ~color_output ~code ~warnings res =
+let wrap_result ?printed_filename ~output ~code ~warnings res =
   match res with
   | Result.Ok s ->
       Js.Unsafe.obj
-        [| ("result", Js.Unsafe.coerce (Js.string s)); wrap_warnings ~warnings
-        |]
-  | Error e ->
-      let e =
-        str_color ~color_output "%a" (Errors.pp ?printed_filename ~code) e in
-      wrap_error ~warnings e
+        [| ("result", Js.Unsafe.coerce (Js.string s))
+         ; wrap_warnings ~output ~warnings |]
+  | Error e -> (
+      match output with
+      | Basic ->
+          let e = Fmt.str "%a" (Errors.pp ?printed_filename ~code) e in
+          wrap_error ~output ~warnings e
+      | ANSIColored ->
+          let e = str_color "%a" (Errors.pp ?printed_filename ~code) e in
+          wrap_error ~output ~warnings e
+      | JSON ->
+          let e = Fmt.str "%a" (Errors.pp_json ?printed_filename ~code) e in
+          Js.Unsafe.obj
+            [| ("errors", Js.Unsafe.coerce (Js.array [| json_parse e |]))
+             ; wrap_warnings ~output ~warnings |])
 
 let typecheck e typ = String.equal (Js.to_string (Js.typeof e)) typ
 
@@ -95,7 +115,7 @@ let checked_to_array ~name value =
 
 (** Converts from a [{ [s:string]:string }] JS object type to an OCaml map, with
     error messages on bad input. *)
-let get_includes includes : string String.Map.t * string list =
+let get_includes includes : string String.Map.t * 'a Grace.Diagnostic.t list =
   let open Common.Let_syntax.Result in
   let map, warnings =
     match Js.Opt.to_option includes with
@@ -118,11 +138,13 @@ let get_includes includes : string String.Map.t * string list =
         , warnings ) in
   ( map
   , List.map
-      ~f:
-        (Fmt.str "Warning: stanc.js failed to parse included file mapping:@ %s")
+      ~f:(fun w ->
+        Grace.Diagnostic.create Grace.Diagnostic.Severity.Warning
+          (Grace.Diagnostic.Message.createf
+             "stanc.js failed to parse included file mapping:@ %s" w))
       warnings )
 
-type flags = {driver_flags: Driver.Flags.t; color_output: bool}
+type flags = {driver_flags: Driver.Flags.t; output: output_config}
 
 (** Turn our array of flags into a Driver.Flags.t *)
 let process_flags (flags : 'a Js.opt) includes : (flags, string) result =
@@ -145,7 +167,7 @@ let process_flags (flags : 'a Js.opt) includes : (flags, string) result =
       { driver_flags=
           { Driver.Flags.default with
             include_source= Include_files.InMemory includes }
-      ; color_output= false }
+      ; output= Basic }
   | Some flags ->
       let is_flag_set flag = Array.mem ~equal:String.equal flags flag in
       let flag_val flag =
@@ -214,7 +236,10 @@ let process_flags (flags : 'a Js.opt) includes : (flags, string) result =
           ; warn_pedantic= is_flag_set "warn-pedantic"
           ; warn_uninitialized= is_flag_set "warn-uninitialized"
           ; filename_in_msg= flag_val "filename-in-msg" }
-      ; color_output= is_flag_set "color-output" }
+      ; output=
+          (if is_flag_set "json-output" then JSON
+           else if is_flag_set "color-output" then ANSIColored
+           else Basic) }
 
 (** Handle conversion of JS <-> OCaml values invoke driver *)
 let stan2cpp_wrapped name code flags includes =
@@ -223,21 +248,17 @@ let stan2cpp_wrapped name code flags includes =
   let compilation_result =
     let* name = checked_to_string ~name:"name" name in
     let* code = checked_to_string ~name:"code" code in
-    let* {driver_flags; color_output} = process_flags flags includes in
+    let* {driver_flags; output} = process_flags flags includes in
     let+ result, warnings =
       Common.ICE.with_exn_message (fun () ->
           invoke_driver name code driver_flags) in
-    (result, warnings, driver_flags.filename_in_msg, code, color_output) in
+    (result, warnings, driver_flags.filename_in_msg, code, output) in
   match compilation_result with
-  | Ok (result, warnings, printed_filename, code, color_output) ->
+  | Ok (result, warnings, printed_filename, code, output) ->
       let warnings =
         include_reader_warnings
-        @ List.map
-            ~f:
-              (str_color ~color_output "%a"
-                 (Warnings.pp ?printed_filename ~code))
-            warnings in
-      wrap_result ?printed_filename ~color_output ~code result ~warnings
+        @ List.map ~f:(Warnings.to_grace ?printed_filename ~code) warnings in
+      wrap_result ?printed_filename ~output ~code result ~warnings
   | Error non_compilation_error (* either an ICE or malformed JS input *) ->
       wrap_error ~warnings:include_reader_warnings non_compilation_error
 
