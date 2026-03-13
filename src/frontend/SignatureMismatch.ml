@@ -226,11 +226,11 @@ let check_compatible_arguments_no_promotion t1 t2 =
 let max_n_errors = 5
 
 let extract_function_types f =
+  let location = Environment.location f in
   match f with
-  | Environment.{type_= UFun (args, return, _, mem); kind= `StanMath; location}
-    ->
+  | Environment.{type_= UFun (args, return, _, mem); kind= `StanMath} ->
       Some (return, args, (fun x -> Ast.StanLib x), mem, location)
-  | {type_= UFun (args, return, _, mem); location; _} ->
+  | {type_= UFun (args, return, _, mem); _} ->
       Some (return, args, (fun x -> UserDefined x), mem, location)
   | _ -> None
 

@@ -44,23 +44,22 @@ let context loc message =
     Diagnostic.range_of_loc_span ?printed_filename ?code loc in
   Label.ksecondaryf (fun l -> l :: included) ~range message
 
-let optional_context loc message =
-  match loc with
-  | Some loc -> context loc message
-  | None -> Format.ikfprintf (fun _ -> []) Fmt.stdout message
+let optional f loc = match loc with Some loc -> f loc | None -> []
+let function_defined loc = context loc "Function defined here."
+let callback_defined loc = context loc "Callback defined here."
 
-let function_defined loc = optional_context loc "Function defined here."
-let callback_defined loc = optional_context loc "Callback defined here."
-
-let variable_in_block loc =
-  optional_context loc "Variable was declared in %a here."
-    (Fmt.of_to_string Environment.block_name)
+let variable_declared ?block loc =
+  match block with
+  | None -> context loc "Variable was declared here."
+  | Some block ->
+      context loc "Variable was declared in %a here."
+        (Fmt.of_to_string Environment.block_name)
+        block
 
 let functions_considered errors =
-  List.concat_map errors ~f:(fun (_, _, loc) -> function_defined loc)
+  List.concat_map errors ~f:(fun (_, _, loc) -> optional function_defined loc)
 
-let previous_declaration prev =
-  optional_context prev "Previous declaration here."
+let previous_declaration prev = context prev "Previous declaration here."
 
 (* formatting helpers *)
 
@@ -140,15 +139,15 @@ module TypeError = struct
     | ReturningFnExpectedUndeclaredDistSuffixFound of string * string
     | ReturningFnExpectedWrongDistSuffixFound of string * string
     | NonReturningFnExpectedReturningFound of string * Location_span.t option
-    | NonReturningFnExpectedNonFnFound of string * Location_span.t option
+    | NonReturningFnExpectedNonFnFound of string * Location_span.t
     | FuncOverloadRtOnly of
         string
         * UnsizedType.returntype
         * UnsizedType.returntype
         * Location_span.t option
-    | FuncDeclRedefined of
-        string * UnsizedType.t * bool * Location_span.t option
-    | FunDeclExists of string * Location_span.t option
+    | FuncDeclRedefined of string * UnsizedType.t * Location_span.t
+    | StanMathFuncRedefined of string * UnsizedType.t
+    | FunDeclExists of string * Location_span.t
     | FunDeclNoDefn of string
     | FunDeclNeedsBlock
     | NonRealProbFunDef of UnsizedType.returntype
@@ -274,21 +273,23 @@ module TypeError = struct
           (Stan_math_signatures.reduce_sum_slice_types
          |> Common.Nonempty_list.of_list_exn)
           found_type ty
-    | IllTypedReduceSum (name, arg_tys, expected_args, error, prev) ->
+    | IllTypedReduceSum (name, arg_tys, expected_args, error, callback_location)
+      ->
         make_error
           ~summary:
             (Message.createf "Ill-typed arguments supplied to %a." quoted name)
-          ~labels:(callback_defined prev) "@[%a@]"
-          SignatureMismatch.pp_signature_mismatch
+          ~labels:(optional callback_defined callback_location)
+          "@[%a@]" SignatureMismatch.pp_signature_mismatch
           ( name
           , arg_tys
           , ([((ReturnType UReal, expected_args, None), error)], false) )
-    | IllTypedVariadic (name, arg_tys, args, error, return_type, prev) ->
+    | IllTypedVariadic
+        (name, arg_tys, args, error, return_type, callback_location) ->
         make_error
           ~summary:
             (Message.createf "Ill-typed arguments supplied to %a." quoted name)
-          ~labels:(callback_defined prev) "@[%a@]"
-          SignatureMismatch.pp_signature_mismatch
+          ~labels:(optional callback_defined callback_location)
+          "@[%a@]" SignatureMismatch.pp_signature_mismatch
           ( name
           , arg_tys
           , ([((UnsizedType.ReturnType return_type, args, None), error)], false)
@@ -301,23 +302,25 @@ module TypeError = struct
           ~labels:(functions_considered signatures)
           "@[%a@]" SignatureMismatch.pp_signature_mismatch
           (name, arg_tys, errors)
-    | IllTypedForwardedFunctionApp (caller, name, skipped, details, prev) ->
+    | IllTypedForwardedFunctionApp
+        (caller, name, skipped, details, callback_location) ->
         make_error
           ~summary:
             (Message.createf "Ill-typed arguments forwarded to %a in %a." quoted
                name quoted caller)
-          ~labels:(callback_defined prev)
+          ~labels:(optional callback_defined callback_location)
           "Cannot call %a@ with arguments forwarded from call to@ %a:@ %a"
           quoted name quoted caller
           (SignatureMismatch.pp_mismatch_details ~skipped)
           details
-    | IllTypedForwardedFunctionSignature (caller, name, details, prev) ->
+    | IllTypedForwardedFunctionSignature
+        (caller, name, details, callback_location) ->
         make_error
           ~summary:
             (Message.createf
                "Invalid signature for forwarded function %a in %a." quoted name
                quoted caller)
-          ~labels:(callback_defined prev)
+          ~labels:(optional callback_defined callback_location)
           "Function %a does not have a valid signature for use in %a:@ %a"
           quoted name quoted caller
           (SignatureMismatch.pp_mismatch_details ~skipped:[])
@@ -449,25 +452,27 @@ module TypeError = struct
           arg_tys
           (Fmt.list ~sep:Fmt.cut pp_sig)
           signatures
-    | ReturningFnExpectedNonReturningFound (fn_name, prev) ->
-        make_error ~labels:(function_defined prev)
+    | ReturningFnExpectedNonReturningFound (fn_name, prev_decl) ->
+        make_error
+          ~labels:(optional function_defined prev_decl)
           "A returning function was expected but a non-returning function %a \
            was supplied."
           quoted fn_name
-    | NonReturningFnExpectedReturningFound (fn_name, prev) ->
-        make_error ~labels:(function_defined prev)
+    | NonReturningFnExpectedReturningFound (fn_name, prev_decl) ->
+        make_error
+          ~labels:(optional function_defined prev_decl)
           "A non-returning function was expected but a returning function %a \
            was supplied."
           quoted fn_name
-    | ReturningFnExpectedNonFnFound (fn_name, prev) ->
+    | ReturningFnExpectedNonFnFound (fn_name, prev_decl) ->
         make_error
-          ~labels:(optional_context prev "Variable was declared here.")
+          ~labels:(optional variable_declared prev_decl)
           "A returning function was expected but a non-function value %a was \
            supplied."
           quoted fn_name
-    | NonReturningFnExpectedNonFnFound (fn_name, prev) ->
+    | NonReturningFnExpectedNonFnFound (fn_name, prev_decl) ->
         make_error
-          ~labels:(optional_context prev "Variable was declared here.")
+          ~labels:(variable_declared prev_decl)
           "A non-returning function was expected but a non-function value %a \
            was supplied."
           quoted fn_name
@@ -491,24 +496,27 @@ module TypeError = struct
           (prefix ^ "_" ^ suffix)
           quoted prefix quoted
           (prefix ^ "_" ^ newsuffix)
-    | FuncOverloadRtOnly (name, _, rt', prev) ->
+    | FuncOverloadRtOnly (name, _, rt', prev_decl) ->
         make_error
-          ~labels:(previous_declaration prev)
+          ~labels:(optional previous_declaration prev_decl)
           ~notes:
             [ Message.createf "Previously used return type %a."
                 (actual_style UnsizedType.pp_returntype)
                 rt' ]
           "Function %a cannot be overloaded by return type only." quoted name
-    | FuncDeclRedefined (name, ut, stan_math, prev) ->
+    | FuncDeclRedefined (name, ut, prev_decl) ->
         make_error
-          ~labels:(previous_declaration prev)
-          "Function %a %s signature %a" quoted name
-          (if stan_math then "is already declared in the Stan Math library with"
-           else "has already been declared for")
+          ~labels:(previous_declaration prev_decl)
+          "Function %a has already been declared for signature %a" quoted name
           UnsizedType.pp ut
-    | FunDeclExists (name, prev) ->
+    | StanMathFuncRedefined (name, ut) ->
         make_error
-          ~labels:(previous_declaration prev)
+          "Function %a is already declared in the Stan Math library with \
+           signature %a"
+          quoted name UnsizedType.pp ut
+    | FunDeclExists (name, prev_decl) ->
+        make_error
+          ~labels:(previous_declaration prev_decl)
           "Function %a has already been declared. A definition is expected."
           quoted name
     | FunDeclNoDefn name ->
@@ -558,7 +566,7 @@ module IdentifierError = struct
     | IsKeyword of string
     | IsModelName of string
     | IsStanMathName of string
-    | InUse of string * Location_span.t option
+    | InUse of string * Location_span.t
     | NotInScope of string * (string * Location_span.t option list) option
     | ReturningFnExpectedUndeclaredIdentFound of
         string * (string * Location_span.t option list) option
@@ -572,13 +580,15 @@ module IdentifierError = struct
     | None -> ([], [])
     | Some (s, locs) ->
         let notes =
-          if Option.is_some (List.find ~f:Option.is_none locs) then
+          if List.exists ~f:Option.is_none locs then
             [Message.createf "Did you mean %a?" quoted s]
           else [] in
         let labels =
-          List.concat_map locs ~f:(fun l ->
-              optional_context l "Did you mean %a, declared here?" quoted s)
-        in
+          List.concat_map locs ~f:(fun opt_loc ->
+              match opt_loc with
+              | None -> []
+              | Some loc ->
+                  context loc "Did you mean %a, declared here?" quoted s) in
         (notes, labels)
 
   let to_grace = function
@@ -617,7 +627,7 @@ module IdentifierError = struct
           quoted name
     | DuplicateArgNames id ->
         make_error
-          ~labels:(previous_declaration (Some id.id_loc))
+          ~labels:(previous_declaration id.id_loc)
           "@[All function arguments must have distinct identifiers.@ Argument \
            %a is duplicated.@]"
           quoted id.name
@@ -808,8 +818,7 @@ module StatementError = struct
     | ContinueOutsideLoop
     | ExpressionReturnOutsideReturningFn
     | VoidReturnOutsideNonReturningFn
-    | NonDataVariableSizeDecl of
-        Environment.originblock * Location_span.t option
+    | NonDataVariableSizeDecl of Environment.originblock * Location_span.t
     | NonIntBounds
     | ComplexTransform
     | IntegerParameter of bool
@@ -817,15 +826,15 @@ module StatementError = struct
         Operator.t * Ast.typed_expr_meta * Ast.typed_expr_meta
 
   let to_grace = function
-    | CannotAssignToReadOnly (name, prev) ->
+    | CannotAssignToReadOnly (name, prev_decl) ->
         make_error
-          ~labels:(previous_declaration prev)
+          ~labels:(optional previous_declaration prev_decl)
           ~summary:(Message.create "Cannot assign to read-only variable.")
           "%a was previously used as a function argument or loop identifier."
           quoted name
-    | CannotAssignToGlobal (name, block, prev) ->
+    | CannotAssignToGlobal (name, block, prev_decl) ->
         make_error
-          ~labels:(variable_in_block prev block)
+          ~labels:(optional (variable_declared ~block) prev_decl)
           ~summary:(Message.create "Cannot assign to global variable.")
           "%a was declared in a previous block and cannot be assigned to."
           quoted name
@@ -920,9 +929,9 @@ module StatementError = struct
            definitions."
           (expected_style Fmt.string)
           "void"
-    | NonDataVariableSizeDecl (block, prev) ->
+    | NonDataVariableSizeDecl (block, prev_decl) ->
         make_error
-          ~labels:(variable_in_block prev block)
+          ~labels:(variable_declared ~block prev_decl)
           "Non-data variables are not allowed in top level size declarations."
     | NonIntBounds ->
         make_error "@[Bounds of integer variable must be of type %a.%a@]"
@@ -1239,8 +1248,11 @@ let no_int_params loc transformed =
 let fn_overload_rt_only loc name rt1 rt2 prev =
   (loc, TypeError (TypeError.FuncOverloadRtOnly (name, rt1, rt2, prev)))
 
-let fn_decl_redefined loc name ~stan_math ut prev =
-  (loc, TypeError (TypeError.FuncDeclRedefined (name, ut, stan_math, prev)))
+let fn_decl_redefined loc name ut prev =
+  (loc, TypeError (TypeError.FuncDeclRedefined (name, ut, prev)))
+
+let stan_math_fn_redefined loc name ut =
+  (loc, TypeError (TypeError.StanMathFuncRedefined (name, ut)))
 
 let fn_decl_exists loc name prev =
   (loc, TypeError (TypeError.FunDeclExists (name, prev)))

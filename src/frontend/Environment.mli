@@ -17,7 +17,8 @@ type originblock =
 val block_name : originblock -> string
 
 (** Information available for each variable *)
-type varinfo = {origin: originblock; global: bool; readonly: bool}
+type varinfo =
+  {origin: originblock; global: bool; readonly: bool; location: Location_span.t}
 
 type info =
   { type_: UnsizedType.t
@@ -25,8 +26,9 @@ type info =
       [ `Variable of varinfo
       | `UserDeclared of Location_span.t
       | `StanMath
-      | `UserDefined ]
-  ; location: Location_span.t option }
+      | `UserDefined of Location_span.t ] }
+
+val location : info -> Location_span.t option
 
 type t
 
@@ -35,14 +37,14 @@ val stan_math_environment : t
 
 val find : t -> string -> info list
 
-val add_id :
+val add :
      t
-  -> Ast.identifier
+  -> string
   -> Middle.UnsizedType.t
-  -> [ `UserDeclared of Location_span.t
+  -> [ `Variable of varinfo
+     | `UserDeclared of Location_span.t
      | `StanMath
-     | `UserDefined
-     | `Variable of varinfo ]
+     | `UserDefined of Location_span.t ]
   -> t
 (** Add a new item to the type environment. Does not overwrite existing, but
     shadows *)

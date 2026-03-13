@@ -22,7 +22,8 @@ let block_name = function
   | Model -> "model block"
   | GQuant -> "generated quantities block"
 
-type varinfo = {origin: originblock; global: bool; readonly: bool}
+type varinfo =
+  {origin: originblock; global: bool; readonly: bool; location: Location_span.t}
 
 type info =
   { type_: UnsizedType.t
@@ -30,8 +31,14 @@ type info =
       [ `Variable of varinfo
       | `UserDeclared of Location_span.t
       | `StanMath
-      | `UserDefined ]
-  ; location: Location_span.t option }
+      | `UserDefined of Location_span.t ] }
+
+let location = function
+  | {kind= `Variable {location; _}; _}
+   |{kind= `UserDeclared location; _}
+   |{kind= `UserDefined location; _} ->
+      Some location
+  | {kind= `StanMath; _} -> None
 
 type t = info list String.Map.t
 
@@ -41,13 +48,11 @@ let stan_math_environment =
     |> List.map ~f:(fun (key, values) ->
         ( key
         , List.map values ~f:(fun s ->
-              {type_= UnsizedType.UFun s; kind= `StanMath; location= None}) ))
+              {type_= UnsizedType.UFun s; kind= `StanMath}) ))
     |> String.Map.of_alist_exn in
   functions
 
-let add_id env Ast.{name; id_loc} type_ kind =
-  Map.add_multi env ~key:name ~data:{type_; kind; location= Some id_loc}
-
+let add env name type_ kind = Map.add_multi env ~key:name ~data:{type_; kind}
 let set_raw env key data = Map.set env ~key ~data
 let find env key = Map.find_multi env key
 let mem env key = Map.mem env key
@@ -109,7 +114,7 @@ module Distance = struct
       if name <> suggestion then Some suggestion else None
 end
 
-let max_distance_for_length l = if l < 4 then 1 else if l < 10 then 3 else 5
+let max_distance_for_length l = if l < 10 then 3 else 5
 
 let nearest_ident env name =
   let open Common.Let_syntax.Option in
@@ -130,4 +135,4 @@ let nearest_ident env name =
         |> List.hd)
     with _ -> None in
   let+ values = Map.find env key in
-  (key, List.map ~f:(fun i -> i.location) values)
+  (key, List.map ~f:location values)

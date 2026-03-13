@@ -130,7 +130,7 @@ val nonreturning_fn_expected_returning_found :
   Location_span.t -> string -> Location_span.t option -> t
 
 val nonreturning_fn_expected_nonfn_found :
-  Location_span.t -> string -> Location_span.t option -> t
+  Location_span.t -> string -> Location_span.t -> t
 
 val nonreturning_fn_expected_undeclaredident_found :
      Location_span.t
@@ -156,7 +156,7 @@ val not_indexable : Location_span.t -> UnsizedType.t -> int -> t
 val ident_is_keyword : Location_span.t -> string -> t
 val ident_is_model_name : Location_span.t -> string -> t
 val ident_is_stanmath_name : Location_span.t -> string -> t
-val ident_in_use : Location_span.t -> string -> Location_span.t option -> t
+val ident_in_use : Location_span.t -> string -> Location_span.t -> t
 
 val ident_not_in_scope :
      Location_span.t
@@ -208,7 +208,7 @@ val expression_return_outside_returning_fn : Location_span.t -> t
 val void_outside_nonreturning_fn : Location_span.t -> t
 
 val non_data_variable_size_decl :
-  Location_span.t -> Environment.originblock -> Location_span.t option -> t
+  Location_span.t -> Environment.originblock -> Location_span.t -> t
 
 val non_int_bounds : Location_span.t -> t
 val complex_transform : Location_span.t -> t
@@ -223,14 +223,10 @@ val fn_overload_rt_only :
   -> t
 
 val fn_decl_redefined :
-     Location_span.t
-  -> string
-  -> stan_math:bool
-  -> UnsizedType.t
-  -> Location_span.t option
-  -> t
+  Location_span.t -> string -> UnsizedType.t -> Location_span.t -> t
 
-val fn_decl_exists : Location_span.t -> string -> Location_span.t option -> t
+val stan_math_fn_redefined : Location_span.t -> string -> UnsizedType.t -> t
+val fn_decl_exists : Location_span.t -> string -> Location_span.t -> t
 val fn_decl_without_def : Location_span.t -> string -> t
 val fn_decl_needs_block : Location_span.t -> t
 val non_real_prob_fn_def : Location_span.t -> UnsizedType.returntype -> t

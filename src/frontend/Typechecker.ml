@@ -131,7 +131,7 @@ let verify_name_fresh_var loc tenv name =
   else
     match
       List.filter_map (Env.find tenv name) ~f:(function
-        | {kind= `Variable _; location; _} -> Some location
+        | {kind= `Variable {location; _}; _} -> Some location
         | _ -> None (* user variables can shadow function names *))
     with
     | [] -> ()
@@ -151,7 +151,7 @@ let verify_name_fresh_udf loc tenv name =
        all functions are defined before data, but future-proofing is good *)
     match
       List.filter_map (Env.find tenv name) ~f:(function
-        | {kind= `Variable _; location; _} -> Some location
+        | {kind= `Variable {location; _}; _} -> Some location
         | _ -> None)
     with
     | [] -> ()
@@ -277,8 +277,9 @@ let check_id cf loc tenv id =
   | {kind= `StanMath; _} :: _ ->
       ( calculate_autodifftype cf MathLibrary UMathLibraryFunction
       , UnsizedType.UMathLibraryFunction )
-  | { kind= `Variable {origin= (Param | TParam | GQuant) as origin; _}
-    ; location= prev
+  | { kind=
+        `Variable
+          {origin= (Param | TParam | GQuant) as origin; location= prev; _}
     ; _ }
     :: _
     when cf.in_toplevel_decl ->
@@ -291,7 +292,7 @@ let check_id cf loc tenv id =
       Semantic_error.invalid_unnormalized_fn loc |> error
   | {kind= `Variable {origin; _}; type_; _} :: _ ->
       (calculate_autodifftype cf origin type_, type_)
-  | { kind= `UserDefined | `UserDeclared _
+  | { kind= `UserDefined _ | `UserDeclared _
     ; type_= UFun (args, rt, (FnLpdf _ | FnLpmf _), mem_pattern)
     ; _ }
     :: _ ->
@@ -299,7 +300,7 @@ let check_id cf loc tenv id =
         UnsizedType.UFun
           (args, rt, Fun_kind.suffix_from_name id.name, mem_pattern) in
       (calculate_autodifftype cf Functions type_, type_)
-  | {kind= `UserDefined | `UserDeclared _; type_; _} :: _ ->
+  | {kind= `UserDefined _ | `UserDeclared _; type_; _} :: _ ->
       (calculate_autodifftype cf Functions type_, type_)
 
 let check_variable cf loc tenv id =
@@ -514,13 +515,14 @@ let mk_fun_app ~is_cond_dist ~loc kind name args ~type_ : Ast.typed_expression =
 
 let check_normal_fn ~is_cond_dist loc tenv id es =
   match Env.find tenv (Utils.normalized_name id.name) with
-  | {kind= `Variable _; location= prev; _} :: _
+  | {kind= `Variable {location= prev; _}; _} :: _
   (* variables can sometimes shadow stanlib functions, so we have to check
      this *)
     when not
            (Stan_math_signatures.is_stan_math_function_name
               (Utils.normalized_name id.name)) ->
-      Semantic_error.returning_fn_expected_nonfn_found loc id.name prev |> error
+      Semantic_error.returning_fn_expected_nonfn_found loc id.name (Some prev)
+      |> error
   | [] ->
       (match Utils.split_distribution_suffix id.name with
         | Some (prefix, suffix) -> (
@@ -669,11 +671,10 @@ let check_function_callable_with_tuple cf tenv caller_id fname
          caller_id.name) in
   let required_arg_names, required_arg_types = List.unzip required_args in
   let required = required_arg_types @ arg_types in
-  let matches = function
-    | Env.
-        { type_= UnsizedType.UFun (args, return_type, sfx, _) as fn_type
-        ; location
-        ; _ } ->
+  let matches info =
+    let location = Env.location info in
+    match info with
+    | Env.{type_= UnsizedType.UFun (args, return_type, sfx, _) as fn_type; _} ->
         let open SignatureMismatch in
         let open Common.Let_syntax.Result in
         if return_type <> required_fn_return_type then
@@ -704,7 +705,7 @@ let check_function_callable_with_tuple cf tenv caller_id fname
             |> Result.map_error ~f:(fun x ->
                 `SuppliedArgsMismatch (InputMismatch x, location)) in
           ((fn_type, location), promotions)
-    | {location; _} -> Error (`NonFunction location) in
+    | _ -> Error (`NonFunction location) in
   match find_matching_first_order_fn tenv matches fname with
   | SignatureMismatch.UniqueMatch ((ftype, _), promotions) ->
       let fn = make_function_variable cf fname.id_loc fname ftype in
@@ -798,10 +799,8 @@ and check_reduce_sum ~is_cond_dist loc cf tenv id tes =
       mandatory_fun_args None UReal (get_arg_types tes) in
   let matching remaining_es fn =
     match fn with
-    | Env.
-        { type_= UnsizedType.UFun (sliced_arg_fun :: _, _, _, _) as ftype
-        ; location
-        ; _ } ->
+    | Env.{type_= UnsizedType.UFun (sliced_arg_fun :: _, _, _, _) as ftype; _}
+      ->
         let mandatory_args = [sliced_arg_fun; (AutoDiffable, UInt)] in
         let mandatory_fun_args =
           [sliced_arg_fun; (DataOnly, UInt); (DataOnly, UInt)] in
@@ -809,7 +808,7 @@ and check_reduce_sum ~is_cond_dist loc cf tenv id tes =
           (calculate_autodifftype cf Functions ftype, ftype)
           :: get_arg_types remaining_es in
         SignatureMismatch.check_variadic_args ~allow_lpdf:true mandatory_args
-          mandatory_fun_args location UReal arg_types
+          mandatory_fun_args (Env.location fn) UReal arg_types
     | _ -> basic_mismatch () in
   match tes with
   | {expr= Variable fname; _}
@@ -937,12 +936,12 @@ and check_variadic ~is_cond_dist loc cf tenv id tes =
       =
     Stan_math_signatures.lookup_stan_math_variadic_function id.name
     |> Option.value_exn in
-  let matching remaining_es Env.{type_= ftype; location; _} =
+  let matching remaining_es (Env.{type_= ftype; _} as info) =
     let arg_types =
       (calculate_autodifftype cf Functions ftype, ftype)
       :: get_arg_types remaining_es in
     SignatureMismatch.check_variadic_args ~allow_lpdf:false control_args
-      required_fn_args location required_fn_rt arg_types in
+      required_fn_args (Env.location info) required_fn_rt arg_types in
   match tes with
   | {expr= Variable fname; _} :: remaining_es -> (
       match find_matching_first_order_fn tenv (matching remaining_es) fname with
@@ -1182,7 +1181,7 @@ let check_expression_of_scalar_or_type cf tenv t e name =
 
 let check_nrfn loc tenv id es =
   match Env.find tenv id.name with
-  | {kind= `Variable _; location; _} :: _
+  | {kind= `Variable {location; _}; _} :: _
   (* variables can shadow stanlib functions, so we have to check this *)
     when not (Stan_math_signatures.is_stan_math_function_name id.name) ->
       Semantic_error.nonreturning_fn_expected_nonfn_found loc id.name location
@@ -1442,11 +1441,11 @@ let verify_assignable_id loc cf tenv assign_id =
   let block, global, readonly, decl_location =
     let var = Env.find tenv assign_id.name in
     match var with
-    | {kind= `Variable {origin; global; readonly}; location; _} :: _ ->
-        (origin, global, readonly, location)
+    | {kind= `Variable {origin; global; readonly; location}; _} :: _ ->
+        (origin, global, readonly, Some location)
     | {kind= `StanMath; _} :: _ -> (MathLibrary, true, false, None)
-    | {kind= `UserDefined | `UserDeclared _; location; _} :: _ ->
-        (Functions, true, false, location)
+    | {kind= `UserDefined location | `UserDeclared location; _} :: _ ->
+        (Functions, true, false, Some location)
     | _ ->
         Semantic_error.ident_not_in_scope loc assign_id.name
           (Env.nearest_ident tenv assign_id.name)
@@ -1810,9 +1809,12 @@ and check_loop_body cf tenv loop_var loop_var_ty loop_body =
   (* Add to type environment as readonly. Check that function args and loop
      identifiers are not modified in function. (passed by const ref) *)
   let tenv =
-    Env.add_id tenv loop_var loop_var_ty
-      (`Variable {origin= cf.current_block; global= false; readonly= true})
-  in
+    Env.add tenv loop_var.name loop_var_ty
+      (`Variable
+         { origin= cf.current_block
+         ; global= false
+         ; readonly= true
+         ; location= loop_var.id_loc }) in
   snd (check_statement {cf with loop_depth= cf.loop_depth + 1} tenv loop_body)
 
 and check_block loc cf tenv stmts =
@@ -1951,10 +1953,12 @@ and check_var_decl loc cf tenv sized_ty trans
         verify_identifier identifier;
         verify_name_fresh tenv' identifier ~is_udf:false;
         let tenv'' =
-          Env.add_id tenv' identifier unsized_type
+          Env.add tenv' identifier.name unsized_type
             (`Variable
-               {origin= cf.current_block; global= is_global; readonly= false})
-        in
+               { origin= cf.current_block
+               ; global= is_global
+               ; readonly= false
+               ; location= identifier.id_loc }) in
         warn_self_declare loc identifier.name initial_value;
         (tenv'', check_var_decl_initial_value loc cf tenv'' var))
       variables in
@@ -1972,7 +1976,7 @@ and check_var_decl loc cf tenv sized_ty trans
 and exists_matching_fn_declared tenv id arg_tys rt =
   let options = Env.find tenv id.name in
   let f = function
-    | Env.{kind= `UserDeclared _; type_= UFun (listedtypes, rt', _, _); location}
+    | Env.{kind= `UserDeclared location; type_= UFun (listedtypes, rt', _, _)}
       when arg_tys = listedtypes && rt = rt' ->
         Some location
     | _ -> None in
@@ -1987,10 +1991,18 @@ and verify_unique_signature tenv loc id arg_tys rt =
     | _ -> false in
   match List.filter existing ~f:same_args with
   | [] -> ()
-  | {type_= UFun (_, rt', _, _); location; _} :: _ when rt <> rt' ->
-      Semantic_error.fn_overload_rt_only loc id.name rt rt' location |> error
-  | {kind; location= prev; _} :: _ ->
-      Semantic_error.fn_decl_redefined loc id.name ~stan_math:(kind = `StanMath)
+  | ({type_= UFun (_, rt', _, _); _} as info) :: _ when rt <> rt' ->
+      Semantic_error.fn_overload_rt_only loc id.name rt rt' (Env.location info)
+      |> error
+  | {kind= `StanMath; _} :: _ ->
+      Semantic_error.stan_math_fn_redefined loc id.name
+        (UnsizedType.UFun (arg_tys, rt, Fun_kind.suffix_from_name id.name, AoS))
+      |> error
+  | { kind=
+        `UserDeclared prev | `UserDefined prev | `Variable {location= prev; _}
+    ; _ }
+    :: _ ->
+      Semantic_error.fn_decl_redefined loc id.name
         (UnsizedType.UFun (arg_tys, rt, Fun_kind.suffix_from_name id.name, AoS))
         prev
       |> error
@@ -2010,7 +2022,7 @@ and get_fn_decl_or_defn loc tenv id arg_tys rt body =
       match exists_matching_fn_declared tenv id arg_tys rt with
       | Some prev -> Semantic_error.fn_decl_exists loc id.name prev |> error
       | None -> `UserDeclared id.id_loc)
-  | _ -> `UserDefined
+  | _ -> `UserDefined id.id_loc
 
 and verify_fundef_dist_rt loc id return_ty =
   let is_dist =
@@ -2049,18 +2061,19 @@ and verify_fundef_return_tys loc return_type body =
 and add_function tenv id type_ defined =
   (* if we're providing a definition, we remove prior declarations to simplify
      the environment *)
-  if defined = `UserDefined then
-    let existing_defns = Env.find tenv id.name in
-    let defns =
-      List.filter
-        ~f:(function
-          | Env.{kind= `UserDeclared _; type_= type'; _} when type' = type_ ->
-              false
-          | _ -> true)
-        existing_defns in
-    let new_fn = Env.{kind= `UserDefined; type_; location= Some id.id_loc} in
-    Env.set_raw tenv id.name (new_fn :: defns)
-  else Env.add_id tenv id type_ defined
+  match defined with
+  | `UserDefined _ ->
+      let existing_defns = Env.find tenv id.name in
+      let defns =
+        List.filter
+          ~f:(function
+            | Env.{kind= `UserDeclared _; type_= type'; _} when type' = type_ ->
+                false
+            | _ -> true)
+          existing_defns in
+      let new_fn = Env.{kind= `UserDefined id.id_loc; type_} in
+      Env.set_raw tenv id.name (new_fn :: defns)
+  | _ -> Env.add tenv id.name type_ defined
 
 and check_fundef loc cf tenv return_ty id args body =
   List.iter args ~f:(fun (_, _, id) -> verify_identifier id);
@@ -2087,11 +2100,12 @@ and check_fundef loc cf tenv return_ty id args body =
       arg_types in
   let tenv_body =
     List.fold2_exn arg_identifiers arg_types_internal ~init:tenv
-      ~f:(fun env name (origin, typ) ->
-        Env.add_id env name typ
+      ~f:(fun env id (origin, typ) ->
+        Env.add env id.name typ
           (* readonly so that function args and loop identifiers are not
              modified in function. (passed by const ref) *)
-          (`Variable {origin; readonly= true; global= false})) in
+          (`Variable {origin; readonly= true; global= false; location= id.id_loc}))
+  in
   let context =
     let kind =
       Fun_kind.suffix_from_name id.name |> Fun_kind.forget_normalization in
