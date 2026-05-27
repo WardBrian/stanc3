@@ -1,0 +1,6 @@
+(library
+ (name lsp)
+ (public_name stanc.lsp)
+ (libraries std fmt common driver linol linol-lwt)
+ (instrumentation
+  (backend bisect_ppx)))

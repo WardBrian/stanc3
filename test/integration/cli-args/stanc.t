@@ -124,6 +124,9 @@ Show help
              Dump out the list of supported function signatures the for Stan
              Math backend.
   
+         --lsp
+             Run a language server on stdout
+  
   EXTRA OPTIONS
          These flags are provided primarily for development and debugging;
          their exact behavior should not be relied on.
