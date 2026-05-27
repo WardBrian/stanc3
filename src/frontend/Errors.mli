@@ -14,3 +14,5 @@ val pp : ?printed_filename:string -> ?code:string -> t Fmt.t
 
 val to_grace :
   ?printed_filename:string -> ?code:string -> t -> 'a Grace.Diagnostic.t
+
+val loc_of : t -> Middle.Location_span.t

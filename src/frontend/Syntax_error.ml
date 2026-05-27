@@ -11,6 +11,8 @@ type err =
 
 type t = Middle.Location_span.t * err
 
+let loc_of = fst
+
 (** Sets up the semantic tag machinery
     (https://ocaml.org/manual/api/Format.html#tags) to print ANSI escape codes
     for formatting *)

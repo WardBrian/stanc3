@@ -1010,6 +1010,8 @@ type err =
 
 type t = Location_span.t * err
 
+let loc_of = fst
+
 let to_grace ?printed_filename ?code (loc, err) =
   printed_filename_ref := printed_filename;
   code_ref := code;
