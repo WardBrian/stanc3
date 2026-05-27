@@ -9,6 +9,8 @@ type styled_text = (unit, Format.formatter, unit) format
 val to_grace :
   ?printed_filename:string -> ?code:string -> t -> 'a Grace.Diagnostic.t
 
+val loc_of : t -> Middle.Location_span.t
+
 (** Exception-based control flow is useful during parsing/lexing. These helpers
     are used to try to keep all that logic in one place *)
 

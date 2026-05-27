@@ -91,6 +91,7 @@ let dispatch_commands args =
     match args with
     | `DumpMathSigs -> dump_math_sigs ()
     | `DumpMathDists -> dump_math_dists ()
+    | `Lsp -> ( match Lsp.Server.run () with Ok () -> exit_ok | _ -> exit_err)
     | `Default
         CLI.
           { debug_lex

@@ -9,6 +9,12 @@ type t =
   | Semantic_error of Semantic_error.t
   | DebugDataError of (Middle.Location_span.t * string * bool)
 
+let loc_of = function
+  | FileNotFound _ -> Middle.Location_span.empty
+  | Syntax_error t -> Syntax_error.loc_of t
+  | Semantic_error t -> Semantic_error.loc_of t
+  | DebugDataError (l, _, _) -> l
+
 let to_grace ?printed_filename ?code t =
   let open Grace.Diagnostic in
   match t with

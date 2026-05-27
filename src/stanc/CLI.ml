@@ -221,6 +221,10 @@ module Commands = struct
     Arg.(
       value & flag
       & info ["dump-stan-math-distributions"] ~doc ~docs:Manpage.s_commands)
+
+  let lsp =
+    let doc = "Run a language server on stdout" in
+    Arg.(value & flag & info ["lsp"] ~doc ~docs:Manpage.s_commands)
 end
 
 module Debug_Options = struct
@@ -436,6 +440,7 @@ let commands =
   let+ qmark = Options.qmark
   and+ dump_stan_math_distributions = Commands.dump_stan_math_distributions
   and+ dump_stan_math_sigs = Commands.dump_stan_math_signatures
+  and+ lsp = Commands.lsp
   and+ debug_lex = Debug_Options.debug_lex
   and+ debug_parse = Debug_Options.debug_parse
   and+ print_cpp = Options.print_cpp
@@ -450,6 +455,7 @@ let commands =
   | None -> (
       if dump_stan_math_distributions then `Ok `DumpMathDists
       else if dump_stan_math_sigs then `Ok `DumpMathSigs
+      else if lsp then `Ok `Lsp
       else
         match model_file with
         | None -> `Error (true, "No model file provided")
