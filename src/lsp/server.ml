@@ -1,11 +1,4 @@
-(* inspired by https://github.com/panglesd/slipshow/tree/main/src/lspishow
-
-   TODO: is it possible to JSOO this?
-   https://github.com/Ngoguey42/io/blob/master/lib/ft_js/webworker.ml
-   https://github.com/OCamlPro/alt-ergo/blob/16c9878a00db630d96372f74d5600f2786246966/src/bin/js/worker_example.ml#L46
-   ? *)
-
-(* open Lwt.Syntax *)
+(* inspired by https://github.com/panglesd/slipshow/tree/main/src/lspishow *)
 
 let grace_to_lsp
     ({labels; severity; message; notes; code= _} : 'a Grace.Diagnostic.t) =
@@ -79,79 +72,79 @@ let check code =
       | Ok (_ast, warns) -> warnings_to_diagnostics ~code warns
       | Error e -> error_to_diagostic ~code (Frontend.Errors.Semantic_error e))
 
-class lsp_server =
-  object (self)
-    inherit Linol_lwt.Jsonrpc2.server as super
-    method spawn_query_handler f = Linol_lwt.spawn f
+let spawn f =
+  Lwt.async (fun () ->
+      Lwt.catch f (fun exn ->
+          Printf.eprintf "uncaught exception in `spawn`:\n%s\n%!"
+            (Printexc.to_string exn);
+          Lwt.return ()))
 
-    method! on_req_initialize ~notify_back
-        (params : Linol_lwt.InitializeParams.t) =
-      let _wsf = params.workspaceFolders in
-      let _uri = params.rootUri in
-      let _pth = params.rootPath in
-      let root =
-        match params.workspaceFolders with
-        | Some ws ->
-            Option.map
-              (List.map (fun (x : Linol_lwt.WorkspaceFolder.t) -> x.uri))
-              ws
-        | None -> (
-            match params.rootUri with Some root -> Some [root] | None -> None)
-      in
-      let _roots = Option.value root ~default:[] in
-      super#on_req_initialize ~notify_back params
+module Make (IO : Linol.BaseIO with type 'a t = 'a Lwt.t) = struct
+  module Server = Linol.Server.Make (IO)
 
-    method! config_completion =
-      Some (Linol_lwt.CompletionOptions.create ~triggerCharacters:["~"] ())
+  class lsp_server =
+    object (self)
+      inherit Server.server as super
+      method spawn_query_handler f = spawn f
 
-    (* method! config_hover = Some (`Bool true) *)
-    (* method! config_definition = Some (`Bool true) *)
+      method! on_req_initialize ~notify_back
+          (params : Linol.Lsp.Types.InitializeParams.t) =
+        let _wsf = params.workspaceFolders in
+        let _uri = params.rootUri in
+        let _pth = params.rootPath in
+        let root =
+          match params.workspaceFolders with
+          | Some ws ->
+              Option.map
+                (List.map (fun (x : Linol.Lsp.Types.WorkspaceFolder.t) -> x.uri))
+                ws
+          | None -> (
+              match params.rootUri with
+              | Some root -> Some [root]
+              | None -> None) in
+        let _roots = Option.value root ~default:[] in
+        super#on_req_initialize ~notify_back params
 
-    (* method! config_modify_capabilities capabilities = *)
-    (*   let capabilities = super#config_modify_capabilities capabilities in *)
-    (*   { capabilities with *)
-    (*     documentHighlightProvider= Some (`Bool true) *)
-    (*   ; referencesProvider= Some (`Bool true) *)
-    (*   ; definitionProvider= Some (`Bool true) *)
-    (*   ; documentSymbolProvider= Some (`Bool true) } *)
+      method! config_completion =
+        Some
+          (Linol.Lsp.Types.CompletionOptions.create ~triggerCharacters:["~"] ())
 
-    method! on_req_completion ~notify_back:_ ~id:_ ~uri:_ ~pos:_ ~ctx:_
-        ~workDoneToken:_ ~partialResultToken:_ _doc_state =
-      let res =
-        let completions =
-          List.map
-            (fun id -> Linol_lwt.CompletionItem.create ~label:id ())
-            ["foo"; "bar"; "baz"] in
-        Some (`List completions) in
-      Lwt.return res
+      (* method! config_hover = Some (`Bool true) *)
+      (* method! config_definition = Some (`Bool true) *)
 
-    method on_notif_doc_did_open ~notify_back _d ~content : unit Linol_lwt.t =
-      (* TODO #includes support? *)
-      notify_back#send_diagnostic (check content)
+      (* method! config_modify_capabilities capabilities = *)
+      (*   let capabilities = super#config_modify_capabilities capabilities in *)
+      (*   { capabilities with *)
+      (*   ; referencesProvider= Some (`Bool true) *)
+      (*   ; definitionProvider= Some (`Bool true) *)
+      (*   ; documentSymbolProvider= Some (`Bool true) } *)
 
-    method on_notif_doc_did_change ~notify_back _d _c ~old_content:_old
-        ~new_content =
-      notify_back#send_diagnostic (check new_content)
+      method! on_req_completion ~notify_back:_ ~id:_ ~uri:_ ~pos:_ ~ctx:_
+          ~workDoneToken:_ ~partialResultToken:_ _doc_state =
+        let res =
+          let completions =
+            List.map
+              (fun id -> Linol.Lsp.Types.CompletionItem.create ~label:id ())
+              ["foo"; "bar"; "baz"; "\"hello world!\""] in
+          Some (`List completions) in
+        Lwt.return res
 
-    method! on_notif_doc_did_save ~notify_back params =
-      match self#find_doc params.textDocument.uri with
-      | Some d -> notify_back#send_diagnostic (check d.content)
-      | None -> Linol_lwt.return ()
+      method on_notif_doc_did_open ~notify_back _d ~content : unit Lwt.t =
+        (* TODO #includes support? *)
+        notify_back#send_diagnostic (check content)
 
-    method on_notif_doc_did_close ~notify_back d : unit Linol_lwt.t =
-      match self#find_doc d.uri with
-      | Some d -> notify_back#send_diagnostic (check d.content)
-      | None -> Linol_lwt.return ()
-  end
+      method on_notif_doc_did_change ~notify_back _d _c ~old_content:_old
+          ~new_content =
+        notify_back#send_diagnostic (check new_content)
 
-let run () =
-  let s = new lsp_server in
-  let server = Linol_lwt.Jsonrpc2.create_stdio ~env:() s in
-  let task =
-    let shutdown () = s#get_status = `ReceivedExit in
-    Linol_lwt.Jsonrpc2.run ~shutdown server in
-  match Linol_lwt.run task with
-  | () -> Ok ()
-  | exception e ->
-      let e = Printexc.to_string e in
-      Error ("error: " ^ e)
+      method! on_notif_doc_did_save ~notify_back params =
+        match self#find_doc params.textDocument.uri with
+        | Some d -> notify_back#send_diagnostic (check d.content)
+        | None -> Lwt.return ()
+
+      method on_notif_doc_did_close ~notify_back d : unit Lwt.t =
+        match self#find_doc d.uri with
+        | Some d -> notify_back#send_diagnostic (check d.content)
+        | None -> Lwt.return ()
+    end
+end

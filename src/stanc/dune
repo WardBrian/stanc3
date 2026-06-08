@@ -3,7 +3,16 @@
  (modes
   (byte c)
   (best exe))
- (libraries std fmt cmdliner fmt.cli fmt.tty driver stan_math_signatures lsp)
+ (libraries
+  std
+  fmt
+  cmdliner
+  fmt.cli
+  fmt.tty
+  linol-lwt
+  driver
+  stan_math_signatures
+  lsp)
  (instrumentation
   (backend bisect_ppx))
  (modules Stanc CLI)

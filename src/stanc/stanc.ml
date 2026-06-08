@@ -91,7 +91,22 @@ let dispatch_commands args =
     match args with
     | `DumpMathSigs -> dump_math_sigs ()
     | `DumpMathDists -> dump_math_dists ()
-    | `Lsp -> ( match Lsp.Server.run () with Ok () -> exit_ok | _ -> exit_err)
+    | `Lsp -> (
+        let run () =
+          let open Lsp.Server.Make (Linol_lwt.Jsonrpc2.IO) in
+          let s = new lsp_server in
+          let server =
+            Linol_lwt.Jsonrpc2.create ~ic:(Linol_lwt.stdin ())
+              ~oc:(Linol_lwt.stdout ()) s in
+          let task =
+            let shutdown () = s#get_status = `ReceivedExit in
+            Linol_lwt.Jsonrpc2.run ~shutdown server in
+          match Linol_lwt.run task with
+          | () -> Ok ()
+          | exception e ->
+              let e = Stdlib.Printexc.to_string e in
+              Error ("error: " ^ e) in
+        match run () with Ok () -> exit_ok | _ -> exit_err)
     | `Default
         CLI.
           { debug_lex
