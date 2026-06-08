@@ -159,6 +159,102 @@ let dump_stan_math_distributions () =
   Js.string
   @@ Fmt.str "%a" Stan_math_signatures.pretty_print_all_math_distributions ()
 
+(** Rather than reflect the true JSONRpc type, we just say a message is any Js
+    object *)
+type message = Js.Unsafe.any
+
+type disposable = < dispose: unit -> Js.Unsafe.any Js.meth > Js.t
+
+(** https://github.com/microsoft/vscode-languageserver-node/blob/main/jsonrpc/src/common/messageReader.ts
+*)
+type reader = < listen: (message -> unit) -> disposable Js.meth > Js.t
+
+(** https://github.com/microsoft/vscode-languageserver-node/blob/main/jsonrpc/src/common/messageWriter.ts
+*)
+type writer = < write: message -> unit Promise.t Js.meth > Js.t
+
+module MessageQueue : sig
+  type 'a t
+
+  val create : unit -> 'a t
+  val put : 'a t -> 'a -> unit
+  val take : 'a t -> 'a Lwt.t
+end = struct
+  open Lwt.Syntax
+
+  type 'a t = 'a Queue.t * unit Lwt_condition.t
+
+  let create () = (Queue.create (), Lwt_condition.create ())
+
+  let put (q, f) v =
+    Queue.add v q;
+    Lwt_condition.broadcast f ()
+
+  let rec take (q, f) =
+    if Queue.is_empty q then
+      let* () = Lwt_condition.wait f in
+      take (q, f)
+    else Lwt.return (Queue.pop q)
+end
+
+module IO_js : sig
+  include Linol.IO with type 'a t = 'a Lwt.t
+
+  val make_reader : reader -> in_channel
+end = struct
+  type 'a t = 'a Lwt.t
+
+  include Lwt.Syntax
+
+  let return = Lwt.return
+  let failwith = Lwt.fail_with
+
+  let catch f g =
+    let bt = Stdlib.Printexc.get_callstack 10 in
+    Lwt.catch f (fun exn -> g exn bt)
+
+  let fail e _bt = Lwt.fail e
+
+  type out_channel = writer
+  type in_channel = < read: unit -> message Lwt.t >
+
+  let make_reader (reader : reader) : in_channel =
+    let adaptor =
+      object
+        val messages = MessageQueue.create ()
+        method on_listen (message : message) = MessageQueue.put messages message
+        method read () = MessageQueue.take messages
+      end in
+    let d = reader##listen adaptor#on_listen in
+    Stdlib.Gc.finalise (fun _ -> ignore (d##dispose ())) adaptor;
+    (adaptor :> in_channel)
+
+  let send_msg oc ~json =
+    Js_of_ocaml_lwt.Promise.to_lwt
+      (oc##write (Conversion.js_of_yojson (Yojson.Safe.to_basic json)))
+
+  let read_msg ic =
+    let* message = ic#read () in
+    (* TODO: smarter conversion back? *)
+    catch
+      (fun () ->
+        let json = Js.to_string (Js._JSON##stringify message) in
+        let yojson = Yojson.Safe.from_string json in
+        return (Ok yojson))
+      (fun e bt -> return (Error (e, bt)))
+end
+
+module Jsonrpc2 = Linol.Jsonrpc2.Make (IO_js)
+module LSP = Lsp.Server.Make (Jsonrpc2.IO)
+
+let run_js reader writer =
+  let s = new LSP.lsp_server in
+  let server = Jsonrpc2.create ~ic:(IO_js.make_reader reader) ~oc:writer s in
+  let task =
+    let shutdown () = s#get_status = `ReceivedExit in
+    Jsonrpc2.run ~shutdown server in
+  Lwt.ignore_result task
+
 let () =
   (* the stanc function is roughly equivalent to the full CLI *)
   Js.export "stanc" (Js.Unsafe.callback stan2cpp_wrapped);
@@ -172,4 +268,5 @@ let () =
   Js.export "check_model" (Js.Unsafe.callback check_model);
   Js.export "format_model" (Js.Unsafe.callback format_model);
   Js.export "model_info" (Js.Unsafe.callback model_info);
-  Js.export "version" (Js.wrap_callback version)
+  Js.export "version" (Js.wrap_callback version);
+  Js.export "lsp" (Js.wrap_callback run_js)
