@@ -1944,6 +1944,7 @@ program: TRANSFORMEDDATABLOCK LBRACE IF LPAREN IDENTIFIER LPAREN RPAREN TILDE
 
 @{<light_red>Ill-formed statement.@} Expected @{<green>"("@} @{<i>expression@} @{<green>")"@} for the test of the if statement.
 A valid expression was found, but it was not followed by a closing parenthesis.
+<1>This @{<green>"$1"@} is unmatched.
 
 program: TRANSFORMEDDATABLOCK LBRACE IF WHILE
 ## Concrete syntax: transformed data { if while

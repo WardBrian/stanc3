@@ -15,5 +15,11 @@ val to_grace :
 val unexpected_eof : Middle.Location_span.t -> 'a
 val unexpected_character : Middle.Location_span.t -> 'a
 val include_error : ?note:string -> string -> Middle.Location_span.t -> 'a
-val parse_error : styled_text -> Middle.Location_span.t -> 'a
+
+val parse_error :
+     ?labels:(Middle.Location_span.t * styled_text) list
+  -> styled_text
+  -> Middle.Location_span.t
+  -> 'a
+
 val try_with : (unit -> 'a) -> ('a, t) result
