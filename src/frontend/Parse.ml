@@ -1,10 +1,30 @@
 (** Some complicated stuff to get the custom syntax errors out of Menhir's
     Incremental API *)
 
+open Std
 open Result.Syntax
 module Interp = Parser.MenhirInterpreter
 
-let drive_parser parse_fun =
+module R = Parser_error_runtime.Make (struct
+  type 'a env = 'a Interp.env
+  type element = Interp.element
+
+  let get = Interp.get
+  let positions (Interp.Element (_, _, p1, p2)) = (p1, p2)
+end)
+
+let drive_parser parse_fun file_or_code =
+  let* lexbuf, name, source =
+    match file_or_code with
+    | `File path ->
+        let+ chan =
+          try Ok (In_channel.open_bin path)
+          with _ -> Error (Errors.FileNotFound path) in
+        let lexbuf = Lexing.from_channel chan in
+        Gc.finalise (fun _ -> In_channel.close_noerr chan) lexbuf;
+        (lexbuf, path, lazy (In_channel.open_bin path |> In_channel.input_all))
+    | `Code code -> Ok (Lexing.from_string code, "string", lazy code) in
+  Preprocessor.init lexbuf name;
   let input () =
     let token = Lexer.token (Preprocessor.current_buffer ()) in
     let lexbuf =
@@ -45,29 +65,21 @@ let drive_parser parse_fun =
             prev_env
         | _ -> env in
       Preprocessor.location_span_of_positions (Interp.positions env) in
-    Syntax_error.parse_error message location in
+    let message, labels = R.resolve ~source ~env message in
+    let labels =
+      List.map
+        ~f:(fun R.{loc_start; loc_end; text} ->
+          (Preprocessor.location_span_of_positions (loc_start, loc_end), text))
+        labels in
+    Syntax_error.parse_error ~labels message location in
   let startp = (Preprocessor.current_buffer ()).lex_curr_p in
   Syntax_error.try_with (fun () ->
       Interp.loop_handle_undo success failure input (parse_fun startp))
-
-let to_lexbuf file_or_code =
-  match file_or_code with
-  | `File path ->
-      let+ chan =
-        try Ok (In_channel.open_bin path)
-        with _ -> Error (Errors.FileNotFound path) in
-      let lexbuf = Lexing.from_channel chan in
-      Gc.finalise (fun _ -> In_channel.close_noerr chan) lexbuf;
-      (lexbuf, path)
-  | `Code code -> Ok (Lexing.from_string code, "string")
+  |> Result.map_error ~f:(fun e -> Errors.Syntax_error e)
 
 let parse parse_fun file_or_code =
   Input_warnings.init ();
-  let result =
-    let* lexbuf, name = to_lexbuf file_or_code in
-    Preprocessor.init lexbuf name;
-    drive_parser parse_fun |> Result.map_error (fun e -> Errors.Syntax_error e)
-  in
+  let result = drive_parser parse_fun file_or_code in
   (result, Input_warnings.collect ())
 
 let parse_stanfunctions file_or_code =

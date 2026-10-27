@@ -7,7 +7,7 @@ type err =
   | Lexing
   | UnexpectedEOF
   | Include of (string * string option)
-  | Parsing of styled_text
+  | Parsing of styled_text * (Middle.Location_span.t * styled_text) list
 
 type t = Middle.Location_span.t * err
 
@@ -92,9 +92,9 @@ let pp_styled_text : styled_text Fmt.t =
 
 let to_grace ?printed_filename ?code ((loc, err) : t) =
   let open Grace.Diagnostic in
-  let summary, notes =
+  let summary, labels, notes =
     match err with
-    | Parsing message ->
+    | Parsing (message, labels) ->
         (* TODO: This is a simple way of splitting up the error messages from
            the parser for Grace. Ideally, we'd have the ability to return a
            richer type than just a string -- cf the [.messages_ml] suggestion in
@@ -112,16 +112,34 @@ let to_grace ?printed_filename ?code ((loc, err) : t) =
                 ^^ ".@}"
               , Scanf.format_from_string rest "" )
           | None -> (message, message) in
+        let labels =
+          List.concat_map
+            ~f:(fun (loc, text) ->
+              let range, included =
+                Diagnostic.range_of_loc_span ?printed_filename ?code loc in
+              Grace.Diagnostic.Label.secondary ~range (fun ppf ->
+                  pp_styled_text ppf text)
+              :: included)
+            labels in
         ( (fun ppf -> pp_styled_text ppf summary)
+        , labels
         , [(fun ppf -> pp_styled_text ppf note)] )
     | Include (message, note) ->
         ( Message.createf "%s@." message
+        , []
         , Option.map ~f:Message.create note |> Option.to_list )
-    | Lexing -> (Message.createf "Invalid character found.@.", [])
-    | UnexpectedEOF -> (Message.createf "Unexpected end of input.@.", []) in
-  Diagnostic.make ?printed_filename ?code ~notes ~summary loc Error "here."
+    | Lexing -> (Message.createf "Invalid character found.@.", [], [])
+    | UnexpectedEOF -> (Message.createf "Unexpected end of input.@.", [], [])
+  in
+  Diagnostic.make ?printed_filename ?code ~notes ~summary ~labels loc Error
+    "here."
 
-exception ParserException of styled_text * Middle.Location_span.t
+exception
+  ParserException of
+    styled_text
+    * (Middle.Location_span.t * styled_text) list
+    * Middle.Location_span.t
+
 exception UnexpectedEOF of Middle.Location_span.t
 exception UnexpectedCharacter of Middle.Location_span.t
 exception IncludeError of string * string option * Middle.Location_span.t
@@ -129,11 +147,13 @@ exception IncludeError of string * string option * Middle.Location_span.t
 let unexpected_eof loc = raise (UnexpectedEOF loc)
 let unexpected_character loc = raise (UnexpectedCharacter loc)
 let include_error ?note msg loc = raise (IncludeError (msg, note, loc))
-let parse_error msg loc = raise (ParserException (msg, loc))
+
+let parse_error ?(labels = []) msg loc =
+  raise (ParserException (msg, labels, loc))
 
 let try_with f =
   try Ok (f ()) with
-  | ParserException (msg, loc) -> Error (loc, Parsing msg)
+  | ParserException (msg, labels, loc) -> Error (loc, Parsing (msg, labels))
   | UnexpectedEOF loc -> Error (loc, UnexpectedEOF)
   | UnexpectedCharacter loc -> Error (loc, Lexing)
   | IncludeError (msg, note, loc) -> Error (loc, Include (msg, note))

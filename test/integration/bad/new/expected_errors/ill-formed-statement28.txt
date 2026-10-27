@@ -2,6 +2,8 @@
 error: Syntax error: Ill-formed statement.
     ┌─ ../ill-formed-statement28.stan:1:26
   1 │  transformed data { if (T ~ normal(0,1))}
-    │                           ^ here.
+    │                        -  ^ here.
+    │                        │
+    │                        This "(" is unmatched.
     = Expected "(" expression ")" for the test of the if statement.
       A valid expression was found, but it was not followed by a closing parenthesis.
