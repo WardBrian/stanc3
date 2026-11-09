@@ -95,7 +95,7 @@ module Pattern = struct
     | Block stmts ->
         Fmt.pf ppf "{@;<1 2>@[<v>%a@]@;}" Fmt.(list pp_s ~sep:cut) stmts
     | SList stmts -> Fmt.(list pp_s ~sep:cut |> vbox) ppf stmts
-    | Decl {decl_adtype; decl_id; decl_type; initialize} -> (
+    | Decl {decl_adtype; decl_id; decl_type; initialize; _} -> (
         match initialize with
         | Assign e ->
             Fmt.pf ppf "@[<hov 2>%a%a@ %s = %a;@]" UnsizedType.pp_autodifftype

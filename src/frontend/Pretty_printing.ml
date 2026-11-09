@@ -493,7 +493,8 @@ and pp_statement ppf ({stmt= s_content; smeta= {loc}} as ss : untyped_statement)
         pp_transformed_type (pst, trans)
         (pp_list_of pp_var (fun v -> v.identifier.id_loc))
         (variables, loc)
-  | FunDef {returntype= rt; funname= id; arguments= args; body= b} ->
+  | FunDef {returntype= rt; funname= id; arguments= args; body= b; annotations}
+    ->
       let pp_args ppf =
         let loc_of (_, _, id) = id.id_loc in
         let pp_arg ppf (at, ut, id) =
@@ -515,10 +516,11 @@ and pp_statement ppf ({stmt= s_content; smeta= {loc}} as ss : untyped_statement)
       let long = String.length id.name > max_line_length / 3 in
       let many_args = List.length args > max_line_length / 10 in
       if long then
-        pf ppf "@[%a@ @]@[@[<hv 2>%a(@,%t@]@,)@]%t" pp_returntype rt
-          pp_identifier id pp_args pp_body
+        pf ppf "@[<hv>%a@]@[%a@ @]@[@[<hv 2>%a(@,%t@]@,)@]%t" pp_annotations
+          annotations pp_returntype rt pp_identifier id pp_args pp_body
       else
-        pf ppf "@[%a@ @]%a(%a%t)@]%t" pp_returntype rt pp_identifier id
+        pf ppf "@[<hv>%a@]@[%a@ @]%a(%a%t)@]%t" pp_annotations annotations
+          pp_returntype rt pp_identifier id
           (if many_args then Format.pp_open_hvbox else Format.pp_open_box)
           0 pp_args pp_body
 
