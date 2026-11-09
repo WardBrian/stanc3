@@ -2070,7 +2070,8 @@ and get_fn_decl_or_defn loc tenv id arg_tys rt body annotations =
       match exists_matching_fn_declared tenv id arg_tys rt with
       | Some prev -> Semantic_error.fn_decl_exists loc id.name prev |> error
       | None ->
-          if List.mem ~set:annotations "extern" then `UserExtern id.id_loc
+          if List.exists annotations ~f:(fun {name; _} -> name = "extern") then
+            `UserExtern id.id_loc
           else `UserDeclared id.id_loc)
   | _ -> `UserDefined id.id_loc
 

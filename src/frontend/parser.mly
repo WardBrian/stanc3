@@ -342,10 +342,13 @@ constrained_matrix:
     args = separated_list(COMMA, arg_decl) RPAREN
     { rt, name, args }
 
+%inline annotation:
+  | a = ANNOTATION { build_id a $loc }
+
 function_def:
-  | annotations = list(ANNOTATION) fn = function_start
+  | annotations = list(annotation) fn = function_start
     body = located_statement(semi_statement)
-    | annotations = list(ANNOTATION) fn = function_start
+    | annotations = list(annotation) fn = function_start
     body = located_statement(block_statement)
     {
       grammar_logger "function_def";
@@ -475,7 +478,7 @@ remaining_declarations(rhs):
  *)
 decl(type_rule, rhs):
   (* This is just a helper for the fact that we don't support the old array syntax any more *)
-  | list(ANNOTATION) ty = type_rule id = decl_identifier LBRACK
+  | list(annotation) ty = type_rule id = decl_identifier LBRACK
     dims = separated_nonempty_list(COMMA, expression) RBRACK
     {
       let ty, trans = ty in
@@ -492,12 +495,12 @@ decl(type_rule, rhs):
            Pretty_printing.pp_transformed_type ty id.name)
         $loc(dims)
     }
-  | list(ANNOTATION) DATABLOCK UNREACHABLE
+  | list(annotation) DATABLOCK UNREACHABLE
     {
       Common.ICE.internal_error "the UNREACHABLE token should never be produced"
       [@coverage off]
     }
-  | annotations = list(ANNOTATION) ty = higher_type(type_rule)
+  | annotations = list(annotation) ty = higher_type(type_rule)
     (* additional indirection only for better error messaging *)
     v = id_and_optional_assignment(rhs, decl_identifier)
     vs = option(remaining_declarations(rhs)) SEMICOLON

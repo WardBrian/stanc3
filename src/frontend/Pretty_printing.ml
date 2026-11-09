@@ -411,7 +411,7 @@ let pp_annotations ppf ann =
   (* TODO better comment handling? *)
   if List.is_empty ann then ()
   else
-    let pp ppf s = pf ppf "%@%s" s in
+    let pp ppf s = pf ppf "%@%s" s.name in
     pf ppf "%a@ " (list ~sep:sp pp) ann
 
 let rec pp_indent_unless_block ppf ((s : untyped_statement), loc) =
